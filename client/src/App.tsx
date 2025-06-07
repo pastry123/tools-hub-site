@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
 import Dashboard from "@/pages/Dashboard";
 import CategoryPage from "@/pages/CategoryPage";
+import CategoryDetailPage from "@/pages/CategoryDetailPage";
 import ToolPage from "@/pages/ToolPage";
 import NotFound from "@/pages/not-found";
 
@@ -17,7 +18,7 @@ function Router() {
       <Header />
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/category/:categoryId" component={CategoryPage} />
+        <Route path="/category/:categoryId" component={CategoryDetailPage} />
         <Route path="/tool/:toolId" component={ToolPage} />
         <Route component={NotFound} />
       </Switch>

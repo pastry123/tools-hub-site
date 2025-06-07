@@ -4,6 +4,14 @@ export interface Tool {
   description: string;
   icon: string;
   popular?: boolean;
+  subcategory?: string;
+}
+
+export interface Subcategory {
+  id: string;
+  name: string;
+  description: string;
+  tools: Tool[];
 }
 
 export interface ToolCategory {
@@ -13,6 +21,7 @@ export interface ToolCategory {
   icon: string;
   color: string;
   tools: Tool[];
+  subcategories?: Subcategory[];
 }
 
 export const toolCategories: ToolCategory[] = [
@@ -23,15 +32,198 @@ export const toolCategories: ToolCategory[] = [
     icon: "fa-qrcode",
     color: "blue",
     tools: [
-      { id: "qr-generator", name: "QR Code Generator", description: "Create custom QR codes for various content types", icon: "fa-qrcode", popular: true },
-      { id: "code-128", name: "Code-128 Generator", description: "Generate Code-128 linear barcodes", icon: "fa-barcode" },
-      { id: "ean-13", name: "EAN-13 Generator", description: "Create EAN-13 product barcodes", icon: "fa-barcode" },
-      { id: "upc-a", name: "UPC-A Generator", description: "Generate UPC-A universal product codes", icon: "fa-barcode" },
-      { id: "data-matrix", name: "Data Matrix Generator", description: "Create 2D Data Matrix codes", icon: "fa-th" },
-      { id: "pdf417", name: "PDF417 Generator", description: "Generate PDF417 2D barcodes", icon: "fa-qrcode" },
-      { id: "aztec", name: "Aztec Code Generator", description: "Create Aztec 2D matrix codes", icon: "fa-qrcode" },
-      { id: "code-39", name: "Code-39 Generator", description: "Generate Code-39 alpha-numeric barcodes", icon: "fa-barcode" },
-      { id: "postal", name: "Postal Barcode Generator", description: "Create postal service barcodes", icon: "fa-barcode" }
+      { id: "qr-generator", name: "QR Code Generator", description: "Create custom QR codes for various content types", icon: "fa-qrcode", popular: true, subcategory: "2d-codes" },
+      { id: "code-128", name: "Code-128 Generator", description: "Generate Code-128 linear barcodes", icon: "fa-barcode", subcategory: "linear-codes" },
+      { id: "ean-13", name: "EAN-13 Generator", description: "Create EAN-13 product barcodes", icon: "fa-barcode", subcategory: "ean-upc" },
+      { id: "upc-a", name: "UPC-A Generator", description: "Generate UPC-A universal product codes", icon: "fa-barcode", subcategory: "ean-upc" },
+      { id: "data-matrix", name: "Data Matrix Generator", description: "Create 2D Data Matrix codes", icon: "fa-th", subcategory: "2d-codes" },
+      { id: "pdf417", name: "PDF417 Generator", description: "Generate PDF417 2D barcodes", icon: "fa-qrcode", subcategory: "2d-codes" },
+      { id: "aztec", name: "Aztec Code Generator", description: "Create Aztec 2D matrix codes", icon: "fa-qrcode", subcategory: "2d-codes" },
+      { id: "code-39", name: "Code-39 Generator", description: "Generate Code-39 alpha-numeric barcodes", icon: "fa-barcode", subcategory: "linear-codes" },
+      { id: "postal", name: "Postal Barcode Generator", description: "Create postal service barcodes", icon: "fa-barcode", subcategory: "postal-codes" }
+    ],
+    subcategories: [
+      {
+        id: "linear-codes",
+        name: "Linear Codes",
+        description: "One-dimensional barcodes for product identification",
+        tools: [
+          { id: "code-128", name: "Code-128", description: "High-density linear barcode symbology", icon: "fa-barcode" },
+          { id: "code-11", name: "Code-11", description: "Discrete barcode symbology used in telecommunications", icon: "fa-barcode" },
+          { id: "code-2of5", name: "Code-2of5 Interleaved", description: "Numeric-only barcode format", icon: "fa-barcode" },
+          { id: "code-39", name: "Code-39", description: "Variable length alphanumeric barcode", icon: "fa-barcode" },
+          { id: "code-39-ascii", name: "Code-39 Full ASCII", description: "Extended Code-39 with full ASCII support", icon: "fa-barcode" },
+          { id: "code-93", name: "Code-93", description: "Compact alphanumeric barcode", icon: "fa-barcode" },
+          { id: "flattermarken", name: "Flattermarken", description: "German pharmaceutical barcode", icon: "fa-barcode" },
+          { id: "gs1-128", name: "GS1-128 (UCC/EAN-128)", description: "Application identifier barcode", icon: "fa-barcode" },
+          { id: "msi", name: "MSI", description: "Modified Plessey barcode", icon: "fa-barcode" },
+          { id: "pharmacode-one", name: "Pharmacode One-Track", description: "Pharmaceutical barcode standard", icon: "fa-barcode" },
+          { id: "pharmacode-two", name: "Pharmacode Two-Track", description: "Two-track pharmaceutical barcode", icon: "fa-barcode" },
+          { id: "telepen-alpha", name: "Telepen Alpha", description: "Full ASCII character set barcode", icon: "fa-barcode" }
+        ]
+      },
+      {
+        id: "postal-codes",
+        name: "Postal Codes",
+        description: "Barcodes for postal and shipping services",
+        tools: [
+          { id: "australia-post", name: "Australian Post Standard Customer", description: "Australia Post customer barcode", icon: "fa-barcode" },
+          { id: "daft", name: "DAFT", description: "Four-state postal barcode", icon: "fa-barcode" },
+          { id: "dpd-barcode", name: "DPD Barcode (DPD Parcel Label)", description: "DPD shipping label barcode", icon: "fa-barcode" },
+          { id: "japanese-postal", name: "Japanese Postal (Customer) Code", description: "Japan Post customer barcode", icon: "fa-barcode" },
+          { id: "kix", name: "KIX (TNT Post Netherlands)", description: "Netherlands postal barcode", icon: "fa-barcode" },
+          { id: "korean-postal", name: "Korean Postal Authority Code", description: "Korea Post barcode system", icon: "fa-barcode" },
+          { id: "planet-12", name: "Planet Code 12", description: "USPS Planet barcode 12-digit", icon: "fa-barcode" },
+          { id: "royal-mail-4state", name: "Royal Mail 4-State", description: "UK Royal Mail barcode", icon: "fa-barcode" },
+          { id: "royal-mail-mailmark-4state", name: "Royal Mail Mailmark 4-State", description: "Updated Royal Mail barcode", icon: "fa-barcode" },
+          { id: "royal-mail-mailmark-2d", name: "Royal Mail Mailmark 2D", description: "2D Royal Mail barcode", icon: "fa-qrcode" },
+          { id: "usps-postnet-5", name: "USPS PostNet 5", description: "5-digit ZIP code barcode", icon: "fa-barcode" },
+          { id: "usps-postnet-9", name: "USPS PostNet 9", description: "9-digit ZIP+4 barcode", icon: "fa-barcode" },
+          { id: "usps-postnet-11", name: "USPS PostNet 11", description: "11-digit delivery point barcode", icon: "fa-barcode" },
+          { id: "usps-im-package", name: "USPS IM Package", description: "USPS Intelligent Mail barcode", icon: "fa-barcode" },
+          { id: "upu-s10", name: "UPU S10", description: "Universal Postal Union standard", icon: "fa-barcode" }
+        ]
+      },
+      {
+        id: "gs1-databar",
+        name: "GS1 DataBar",
+        description: "Compact barcodes for retail applications",
+        tools: [
+          { id: "gs1-databar-stacked", name: "GS1-DataBar Stacked", description: "Stacked version of GS1 DataBar", icon: "fa-barcode" },
+          { id: "gs1-databar-stacked-omni", name: "GS1-DataBar Stacked Omni", description: "Omnidirectional stacked DataBar", icon: "fa-barcode" },
+          { id: "gs1-databar-limited", name: "GS1-DataBar Limited", description: "Compact DataBar for small items", icon: "fa-barcode" },
+          { id: "gs1-databar-expanded", name: "GS1-DataBar Expanded", description: "Variable length DataBar", icon: "fa-barcode" },
+          { id: "gs1-databar-expanded-stacked", name: "GS1-DataBar Expanded Stacked", description: "Stacked expanded DataBar", icon: "fa-barcode" },
+          { id: "gs1-128-composite", name: "GS1-128 Composite Symbology", description: "Composite barcode with GS1-128", icon: "fa-barcode" },
+          { id: "gs1-databar-composite", name: "GS1-DataBar Composite", description: "DataBar with composite component", icon: "fa-barcode" }
+        ]
+      },
+      {
+        id: "ean-upc",
+        name: "EAN / UPC",
+        description: "Retail product identification barcodes",
+        tools: [
+          { id: "ean-8", name: "EAN-8", description: "8-digit European Article Number", icon: "fa-barcode" },
+          { id: "ean-13", name: "EAN-13", description: "13-digit European Article Number", icon: "fa-barcode" },
+          { id: "ean-14", name: "EAN-14", description: "14-digit shipping container code", icon: "fa-barcode" },
+          { id: "ean-8-composite", name: "EAN-8 Composite Symbology", description: "EAN-8 with composite component", icon: "fa-barcode" },
+          { id: "ean-13-composite", name: "EAN-13 Composite Symbology", description: "EAN-13 with composite component", icon: "fa-barcode" },
+          { id: "upc-a", name: "UPC-A", description: "Universal Product Code format A", icon: "fa-barcode" },
+          { id: "upc-e", name: "UPC-E", description: "Universal Product Code format E", icon: "fa-barcode" },
+          { id: "upc-a-composite", name: "UPC-A Composite Symbology", description: "UPC-A with composite component", icon: "fa-barcode" },
+          { id: "upc-e-composite", name: "UPC-E Composite Symbology", description: "UPC-E with composite component", icon: "fa-barcode" }
+        ]
+      },
+      {
+        id: "2d-codes",
+        name: "2D Codes",
+        description: "Two-dimensional matrix and stacked barcodes",
+        tools: [
+          { id: "qr-code", name: "QR Code", description: "Quick Response matrix barcode", icon: "fa-qrcode", popular: true },
+          { id: "qr-code-mobile", name: "QR Code (Mobile/Smartphone)", description: "Mobile-optimized QR codes", icon: "fa-mobile-alt" },
+          { id: "data-matrix", name: "Data Matrix", description: "2D matrix barcode for small items", icon: "fa-th" },
+          { id: "aztec", name: "Aztec", description: "2D matrix symbology", icon: "fa-qrcode" },
+          { id: "codablock-f", name: "Codablock-F", description: "Stacked linear barcode", icon: "fa-barcode" },
+          { id: "maxicode", name: "MaxiCode", description: "Fixed-size 2D barcode", icon: "fa-qrcode" },
+          { id: "micropdf417", name: "MicroPDF417", description: "Compact version of PDF417", icon: "fa-qrcode" },
+          { id: "pdf417", name: "PDF417", description: "Portable Data File 417", icon: "fa-qrcode" },
+          { id: "micro-qr", name: "Micro QR Code", description: "Compact QR code variant", icon: "fa-qrcode" },
+          { id: "han-xin", name: "Han Xin", description: "Chinese 2D barcode standard", icon: "fa-qrcode" },
+          { id: "dotcode", name: "DotCode", description: "2D dot matrix barcode", icon: "fa-braille" },
+          { id: "ntin-code", name: "NTIN Code", description: "National Trade Item Number", icon: "fa-qrcode" },
+          { id: "ppn-code", name: "PPN Code", description: "Pharmacy Product Number", icon: "fa-qrcode" }
+        ]
+      },
+      {
+        id: "gs1-2d",
+        name: "GS1 2D Barcodes",
+        description: "GS1 compliant 2D barcodes",
+        tools: [
+          { id: "gs1-qr", name: "GS1 QR Code", description: "GS1 compliant QR code", icon: "fa-qrcode" },
+          { id: "gs1-datamatrix", name: "GS1 DataMatrix", description: "GS1 compliant Data Matrix", icon: "fa-th" },
+          { id: "gs1-digital-link-qr", name: "GS1 Digital Link QR code", description: "Digital Link QR implementation", icon: "fa-qrcode" },
+          { id: "gs1-digital-link-dm", name: "GS1 Digital Link Data Matrix", description: "Digital Link Data Matrix", icon: "fa-th" }
+        ]
+      },
+      {
+        id: "banking-payments",
+        name: "Banking and Payments",
+        description: "Financial and payment barcodes",
+        tools: [
+          { id: "epc-qr-v2", name: "EPC QR Code V2", description: "European Payments Council QR", icon: "fa-qrcode" },
+          { id: "swiss-qr-v1", name: "Swiss QR Code v.1.0", description: "Swiss payment QR code v1", icon: "fa-qrcode" },
+          { id: "swiss-qr-v2-no-ref", name: "Swiss QR Code v.2.2 (No Reference)", description: "Swiss QR without reference", icon: "fa-qrcode" },
+          { id: "swiss-qr-v2-creditor", name: "Swiss QR Code v.2.2 (Creditor Reference)", description: "Swiss QR with creditor reference", icon: "fa-qrcode" },
+          { id: "swiss-qr-v2-qr-ref", name: "Swiss QR Code v.2.2 (QR Reference)", description: "Swiss QR with QR reference", icon: "fa-qrcode" },
+          { id: "zatca-qr", name: "ZATCA QR Code", description: "Saudi Arabia tax authority QR", icon: "fa-qrcode" }
+        ]
+      },
+      {
+        id: "mobile-tagging",
+        name: "Mobile Tagging",
+        description: "Mobile-optimized barcodes",
+        tools: [
+          { id: "mobile-qr", name: "QR Code", description: "Mobile QR code generator", icon: "fa-qrcode" },
+          { id: "mobile-datamatrix", name: "Data Matrix", description: "Mobile Data Matrix generator", icon: "fa-th" },
+          { id: "mobile-aztec", name: "Aztec", description: "Mobile Aztec code generator", icon: "fa-qrcode" }
+        ]
+      },
+      {
+        id: "healthcare",
+        name: "Healthcare Codes",
+        description: "Medical and pharmaceutical barcodes",
+        tools: [
+          { id: "code32", name: "Code32", description: "Italian pharmacode", icon: "fa-barcode" },
+          { id: "hibc-lic-128", name: "HIBC LIC 128", description: "Healthcare Industry Bar Code", icon: "fa-barcode" },
+          { id: "hibc-lic-39", name: "HIBC LIC 39", description: "HIBC with Code 39", icon: "fa-barcode" },
+          { id: "hibc-lic-aztec", name: "HIBC LIC Aztec", description: "HIBC with Aztec code", icon: "fa-qrcode" },
+          { id: "hibc-pas-qr", name: "HIBC PAS QR-Code", description: "HIBC Patient Identification", icon: "fa-qrcode" },
+          { id: "ntin-datamatrix", name: "NTIN (Data Matrix)", description: "National Trade Item Number", icon: "fa-th" },
+          { id: "pzn7", name: "PZN7", description: "7-digit German pharmaceutical number", icon: "fa-barcode" },
+          { id: "pzn8", name: "PZN8", description: "8-digit German pharmaceutical number", icon: "fa-barcode" }
+        ]
+      },
+      {
+        id: "isbn-codes",
+        name: "ISBN Codes",
+        description: "Book and publication identification",
+        tools: [
+          { id: "isbn-13", name: "ISBN 13", description: "13-digit International Standard Book Number", icon: "fa-book" },
+          { id: "isbn-13-5", name: "ISBN 13 + 5 Digits", description: "ISBN with 5-digit add-on", icon: "fa-book" },
+          { id: "ismn", name: "ISMN", description: "International Standard Music Number", icon: "fa-music" },
+          { id: "issn", name: "ISSN", description: "International Standard Serial Number", icon: "fa-newspaper" },
+          { id: "issn-2", name: "ISSN + 2 Digits", description: "ISSN with 2-digit add-on", icon: "fa-newspaper" }
+        ]
+      },
+      {
+        id: "business-cards",
+        name: "Business Cards",
+        description: "Contact information barcodes",
+        tools: [
+          { id: "qr-vcard", name: "QR Code vCard", description: "QR code with vCard contact info", icon: "fa-address-card" },
+          { id: "datamatrix-vcard", name: "Data Matrix vCard", description: "Data Matrix with vCard info", icon: "fa-address-card" },
+          { id: "qr-mecard", name: "QR Code MeCard", description: "QR code with MeCard format", icon: "fa-id-card" },
+          { id: "datamatrix-mecard", name: "Data Matrix MeCard", description: "Data Matrix with MeCard format", icon: "fa-id-card" }
+        ]
+      },
+      {
+        id: "event-barcodes",
+        name: "Event Barcodes",
+        description: "Event and ticket barcodes",
+        tools: [
+          { id: "event-qr", name: "QR Code", description: "Event QR code generator", icon: "fa-ticket-alt" },
+          { id: "event-datamatrix", name: "Data Matrix", description: "Event Data Matrix generator", icon: "fa-ticket-alt" }
+        ]
+      },
+      {
+        id: "wifi-barcodes",
+        name: "Wi-Fi Barcodes",
+        description: "Wi-Fi connection barcodes",
+        tools: [
+          { id: "wifi-qr", name: "QR Code", description: "Wi-Fi connection QR code", icon: "fa-wifi" },
+          { id: "wifi-datamatrix", name: "Data Matrix", description: "Wi-Fi connection Data Matrix", icon: "fa-wifi" }
+        ]
+      }
     ]
   },
   {
