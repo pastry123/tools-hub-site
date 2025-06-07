@@ -47,6 +47,8 @@ import CSSMinifier from "@/components/tools/CSSMinifier";
 import JSMinifier from "@/components/tools/JSMinifier";
 import LoremPicsum from "@/components/tools/LoremPicsum";
 import PDFRotate from "@/components/tools/PDFRotate";
+import PDFWatermark from "@/components/tools/PDFWatermark";
+import ImageToText from "@/components/tools/ImageToText";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -116,6 +118,8 @@ export default function ToolPage() {
         return <PDFConverter />;
       case 'pdf-watermark':
         return <PDFWatermark />;
+      case 'pdf-rotate':
+        return <PDFRotate />;
       case 'pdf-protector':
       case 'pdf-unlock':
         return <PDFProtector />;
@@ -195,12 +199,6 @@ export default function ToolPage() {
         return <JSMinifier />;
       case 'lorem-picsum':
         return <LoremPicsum />;
-      case 'pdf-rotate':
-        return <PDFRotate />;
-      case 'pdf-watermark':
-        return <PDFWatermark />;
-      case 'image-to-text':
-        return <ImageToText />;
       default:
         return (
           <Card>
