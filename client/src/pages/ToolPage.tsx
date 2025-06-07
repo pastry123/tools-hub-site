@@ -143,8 +143,7 @@ export default function ToolPage() {
         return <DummyTextGenerator />;
       case 'color-converter':
         return <ColorConverter />;
-      case 'uuid-generator':
-        return <UUIDGenerator />;
+      // Additional tools will be added here
       default:
         return (
           <Card>
