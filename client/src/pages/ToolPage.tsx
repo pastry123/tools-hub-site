@@ -160,7 +160,42 @@ export default function ToolPage() {
         return <DummyTextGenerator />;
       case 'color-converter':
         return <ColorConverter />;
-      // Additional tools will be added here
+      case 'timestamp-converter':
+        return <TimestampConverter />;
+      case 'base64-encoder':
+        return <Base64Encoder />;
+      case 'url-encoder':
+        return <URLEncoder />;
+      case 'json-formatter':
+        return <JSONFormatter />;
+      case 'csv-to-json':
+        return <CSVToJSON />;
+      case 'markdown-to-html':
+        return <MarkdownToHTML />;
+      case 'uuid-generator':
+        return <UUIDGenerator />;
+      case 'placeholder-generator':
+        return <PlaceholderGenerator />;
+      case 'css-gradient':
+        return <CSSGradientGenerator />;
+      case 'box-shadow':
+        return <BoxShadowGenerator />;
+      case 'meta-tag-generator':
+        return <MetaTagGenerator />;
+      case 'regex-tester':
+        return <RegexTester />;
+      case 'api-tester':
+        return <APITester />;
+      case 'jwt-decoder':
+        return <JWTDecoder />;
+      case 'html-encoder':
+        return <HTMLEncoder />;
+      case 'css-minifier':
+        return <CSSMinifier />;
+      case 'js-minifier':
+        return <JSMinifier />;
+      case 'lorem-picsum':
+        return <LoremPicsum />;
       default:
         return (
           <Card>

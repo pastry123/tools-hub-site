@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Image, Copy, Download, Refresh } from 'lucide-react';
+import { Image, Copy, Download, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoremPicsum() {
@@ -156,7 +156,7 @@ export default function LoremPicsum() {
               {isProcessing ? 'Generating...' : 'Generate URL'}
             </Button>
             <Button onClick={generateRandom} disabled={isProcessing} variant="outline">
-              <Refresh className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
 
