@@ -8,6 +8,8 @@ import PDFMerger from "@/components/tools/PDFMerger";
 import PDFSplitter from "@/components/tools/PDFSplitter";
 import PDFCompressor from "@/components/tools/PDFCompressor";
 import PDFConverter from "@/components/tools/PDFConverter";
+import PDFWatermark from "@/components/tools/PDFWatermark";
+import PDFProtector from "@/components/tools/PDFProtector";
 import PasswordGenerator from "@/components/tools/PasswordGenerator";
 import ImageCompressor from "@/components/tools/ImageCompressor";
 import WordCounter from "@/components/tools/WordCounter";
@@ -67,6 +69,24 @@ export default function ToolPage() {
     switch (tool.id) {
       case 'pdf-merger':
         return <PDFMerger />;
+      case 'pdf-splitter':
+        return <PDFSplitter />;
+      case 'pdf-compressor':
+        return <PDFCompressor />;
+      case 'pdf-to-word':
+      case 'word-to-pdf':
+      case 'pdf-to-excel':
+      case 'excel-to-pdf':
+      case 'pdf-to-images':
+      case 'images-to-pdf':
+      case 'pdf-to-text':
+      case 'pdf-to-html':
+        return <PDFConverter />;
+      case 'pdf-watermark':
+        return <PDFWatermark />;
+      case 'pdf-protector':
+      case 'pdf-unlock':
+        return <PDFProtector />;
       case 'password-generator':
         return <PasswordGenerator />;
       case 'image-compressor':
