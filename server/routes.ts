@@ -787,7 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Type and colors array are required' });
       }
 
-      const result = generatorService.generateCSSGradient({ type, direction, colors, css: '' });
+      const result = generatorService.generateCSSGradient({ type, direction, colors });
       res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -802,8 +802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'All shadow parameters are required' });
       }
 
-      const shadow = { horizontal, vertical, blur, spread, color, inset };
-      const result = generatorService.generateBoxShadow(shadow);
+      const result = generatorService.generateBoxShadow({ horizontal, vertical, blur, spread, color, inset });
       res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });

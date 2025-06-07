@@ -106,7 +106,7 @@ export class GeneratorService {
     return `linear-gradient(${direction}, ${colorStops})`;
   }
 
-  generateBoxShadow(options: BoxShadow): string {
+  generateBoxShadow(options: { horizontal: number; vertical: number; blur: number; spread: number; color: string; inset?: boolean }): string {
     const { horizontal, vertical, blur, spread, color, inset } = options;
     const insetStr = inset ? 'inset ' : '';
     return `${insetStr}${horizontal}px ${vertical}px ${blur}px ${spread}px ${color}`;

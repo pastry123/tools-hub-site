@@ -29,6 +29,8 @@ import HashGenerator from "@/components/tools/HashGenerator";
 import CodeFormatter from "@/components/tools/CodeFormatter";
 import TextToSlug from "@/components/tools/TextToSlug";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
+import ColorConverter from "@/components/tools/ColorConverter";
+// import UUIDGenerator from "@/components/tools/UUIDGenerator";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -139,6 +141,10 @@ export default function ToolPage() {
         return <TextToSlug />;
       case 'dummy-text':
         return <DummyTextGenerator />;
+      case 'color-converter':
+        return <ColorConverter />;
+      case 'uuid-generator':
+        return <UUIDGenerator />;
       default:
         return (
           <Card>
