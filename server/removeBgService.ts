@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import FormData from 'form-data';
 
 export interface RemoveBgOptions {
   size?: 'auto' | 'preview' | 'full' | 'regular' | 'medium' | 'hd' | '4k';
@@ -31,7 +32,6 @@ export class RemoveBgService {
     options: RemoveBgOptions = {}
   ): Promise<RemoveBgResult> {
     try {
-      const FormData = require('form-data');
       const formData = new FormData();
       
       // Add image
@@ -54,7 +54,7 @@ export class RemoveBgService {
           'X-Api-Key': this.apiKey,
           ...formData.getHeaders()
         },
-        body: formData,
+        body: formData as any,
       });
 
       if (!response.ok) {
