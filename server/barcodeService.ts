@@ -23,16 +23,21 @@ export interface BarcodeResult {
 export class BarcodeService {
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {
     try {
+      console.log('Starting barcode scan process...');
+      
       // Convert image to RGBA format for jsQR
       const { data, info } = await sharp(imageBuffer)
         .ensureAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
 
+      console.log(`Image processed: ${info.width}x${info.height}, buffer size: ${data.length}`);
+
       // Try QR code detection first
       const qrResult = jsQR(new Uint8ClampedArray(data), info.width, info.height);
       
       if (qrResult) {
+        console.log('QR code detected:', qrResult.data);
         return {
           value: qrResult.data,
           type: 'QR Code',
@@ -48,20 +53,27 @@ export class BarcodeService {
         };
       }
 
+      console.log('No QR code found, trying linear barcode detection...');
+
       // If no QR code found, try other barcode formats using pattern analysis
       const barcodeResult = await this.detectOtherBarcodes(imageBuffer);
       if (barcodeResult) {
+        console.log('Linear barcode detected:', barcodeResult.value);
         return barcodeResult;
       }
 
+      console.log('No barcode detected in image');
       throw new Error('No barcode or QR code detected in the image');
     } catch (error) {
+      console.error('Barcode scan error:', error);
       throw new Error(`Failed to scan barcode: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   private async detectOtherBarcodes(imageBuffer: Buffer): Promise<BarcodeResult | null> {
     try {
+      console.log('Starting linear barcode detection...');
+      
       // Enhanced preprocessing for linear barcode detection
       const { data, info } = await sharp(imageBuffer)
         .greyscale()
@@ -69,9 +81,12 @@ export class BarcodeService {
         .sharpen()
         .toBuffer({ resolveWithObject: true });
 
+      console.log(`Image processed: ${info.width}x${info.height}, channels: ${info.channels}`);
+
       // Try multiple detection approaches
       const result = this.analyzeLinearBarcodePattern(data, info.width, info.height);
       
+      console.log('Linear barcode detection result:', result ? 'Found' : 'Not found');
       return result;
     } catch (error) {
       console.error('Linear barcode detection error:', error);
@@ -120,12 +135,17 @@ export class BarcodeService {
     const binaryData = rowData.map(pixel => pixel < threshold ? 0 : 1);
     const transitions = this.findBinaryTransitions(binaryData);
 
-    if (transitions.length >= 20) { // Minimum bars for valid barcode
+    console.log(`Scan line ${y}: transitions=${transitions.length}, threshold=${threshold}, width=${width}`);
+
+    if (transitions.length >= 10) { // Reduced threshold for testing
       // Analyze bar patterns for Code 128
       const barWidths = this.calculateBarWidths(transitions);
+      console.log(`Bar widths count: ${barWidths.length}, sample widths:`, barWidths.slice(0, 10));
+      
       const decoded = this.decodeCode128Simplified(barWidths);
       
       if (decoded) {
+        console.log(`Successfully decoded: ${decoded}`);
         return {
           value: decoded,
           type: 'Linear Barcode',
