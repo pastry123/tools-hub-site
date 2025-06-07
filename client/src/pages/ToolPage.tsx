@@ -15,6 +15,20 @@ import ImageCompressor from "@/components/tools/ImageCompressor";
 import WordCounter from "@/components/tools/WordCounter";
 import UnitConverter from "@/components/tools/UnitConverter";
 import BackgroundRemover from "@/components/tools/BackgroundRemover";
+import ImageResizer from "@/components/tools/ImageResizer";
+import ImageConverter from "@/components/tools/ImageConverter";
+import ImageCropper from "@/components/tools/ImageCropper";
+import ImageToText from "@/components/tools/ImageToText";
+import FaviconGenerator from "@/components/tools/FaviconGenerator";
+import ColorPaletteExtractor from "@/components/tools/ColorPaletteExtractor";
+import AddWatermark from "@/components/tools/AddWatermark";
+import CaseConverter from "@/components/tools/CaseConverter";
+import LoremGenerator from "@/components/tools/LoremGenerator";
+import TextReverser from "@/components/tools/TextReverser";
+import HashGenerator from "@/components/tools/HashGenerator";
+import CodeFormatter from "@/components/tools/CodeFormatter";
+import TextToSlug from "@/components/tools/TextToSlug";
+import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -97,6 +111,34 @@ export default function ToolPage() {
         return <WordCounter />;
       case 'unit-converter':
         return <UnitConverter />;
+      case 'image-resizer':
+        return <ImageResizer />;
+      case 'image-converter':
+        return <ImageConverter />;
+      case 'image-cropper':
+        return <ImageCropper />;
+      case 'image-to-text':
+        return <ImageToText />;
+      case 'favicon-generator':
+        return <FaviconGenerator />;
+      case 'color-palette':
+        return <ColorPaletteExtractor />;
+      case 'add-watermark':
+        return <AddWatermark />;
+      case 'case-converter':
+        return <CaseConverter />;
+      case 'lorem-generator':
+        return <LoremGenerator />;
+      case 'text-reverser':
+        return <TextReverser />;
+      case 'hash-generator':
+        return <HashGenerator />;
+      case 'code-formatter':
+        return <CodeFormatter />;
+      case 'text-to-slug':
+        return <TextToSlug />;
+      case 'dummy-text':
+        return <DummyTextGenerator />;
       default:
         return (
           <Card>
