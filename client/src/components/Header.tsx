@@ -1,7 +1,10 @@
 import { Link, useLocation } from "wouter";
-import { Search, Bell, Bolt } from "lucide-react";
+import { Search, Bell, Bolt, Moon, Sun, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage, type Language } from "@/contexts/LanguageContext";
 import { useState } from "react";
 
 export default function Header() {
