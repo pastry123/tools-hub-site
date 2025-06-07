@@ -64,6 +64,21 @@ const translations = {
     "common.download": "Download",
     "common.copy": "Copy",
     "common.clear": "Clear",
+    
+    // Barcode subcategories
+    "barcode.linear": "Linear Codes",
+    "barcode.postal": "Postal Codes", 
+    "barcode.gs1databar": "GS1 DataBar",
+    "barcode.ean-upc": "EAN / UPC",
+    "barcode.2d": "2D Codes",
+    "barcode.gs1-2d": "GS1 2D Barcodes",
+    "barcode.banking": "Banking and Payments",
+    "barcode.mobile": "Mobile Tagging",
+    "barcode.healthcare": "Healthcare Codes",
+    "barcode.isbn": "ISBN Codes",
+    "barcode.business": "Business Cards",
+    "barcode.events": "Event Barcodes",
+    "barcode.wifi": "Wi-Fi Barcodes",
   },
   es: {
     // Header
@@ -120,6 +135,21 @@ const translations = {
     "common.download": "Descargar",
     "common.copy": "Copiar",
     "common.clear": "Limpiar",
+    
+    // Barcode subcategories
+    "barcode.linear": "Códigos Lineales",
+    "barcode.postal": "Códigos Postales", 
+    "barcode.gs1databar": "GS1 DataBar",
+    "barcode.ean-upc": "EAN / UPC",
+    "barcode.2d": "Códigos 2D",
+    "barcode.gs1-2d": "Códigos 2D GS1",
+    "barcode.banking": "Banca y Pagos",
+    "barcode.mobile": "Etiquetado Móvil",
+    "barcode.healthcare": "Códigos Sanitarios",
+    "barcode.isbn": "Códigos ISBN",
+    "barcode.business": "Tarjetas de Visita",
+    "barcode.events": "Códigos de Eventos",
+    "barcode.wifi": "Códigos Wi-Fi",
   },
   ar: {
     // Header
@@ -176,6 +206,21 @@ const translations = {
     "common.download": "تحميل",
     "common.copy": "نسخ",
     "common.clear": "مسح",
+    
+    // Barcode subcategories
+    "barcode.linear": "الأكواد الخطية",
+    "barcode.postal": "الأكواد البريدية", 
+    "barcode.gs1databar": "GS1 DataBar",
+    "barcode.ean-upc": "EAN / UPC",
+    "barcode.2d": "الأكواد ثنائية الأبعاد",
+    "barcode.gs1-2d": "أكواد GS1 ثنائية الأبعاد",
+    "barcode.banking": "البنوك والمدفوعات",
+    "barcode.mobile": "العلامات المحمولة",
+    "barcode.healthcare": "أكواد الرعاية الصحية",
+    "barcode.isbn": "أكواد ISBN",
+    "barcode.business": "بطاقات العمل",
+    "barcode.events": "أكواد الأحداث",
+    "barcode.wifi": "أكواد الواي فاي",
   }
 };
 
