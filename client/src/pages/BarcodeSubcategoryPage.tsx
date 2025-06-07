@@ -2,7 +2,7 @@ import { useParams, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { categories } from "@/lib/toolCategories";
+import { toolCategories } from "@/lib/toolCategories";
 import { QrCode, ArrowRight } from "lucide-react";
 
 export default function BarcodeSubcategoryPage() {
@@ -10,8 +10,8 @@ export default function BarcodeSubcategoryPage() {
   const { t } = useLanguage();
 
   // Find the barcode category and specific subcategory
-  const barcodeCategory = categories.find(cat => cat.id === "barcodes");
-  const subcategory = barcodeCategory?.subcategories.find(sub => sub.id === subcategoryId);
+  const barcodeCategory = toolCategories.find((cat: any) => cat.id === "barcodes");
+  const subcategory = barcodeCategory?.subcategories?.find((sub: any) => sub.id === subcategoryId);
 
   if (!subcategory) {
     return (
@@ -99,7 +99,7 @@ export default function BarcodeSubcategoryPage() {
 
         {/* Tools Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {subcategory.tools.map((tool) => (
+          {subcategory.tools.map((tool: any) => (
             <Link 
               key={tool.id} 
               href={`/tool/${tool.id}`}

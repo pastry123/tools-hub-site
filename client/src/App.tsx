@@ -20,6 +20,8 @@ function Router() {
       <Header />
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/barcodes" component={BarcodeSubcategoriesPage} />
+        <Route path="/category/barcodes/:subcategoryId" component={BarcodeSubcategoryPage} />
         <Route path="/category/:categoryId" component={CategoryDetailPage} />
         <Route path="/tool/:toolId" component={ToolPage} />
         <Route component={NotFound} />
