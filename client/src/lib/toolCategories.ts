@@ -56,7 +56,7 @@ export const toolCategories: ToolCategory[] = [
       { id: "image-converter", name: "Image Converter", description: "Convert between JPG, PNG, WEBP, GIF formats", icon: "fa-exchange-alt" },
       { id: "image-cropper", name: "Image Cropper", description: "Cut out specific portions of images", icon: "fa-crop" },
       { id: "background-remover", name: "Background Remover", description: "Automatically remove image backgrounds", icon: "fa-eraser" },
-      { id: "image-ocr", name: "Image to Text (OCR)", description: "Extract text content from images", icon: "fa-font" },
+      { id: "image-to-text", name: "Image to Text (OCR)", description: "Extract text content from images", icon: "fa-font" },
       { id: "favicon-generator", name: "Favicon Generator", description: "Create favicon.ico files from images", icon: "fa-star" },
       { id: "color-palette", name: "Color Palette Extractor", description: "Extract color schemes from images", icon: "fa-palette" },
       { id: "image-watermark", name: "Add Watermark", description: "Add text or logo watermarks to images", icon: "fa-tint" }
@@ -125,7 +125,7 @@ export const toolCategories: ToolCategory[] = [
       { id: "html-encoder", name: "HTML Encoder/Decoder", description: "Encode and decode HTML entities", icon: "fa-code" },
       { id: "css-minifier", name: "CSS Minifier", description: "Minify CSS code for production", icon: "fa-compress" },
       { id: "js-minifier", name: "JavaScript Minifier", description: "Minify JavaScript code", icon: "fa-file-code" },
-      { id: "lorem-pixels", name: "Lorem Picsum", description: "Generate placeholder images", icon: "fa-image" }
+      { id: "lorem-picsum", name: "Lorem Picsum", description: "Generate placeholder images", icon: "fa-image" }
     ]
   }
 ];
