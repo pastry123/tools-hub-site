@@ -1,4 +1,4 @@
-import { PDFDocument, PDFPage, rgb } from 'pdf-lib';
+import { PDFDocument, PDFPage, rgb, degrees } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 
@@ -293,7 +293,7 @@ export class PDFService {
       for (const pageIndex of pagesToRotate) {
         if (pageIndex >= 0 && pageIndex < pages.length) {
           const page = pages[pageIndex];
-          page.setRotation({ angle: rotation, type: 'degrees' });
+          page.setRotation(degrees(rotation));
         }
       }
 
