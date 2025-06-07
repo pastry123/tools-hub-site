@@ -69,7 +69,7 @@ export const toolCategories: ToolCategory[] = [
     icon: "fa-font",
     color: "green",
     tools: [
-      { id: "word-counter", name: "Word Counter", description: "Count words, characters, and paragraphs", icon: "fa-calculator", popular: true },
+      { id: "word-counter", name: "Word Counter", description: "Count words, characters, and paragraphs", icon: "fa-calculator" },
       { id: "case-converter", name: "Case Converter", description: "Convert text between different cases", icon: "fa-text-height" },
       { id: "lorem-generator", name: "Lorem Ipsum Generator", description: "Generate placeholder text for designs", icon: "fa-paragraph" },
       { id: "text-reverser", name: "Text Reverser", description: "Flip text backward character by character", icon: "fa-exchange-alt" },
@@ -170,6 +170,13 @@ export function getPopularTools(): { tool: Tool; category: ToolCategory }[] {
         popularTools.push(...subcategoryPopularTools.map(tool => ({ tool, category })));
       }
     }
+  }
+  
+  // Prioritize QR generator in quick access by moving it to the front
+  const qrGeneratorIndex = popularTools.findIndex(item => item.tool.id === 'qr-generator');
+  if (qrGeneratorIndex > -1) {
+    const qrGenerator = popularTools.splice(qrGeneratorIndex, 1)[0];
+    popularTools.unshift(qrGenerator);
   }
   
   return popularTools;
