@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import multer from "multer";
 import { RemoveBgService } from "./removeBgService";
 import { pdfService } from "./pdfService";
+import { simpleImageService } from "./simpleImageService";
+import { textService } from "./textService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -317,6 +319,316 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Failed to protect PDF' 
       });
+    }
+  });
+
+  // IMAGE TOOLS ENDPOINTS
+
+  // Image Resizer
+  app.post('/api/image/resize', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { width, height, maintainAspectRatio, format, quality } = req.body;
+      const options = {
+        width: width ? parseInt(width) : undefined,
+        height: height ? parseInt(height) : undefined,
+        maintainAspectRatio: maintainAspectRatio === 'true',
+        format: format || 'png',
+        quality: quality ? parseInt(quality) : 80
+      };
+
+      const resizedImage = await simpleImageService.resizeImage(req.file.buffer, options);
+
+      res.setHeader('Content-Type', `image/${options.format}`);
+      res.setHeader('Content-Disposition', `attachment; filename="resized.${options.format}"`);
+      res.send(resizedImage);
+    } catch (error) {
+      console.error('Image resize error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to resize image' });
+    }
+  });
+
+  // Image Converter
+  app.post('/api/image/convert', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { format, quality } = req.body;
+      if (!format) {
+        return res.status(400).json({ error: 'Target format is required' });
+      }
+
+      const convertedImage = await simpleImageService.convertImageFormat(
+        req.file.buffer, 
+        format
+      );
+
+      res.setHeader('Content-Type', `image/${format}`);
+      res.setHeader('Content-Disposition', `attachment; filename="converted.${format}"`);
+      res.send(convertedImage);
+    } catch (error) {
+      console.error('Image conversion error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to convert image' });
+    }
+  });
+
+  // Image Cropper
+  app.post('/api/image/crop', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { x, y, width, height, format } = req.body;
+      if (!x || !y || !width || !height) {
+        return res.status(400).json({ error: 'Crop dimensions (x, y, width, height) are required' });
+      }
+
+      const options = {
+        x: parseFloat(x),
+        y: parseFloat(y),
+        width: parseFloat(width),
+        height: parseFloat(height),
+        format: format || 'png'
+      };
+
+      const croppedImage = await simpleImageService.cropImage(req.file.buffer, options);
+
+      res.setHeader('Content-Type', `image/${options.format}`);
+      res.setHeader('Content-Disposition', `attachment; filename="cropped.${options.format}"`);
+      res.send(croppedImage);
+    } catch (error) {
+      console.error('Image crop error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to crop image' });
+    }
+  });
+
+  // Image to Text (OCR)
+  app.post('/api/image/ocr', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const extractedText = await simpleImageService.imageToText(req.file.buffer);
+      res.json({ text: extractedText });
+    } catch (error) {
+      console.error('OCR error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to extract text from image' });
+    }
+  });
+
+  // Favicon Generator
+  app.post('/api/image/favicon', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { sizes, backgroundColor } = req.body;
+      const options = {
+        sizes: sizes ? JSON.parse(sizes) : [16, 32, 48, 64, 128, 256],
+        backgroundColor
+      };
+
+      const favicons = await simpleImageService.generateFavicons(req.file.buffer, options);
+      
+      // Return the largest favicon (typically 256x256) for download
+      const largestFavicon = favicons.reduce((max, current) => 
+        current.size > max.size ? current : max
+      );
+
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="favicon-${largestFavicon.size}x${largestFavicon.size}.png"`);
+      res.send(largestFavicon.data);
+    } catch (error) {
+      console.error('Favicon generation error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate favicon' });
+    }
+  });
+
+  // Color Palette Extractor
+  app.post('/api/image/palette', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { colorCount } = req.body;
+      const palette = await simpleImageService.extractColorPalette(
+        req.file.buffer, 
+        colorCount ? parseInt(colorCount) : 5
+      );
+
+      res.json(palette);
+    } catch (error) {
+      console.error('Color palette error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to extract color palette' });
+    }
+  });
+
+  // Add Watermark
+  app.post('/api/image/watermark', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { text, position, opacity, fontSize, color } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Watermark text is required' });
+      }
+
+      const options = {
+        text,
+        position: position || 'bottom-right',
+        opacity: opacity ? parseFloat(opacity) : 0.7,
+        fontSize: fontSize ? parseInt(fontSize) : undefined,
+        color: color || 'rgba(255, 255, 255, 0.7)'
+      };
+
+      const watermarkedImage = await simpleImageService.addWatermark(req.file.buffer, options);
+
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', 'attachment; filename="watermarked.png"');
+      res.send(watermarkedImage);
+    } catch (error) {
+      console.error('Watermark error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to add watermark' });
+    }
+  });
+
+  // TEXT & CONTENT TOOLS ENDPOINTS
+
+  // Case Converter
+  app.post('/api/text/case-convert', async (req, res) => {
+    try {
+      const { text, type } = req.body;
+      if (!text || !type) {
+        return res.status(400).json({ error: 'Text and conversion type are required' });
+      }
+
+      const convertedText = textService.convertCase(text, { type });
+      res.json({ result: convertedText });
+    } catch (error) {
+      console.error('Case conversion error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to convert case' });
+    }
+  });
+
+  // Lorem Ipsum Generator
+  app.post('/api/text/lorem', async (req, res) => {
+    try {
+      const { type, count, startWithLorem } = req.body;
+      if (!type || !count) {
+        return res.status(400).json({ error: 'Type and count are required' });
+      }
+
+      const lorem = textService.generateLoremIpsum({
+        type,
+        count: parseInt(count),
+        startWithLorem: startWithLorem === 'true'
+      });
+
+      res.json({ result: lorem });
+    } catch (error) {
+      console.error('Lorem generation error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate lorem ipsum' });
+    }
+  });
+
+  // Text Reverser
+  app.post('/api/text/reverse', async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const reversedText = textService.reverseText(text);
+      res.json({ result: reversedText });
+    } catch (error) {
+      console.error('Text reversal error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to reverse text' });
+    }
+  });
+
+  // Hash Generator
+  app.post('/api/text/hash', async (req, res) => {
+    try {
+      const { text, algorithm } = req.body;
+      if (!text || !algorithm) {
+        return res.status(400).json({ error: 'Text and algorithm are required' });
+      }
+
+      const hash = textService.generateHash(text, { algorithm });
+      res.json({ result: hash });
+    } catch (error) {
+      console.error('Hash generation error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate hash' });
+    }
+  });
+
+  // Code Formatter
+  app.post('/api/text/format-code', async (req, res) => {
+    try {
+      const { code, language, indent, minify } = req.body;
+      if (!code || !language) {
+        return res.status(400).json({ error: 'Code and language are required' });
+      }
+
+      const formattedCode = textService.formatCode(code, {
+        language,
+        indent: indent ? parseInt(indent) : 2,
+        minify: minify === 'true'
+      });
+
+      res.json({ result: formattedCode });
+    } catch (error) {
+      console.error('Code formatting error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to format code' });
+    }
+  });
+
+  // Text to Slug
+  app.post('/api/text/slug', async (req, res) => {
+    try {
+      const { text, lowercase, separator, maxLength, removeDiacritics } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const slug = textService.textToSlug(text, {
+        lowercase: lowercase !== 'false',
+        separator: separator || '-',
+        maxLength: maxLength ? parseInt(maxLength) : undefined,
+        removeDiacritics: removeDiacritics !== 'false'
+      });
+
+      res.json({ result: slug });
+    } catch (error) {
+      console.error('Slug generation error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate slug' });
+    }
+  });
+
+  // Dummy Text Generator
+  app.post('/api/text/dummy', async (req, res) => {
+    try {
+      const { paragraphs } = req.body;
+      const dummyText = textService.generateDummyText(
+        paragraphs ? parseInt(paragraphs) : 3
+      );
+
+      res.json({ result: dummyText });
+    } catch (error) {
+      console.error('Dummy text generation error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate dummy text' });
     }
   });
 
