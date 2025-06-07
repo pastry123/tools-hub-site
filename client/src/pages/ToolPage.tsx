@@ -34,9 +34,9 @@ export default function ToolPage() {
   ];
 
   const renderTool = () => {
-    // Handle all barcode-related tools
+    // Handle barcode tools (excluding qr-generator which has its own simple component)
     const barcodeTools = [
-      'qr-generator', 'code-128', 'code-11', 'code-2of5', 'code-39', 'code-39-ascii', 
+      'code-128', 'code-11', 'code-2of5', 'code-39', 'code-39-ascii', 
       'code-93', 'flattermarken', 'gs1-128', 'msi', 'pharmacode-one', 'pharmacode-two',
       'telepen-alpha', 'australia-post', 'daft', 'dpd-barcode', 'japanese-postal',
       'kix', 'korean-postal', 'planet-12', 'royal-mail-4state', 'royal-mail-mailmark-4state',
@@ -62,6 +62,8 @@ export default function ToolPage() {
     }
 
     switch (tool.id) {
+      case 'qr-generator':
+        return <QRGenerator />;
       case 'pdf-merger':
         return <PDFMerger />;
       case 'password-generator':
