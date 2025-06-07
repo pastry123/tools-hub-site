@@ -9,6 +9,7 @@ import { textService } from "./textService";
 import { converterService } from "./converterService";
 import { generatorService } from "./generatorService";
 import { developerService } from "./developerService";
+import { barcodeService } from "./barcodeService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -932,6 +933,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // BARCODE SCANNING ENDPOINTS
+
+  // Barcode/QR Code Scanner
+  app.post('/api/barcode/scan', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const result = await barcodeService.scanBarcode(req.file.buffer);
+      res.json({ result });
+    } catch (error) {
+      console.error('Barcode scan error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to scan barcode' });
     }
   });
 
