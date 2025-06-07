@@ -146,6 +146,7 @@ export default function ToolPage() {
       case 'color-palette':
         return <ColorPaletteExtractor />;
       case 'add-watermark':
+      case 'image-watermark':
         return <AddWatermark />;
       case 'case-converter':
         return <CaseConverter />;
@@ -199,6 +200,12 @@ export default function ToolPage() {
         return <JSMinifier />;
       case 'lorem-picsum':
         return <LoremPicsum />;
+      case 'meta-tags':
+      case 'meta-tag-generator':
+        return <MetaTagGenerator />;
+      case 'gradient-generator':
+      case 'css-gradient':
+        return <CSSGradientGenerator />;
       default:
         return (
           <Card>
