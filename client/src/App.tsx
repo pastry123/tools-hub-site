@@ -12,6 +12,8 @@ import CategoryDetailPage from "@/pages/CategoryDetailPage";
 import ToolPage from "@/pages/ToolPage";
 import BarcodeSubcategoriesPage from "@/pages/BarcodeSubcategoriesPage";
 import BarcodeSubcategoryPage from "@/pages/BarcodeSubcategoryPage";
+import FavoritesPage from "@/pages/FavoritesPage";
+import RecentPage from "@/pages/RecentPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +22,8 @@ function Router() {
       <Header />
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/favorites" component={FavoritesPage} />
+        <Route path="/recent" component={RecentPage} />
         <Route path="/barcodes" component={BarcodeSubcategoriesPage} />
         <Route path="/category/barcodes/:subcategoryId" component={BarcodeSubcategoryPage} />
         <Route path="/category/:categoryId" component={CategoryDetailPage} />

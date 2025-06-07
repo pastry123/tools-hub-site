@@ -130,6 +130,7 @@ export const toolCategories: ToolCategory[] = [
           { id: "micro-qr", name: "Micro QR Code", description: "Compact QR code variant", icon: "fa-qrcode" },
           { id: "han-xin", name: "Han Xin", description: "Chinese 2D barcode standard", icon: "fa-qrcode" },
           { id: "dotcode", name: "DotCode", description: "2D dot matrix barcode", icon: "fa-braille" },
+          { id: "royal-mail-mailmark-2d", name: "Royal Mail Mailmark 2D", description: "2D Royal Mail barcode", icon: "fa-qrcode" },
           { id: "ntin-code", name: "NTIN Code", description: "National Trade Item Number", icon: "fa-qrcode" },
           { id: "ppn-code", name: "PPN Code", description: "Pharmacy Product Number", icon: "fa-qrcode" }
         ]
@@ -150,6 +151,8 @@ export const toolCategories: ToolCategory[] = [
         name: "Banking and Payments",
         description: "Financial and payment barcodes",
         tools: [
+          { id: "generate-free-barcodes", name: "Generate Free Barcodes Online", description: "Free online barcode generator", icon: "fa-barcode" },
+          { id: "linear-2d-gs1-postal", name: "Linear Barcodes, 2D Codes, GS1 DataBar, Postal Barcodes and many more!", description: "Comprehensive barcode generation", icon: "fa-barcode" },
           { id: "epc-qr-v2", name: "EPC QR Code V2", description: "European Payments Council QR", icon: "fa-qrcode" },
           { id: "swiss-qr-v1", name: "Swiss QR Code v.1.0", description: "Swiss payment QR code v1", icon: "fa-qrcode" },
           { id: "swiss-qr-v2-no-ref", name: "Swiss QR Code v.2.2 (No Reference)", description: "Swiss QR without reference", icon: "fa-qrcode" },
@@ -169,16 +172,32 @@ export const toolCategories: ToolCategory[] = [
         ]
       },
       {
-        id: "healthcare",
+        id: "healthcare-codes",
         name: "Healthcare Codes",
         description: "Medical and pharmaceutical barcodes",
         tools: [
           { id: "code32", name: "Code32", description: "Italian pharmacode", icon: "fa-barcode" },
-          { id: "hibc-lic-128", name: "HIBC LIC 128", description: "Healthcare Industry Bar Code", icon: "fa-barcode" },
+          { id: "flattermarken", name: "Flattermarken", description: "German pharmaceutical barcode", icon: "fa-barcode" },
+          { id: "hibc-lic-128", name: "HIBC LIC 128", description: "Healthcare Industry Bar Code 128", icon: "fa-barcode" },
           { id: "hibc-lic-39", name: "HIBC LIC 39", description: "HIBC with Code 39", icon: "fa-barcode" },
           { id: "hibc-lic-aztec", name: "HIBC LIC Aztec", description: "HIBC with Aztec code", icon: "fa-qrcode" },
-          { id: "hibc-pas-qr", name: "HIBC PAS QR-Code", description: "HIBC Patient Identification", icon: "fa-qrcode" },
-          { id: "ntin-datamatrix", name: "NTIN (Data Matrix)", description: "National Trade Item Number", icon: "fa-th" },
+          { id: "hibc-lic-codablock-f", name: "HIBC LIC Codablock-F", description: "HIBC with Codablock-F", icon: "fa-barcode" },
+          { id: "hibc-lic-datamatrix", name: "HIBC LIC Data Matrix", description: "HIBC with Data Matrix", icon: "fa-th" },
+          { id: "hibc-lic-micropdf417", name: "HIBC LIC Micro PDF 417", description: "HIBC with Micro PDF417", icon: "fa-qrcode" },
+          { id: "hibc-lic-pdf417", name: "HIBC LIC PDF417", description: "HIBC with PDF417", icon: "fa-qrcode" },
+          { id: "hibc-lic-qr", name: "HIBC LIC QR-Code", description: "HIBC with QR Code", icon: "fa-qrcode" },
+          { id: "hibc-pas-128", name: "HIBC PAS 128", description: "HIBC Patient Safety with Code 128", icon: "fa-barcode" },
+          { id: "hibc-pas-39", name: "HIBC PAS 39", description: "HIBC Patient Safety with Code 39", icon: "fa-barcode" },
+          { id: "hibc-pas-aztec", name: "HIBC PAS Aztec", description: "HIBC Patient Safety with Aztec", icon: "fa-qrcode" },
+          { id: "hibc-pas-codablock-f", name: "HIBC PAS Codablock-F", description: "HIBC Patient Safety with Codablock-F", icon: "fa-barcode" },
+          { id: "hibc-pas-datamatrix", name: "HIBC PAS Data Matrix", description: "HIBC Patient Safety with Data Matrix", icon: "fa-th" },
+          { id: "hibc-pas-micropdf417", name: "HIBC PAS Micro PDF417", description: "HIBC Patient Safety with Micro PDF417", icon: "fa-qrcode" },
+          { id: "hibc-pas-pdf417", name: "HIBC PAS PDF417", description: "HIBC Patient Safety with PDF417", icon: "fa-qrcode" },
+          { id: "hibc-pas-qr", name: "HIBC PAS QR-Code", description: "HIBC Patient Safety with QR Code", icon: "fa-qrcode" },
+          { id: "ntin-datamatrix", name: "NTIN (Data Matrix)", description: "National Trade Item Number Data Matrix", icon: "fa-th" },
+          { id: "pharmacode-one-track", name: "Pharmacode One-Track", description: "Single-track pharmaceutical barcode", icon: "fa-barcode" },
+          { id: "pharmacode-two-track", name: "Pharmacode Two-Track", description: "Two-track pharmaceutical barcode", icon: "fa-barcode" },
+          { id: "ppn-pharmacy", name: "PPN (Pharmacy Product Number)", description: "Pharmacy Product Number", icon: "fa-qrcode" },
           { id: "pzn7", name: "PZN7", description: "7-digit German pharmaceutical number", icon: "fa-barcode" },
           { id: "pzn8", name: "PZN8", description: "8-digit German pharmaceutical number", icon: "fa-barcode" }
         ]
