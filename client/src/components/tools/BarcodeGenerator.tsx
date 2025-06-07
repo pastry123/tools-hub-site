@@ -34,13 +34,39 @@ const BARCODE_CATEGORIES = {
   linear: {
     name: "Linear Codes",
     types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.startsWith('code-') || key.includes('msi') || key.includes('codabar') || key.includes('telepen') || key.includes('plessey') || key.includes('fim'))
+      .filter(([key]) => 
+        key.startsWith('code-') || 
+        key.includes('msi') || 
+        key.includes('codabar') || 
+        key.includes('telepen') || 
+        key.includes('plessey') || 
+        key.includes('fim') ||
+        key.includes('rational') ||
+        key === 'code-25' ||
+        key === 'code-25-iata'
+      )
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   postal: {
     name: "Postal Codes",
     types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('post') || key.includes('planet') || key.includes('royal') || key.includes('kix') || key.includes('japan') || key.includes('aus') || key.includes('deutsche') || key.includes('usps') || key.includes('rm4') || key.includes('daft') || key.includes('flatter'))
+      .filter(([key]) => 
+        key.includes('post') || 
+        key.includes('planet') || 
+        key.includes('royal') || 
+        key.includes('kix') || 
+        key.includes('japan') || 
+        key.includes('aus') || 
+        key.includes('deutsche') || 
+        key.includes('usps') || 
+        key.includes('rm4') || 
+        key.includes('daft') || 
+        key.includes('flatter') ||
+        key.includes('onecode') ||
+        key.includes('identcode') ||
+        key.includes('leitcode') ||
+        key === 'raw-barcode'
+      )
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   gs1_databar: {
@@ -68,9 +94,13 @@ const BARCODE_CATEGORIES = {
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   banking: {
-    name: "Banking & Payments",
+    name: "Banking & Payments", 
     types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('epc') || key.includes('swiss') || key.includes('zatca') || key.includes('generate-free') || key.includes('linear-2d'))
+      .filter(([key]) => 
+        key.includes('epc') || 
+        key.includes('swiss') || 
+        key.includes('zatca')
+      )
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   mobile: {

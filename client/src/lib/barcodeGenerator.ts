@@ -47,10 +47,10 @@ export const BARCODE_TYPES = {
   'telepen-alpha': { bcid: 'telepen', name: 'Telepen', description: 'Full ASCII barcode' },
   'codabar-barcode': { bcid: 'codabar', name: 'Codabar', description: 'NW-7 barcode' },
   'rationalized-codabar': { bcid: 'rationalizedcodabar', name: 'Rationalized Codabar', description: 'Improved Codabar' },
-  'code-25': { bcid: 'code25', name: 'Code 25', description: 'Standard Code 25' },
-  'code-25-iata': { bcid: 'code25iata', name: 'Code 25 IATA', description: 'IATA 2 of 5' },
+  'code-25': { bcid: 'code2of5', name: 'Code 25', description: 'Standard Code 25' },
+  'code-25-iata': { bcid: 'iata2of5', name: 'Code 25 IATA', description: 'IATA 2 of 5' },
   'plessey-barcode': { bcid: 'plessey', name: 'Plessey', description: 'Plessey barcode' },
-  'telepen-numeric': { bcid: 'telepen', name: 'Telepen Numeric', description: 'Numeric Telepen' },
+  'telepen-numeric': { bcid: 'telepennumeric', name: 'Telepen Numeric', description: 'Numeric Telepen' },
   'fim-barcode': { bcid: 'fim', name: 'FIM', description: 'Facing Identification Mark' },
   
   // Postal Codes
@@ -156,7 +156,7 @@ export const BARCODE_TYPES = {
   'ntin-datamatrix': { bcid: 'datamatrix', name: 'NTIN (Data Matrix)', description: 'National Trade Item Number Data Matrix' },
   'pharmacode-one-track': { bcid: 'pharmacode', name: 'Pharmacode One-Track', description: 'Single-track pharmaceutical barcode' },
   'pharmacode-two-track': { bcid: 'pharmacode2', name: 'Pharmacode Two-Track', description: 'Two-track pharmaceutical barcode' },
-  'ppn-pharmacy': { bcid: 'qrcode', name: 'PPN (Pharmacy Product Number)', description: 'Pharmacy Product Number' },
+  'ppn-pharmacy': { bcid: 'datamatrix', name: 'PPN (Pharmacy Product Number)', description: 'Pharmacy Product Number' },
   'pzn7': { bcid: 'pzn', name: 'PZN7', description: '7-digit German pharmaceutical number' },
   'pzn8': { bcid: 'pzn', name: 'PZN8', description: '8-digit German pharmaceutical number' },
   
@@ -184,7 +184,21 @@ export const BARCODE_TYPES = {
   // Additional Industrial/Specialty
   'bc412': { bcid: 'bc412', name: 'BC412', description: 'SEMI T1-95 barcode' },
   'channelcode': { bcid: 'channelcode', name: 'Channel Code', description: 'Space-efficient barcode' },
-  'symbol': { bcid: 'symbol', name: 'Symbol', description: 'Miscellaneous symbols' }
+  'symbol': { bcid: 'symbol', name: 'Symbol', description: 'Miscellaneous symbols' },
+  
+  // Missing Critical Linear Codes
+  'datalogic2of5': { bcid: 'datalogic2of5', name: 'Datalogic 2 of 5', description: 'Datalogic variant of 2 of 5' },
+  'matrix2of5': { bcid: 'matrix2of5', name: 'Matrix 2 of 5', description: 'Matrix variant of 2 of 5' },
+  'industrial2of5': { bcid: 'industrial2of5', name: 'Industrial 2 of 5', description: 'Industrial variant' },
+  'standard2of5': { bcid: 'standard2of5', name: 'Standard 2 of 5', description: 'Standard 2 of 5 barcode' },
+  
+  // Missing UPC/EAN Variants
+  'upca-gs1': { bcid: 'upca', name: 'UPC-A (GS1)', description: 'GS1-compliant UPC-A' },
+  'upce-gs1': { bcid: 'upce', name: 'UPC-E (GS1)', description: 'GS1-compliant UPC-E' },
+  
+  // Missing DataMatrix Variants
+  'datamatrix-square': { bcid: 'datamatrix', name: 'DataMatrix Square', description: 'Square DataMatrix format' },
+  'datamatrix-rectangular': { bcid: 'datamatrixrectangular', name: 'DataMatrix Rectangular', description: 'Rectangular DataMatrix format' }
 };
 
 export class BarcodeGenerator {
