@@ -185,10 +185,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("language") as Language;
-      if (stored && stored in translations) return stored;
+      if (stored && stored in translations) {
+        // Set initial direction
+        document.documentElement.dir = stored === "ar" ? "rtl" : "ltr";
+        document.documentElement.lang = stored;
+        return stored;
+      }
       
       const browserLang = navigator.language.split('-')[0] as Language;
-      return browserLang in translations ? browserLang : "en";
+      const lang = browserLang in translations ? browserLang : "en";
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+      return lang;
     }
     return "en";
   });
@@ -204,6 +212,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem("language", lang);
+    
+    // Update document direction for RTL languages
+    if (typeof document !== "undefined") {
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+    }
   };
 
   return (
