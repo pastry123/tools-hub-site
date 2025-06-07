@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy, RefreshCw } from "lucide-react";
+import { BARCODE_TYPES, generateBarcode, validateBarcodeText, downloadBarcodeImage } from "@/lib/barcodeGenerator";
 
 interface BarcodeOptions {
   text: string;
