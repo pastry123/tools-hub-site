@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Breadcrumb from "@/components/Breadcrumb";
 import { getToolById } from "@/lib/toolCategories";
 import QRGenerator from "@/components/tools/QRGenerator";
+import BarcodeGenerator from "@/components/tools/BarcodeGenerator";
 import PDFMerger from "@/components/tools/PDFMerger";
 import PasswordGenerator from "@/components/tools/PasswordGenerator";
 import ImageCompressor from "@/components/tools/ImageCompressor";
