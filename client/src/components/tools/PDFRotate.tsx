@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Droplets, Upload, Download } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RotateCw, Upload, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export default function PDFWatermark() {
+export default function PDFRotate() {
   const [file, setFile] = useState<File | null>(null);
-  const [watermarkText, setWatermarkText] = useState('');
+  const [rotation, setRotation] = useState(90);
+  const [pageIndices, setPageIndices] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const { toast } = useToast();
@@ -27,20 +29,11 @@ export default function PDFWatermark() {
     }
   };
 
-  const handleAddWatermark = async () => {
+  const handleRotate = async () => {
     if (!file) {
       toast({
         title: "Error",
         description: "Please select a PDF file",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!watermarkText.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter watermark text",
         variant: "destructive"
       });
       return;
@@ -51,15 +44,19 @@ export default function PDFWatermark() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('watermarkText', watermarkText);
+      formData.append('rotation', rotation.toString());
+      
+      if (pageIndices.trim()) {
+        formData.append('pageIndices', pageIndices);
+      }
 
-      const response = await fetch('/api/pdf/watermark', {
+      const response = await fetch('/api/pdf/rotate', {
         method: 'POST',
         body: formData
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add watermark to PDF');
+        throw new Error('Failed to rotate PDF');
       }
 
       const blob = await response.blob();
@@ -68,12 +65,12 @@ export default function PDFWatermark() {
 
       toast({
         title: "Success",
-        description: "Watermark added successfully"
+        description: "PDF rotated successfully"
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add watermark to PDF",
+        description: "Failed to rotate PDF",
         variant: "destructive"
       });
     } finally {
@@ -85,7 +82,7 @@ export default function PDFWatermark() {
     if (downloadUrl) {
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `watermarked_${file?.name || 'document.pdf'}`;
+      a.download = `rotated_${file?.name || 'document.pdf'}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -97,8 +94,8 @@ export default function PDFWatermark() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Droplets className="w-5 h-5" />
-            Add Watermark to PDF
+            <RotateCw className="w-5 h-5" />
+            Rotate PDF
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -129,26 +126,42 @@ export default function PDFWatermark() {
             )}
           </div>
 
-          <div>
-            <Label htmlFor="watermarkText">Watermark Text</Label>
-            <Input
-              id="watermarkText"
-              value={watermarkText}
-              onChange={(e) => setWatermarkText(e.target.value)}
-              placeholder="Enter watermark text (e.g., CONFIDENTIAL, DRAFT, Company Name)"
-              className="mt-2"
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              The watermark will be applied diagonally across each page
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="rotation">Rotation Angle</Label>
+              <Select value={rotation.toString()} onValueChange={(value) => setRotation(parseInt(value))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="90">90° Clockwise</SelectItem>
+                  <SelectItem value="180">180° (Upside Down)</SelectItem>
+                  <SelectItem value="270">270° (90° Counter-clockwise)</SelectItem>
+                  <SelectItem value="-90">90° Counter-clockwise</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="pageIndices">Page Numbers (optional)</Label>
+              <Input
+                id="pageIndices"
+                value={pageIndices}
+                onChange={(e) => setPageIndices(e.target.value)}
+                placeholder="e.g., 1,3,5 or leave empty for all pages"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Comma-separated page numbers. Leave empty to rotate all pages.
+              </p>
+            </div>
           </div>
 
           <Button 
-            onClick={handleAddWatermark} 
-            disabled={!file || !watermarkText.trim() || isProcessing} 
+            onClick={handleRotate} 
+            disabled={!file || isProcessing} 
             className="w-full"
           >
-            {isProcessing ? 'Adding Watermark...' : 'Add Watermark'}
+            {isProcessing ? 'Rotating PDF...' : 'Rotate PDF'}
           </Button>
 
           {downloadUrl && (
@@ -156,10 +169,10 @@ export default function PDFWatermark() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-green-800 dark:text-green-200">
-                    Watermark Added Successfully!
+                    PDF Rotated Successfully!
                   </h3>
                   <p className="text-sm text-green-600 dark:text-green-400">
-                    Your watermarked PDF is ready for download.
+                    Your rotated PDF is ready for download.
                   </p>
                 </div>
                 <Button onClick={handleDownload} className="ml-4">

@@ -8,7 +8,6 @@ import PDFMerger from "@/components/tools/PDFMerger";
 import PDFSplitter from "@/components/tools/PDFSplitter";
 import PDFCompressor from "@/components/tools/PDFCompressor";
 import PDFConverter from "@/components/tools/PDFConverter";
-import PDFWatermark from "@/components/tools/PDFWatermark";
 import PDFProtector from "@/components/tools/PDFProtector";
 import PasswordGenerator from "@/components/tools/PasswordGenerator";
 import ImageCompressor from "@/components/tools/ImageCompressor";
@@ -18,7 +17,6 @@ import BackgroundRemover from "@/components/tools/BackgroundRemover";
 import ImageResizer from "@/components/tools/ImageResizer";
 import ImageConverter from "@/components/tools/ImageConverter";
 import ImageCropper from "@/components/tools/ImageCropper";
-import ImageToText from "@/components/tools/ImageToText";
 import FaviconGenerator from "@/components/tools/FaviconGenerator";
 import ColorPaletteExtractor from "@/components/tools/ColorPaletteExtractor";
 import AddWatermark from "@/components/tools/AddWatermark";
@@ -48,6 +46,7 @@ import HTMLEncoder from "@/components/tools/HTMLEncoder";
 import CSSMinifier from "@/components/tools/CSSMinifier";
 import JSMinifier from "@/components/tools/JSMinifier";
 import LoremPicsum from "@/components/tools/LoremPicsum";
+import PDFRotate from "@/components/tools/PDFRotate";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -196,6 +195,12 @@ export default function ToolPage() {
         return <JSMinifier />;
       case 'lorem-picsum':
         return <LoremPicsum />;
+      case 'pdf-rotate':
+        return <PDFRotate />;
+      case 'pdf-watermark':
+        return <PDFWatermark />;
+      case 'image-to-text':
+        return <ImageToText />;
       default:
         return (
           <Card>
