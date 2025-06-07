@@ -6,6 +6,9 @@ import { RemoveBgService } from "./removeBgService";
 import { pdfService } from "./pdfService";
 import { simpleImageService } from "./simpleImageService";
 import { textService } from "./textService";
+import { converterService } from "./converterService";
+import { generatorService } from "./generatorService";
+import { developerService } from "./developerService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -629,6 +632,307 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Dummy text generation error:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate dummy text' });
+    }
+  });
+
+  // CONVERTER TOOLS ENDPOINTS
+
+  // Color Converter
+  app.post('/api/converter/color', async (req, res) => {
+    try {
+      const { input, fromFormat } = req.body;
+      if (!input || !fromFormat) {
+        return res.status(400).json({ error: 'Input and format are required' });
+      }
+
+      const result = converterService.convertColor(input, fromFormat);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Timestamp Converter
+  app.post('/api/converter/timestamp', async (req, res) => {
+    try {
+      const { input, fromFormat } = req.body;
+      if (!input || !fromFormat) {
+        return res.status(400).json({ error: 'Input and format are required' });
+      }
+
+      const result = converterService.convertTimestamp(input, fromFormat);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Base64 Encoder/Decoder
+  app.post('/api/converter/base64', async (req, res) => {
+    try {
+      const { text, operation } = req.body;
+      if (!text || !operation) {
+        return res.status(400).json({ error: 'Text and operation are required' });
+      }
+
+      const result = operation === 'encode' 
+        ? converterService.encodeBase64(text)
+        : converterService.decodeBase64(text);
+      
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // URL Encoder/Decoder
+  app.post('/api/converter/url', async (req, res) => {
+    try {
+      const { text, operation } = req.body;
+      if (!text || !operation) {
+        return res.status(400).json({ error: 'Text and operation are required' });
+      }
+
+      const result = operation === 'encode' 
+        ? converterService.encodeURL(text)
+        : converterService.decodeURL(text);
+      
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // JSON Formatter
+  app.post('/api/converter/json', async (req, res) => {
+    try {
+      const { json, indent } = req.body;
+      if (!json) {
+        return res.status(400).json({ error: 'JSON string is required' });
+      }
+
+      const result = converterService.formatJSON(json, indent);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // CSV to JSON
+  app.post('/api/converter/csv-to-json', async (req, res) => {
+    try {
+      const { csv } = req.body;
+      if (!csv) {
+        return res.status(400).json({ error: 'CSV string is required' });
+      }
+
+      const result = converterService.csvToJson(csv);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Markdown to HTML
+  app.post('/api/converter/markdown', async (req, res) => {
+    try {
+      const { markdown } = req.body;
+      if (!markdown) {
+        return res.status(400).json({ error: 'Markdown text is required' });
+      }
+
+      const result = converterService.markdownToHTML(markdown);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GENERATOR TOOLS ENDPOINTS
+
+  // UUID Generator
+  app.post('/api/generator/uuid', async (req, res) => {
+    try {
+      const { version, uppercase, hyphens } = req.body;
+      const options = { version: version || 'v4', uppercase, hyphens };
+      
+      const result = generatorService.generateUUID(options);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Placeholder Generator
+  app.post('/api/generator/placeholder', async (req, res) => {
+    try {
+      const { width, height, backgroundColor, textColor, text, format } = req.body;
+      if (!width || !height) {
+        return res.status(400).json({ error: 'Width and height are required' });
+      }
+
+      const options = { width: parseInt(width), height: parseInt(height), backgroundColor, textColor, text, format };
+      const result = generatorService.generatePlaceholder(options);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // CSS Gradient Generator
+  app.post('/api/generator/gradient', async (req, res) => {
+    try {
+      const { type, direction, colors } = req.body;
+      if (!type || !colors || !Array.isArray(colors)) {
+        return res.status(400).json({ error: 'Type and colors array are required' });
+      }
+
+      const result = generatorService.generateCSSGradient({ type, direction, colors, css: '' });
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Box Shadow Generator
+  app.post('/api/generator/box-shadow', async (req, res) => {
+    try {
+      const { horizontal, vertical, blur, spread, color, inset } = req.body;
+      if (horizontal === undefined || vertical === undefined || blur === undefined || spread === undefined || !color) {
+        return res.status(400).json({ error: 'All shadow parameters are required' });
+      }
+
+      const shadow = { horizontal, vertical, blur, spread, color, inset };
+      const result = generatorService.generateBoxShadow(shadow);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Meta Tag Generator
+  app.post('/api/generator/meta-tags', async (req, res) => {
+    try {
+      const metaData = req.body;
+      if (!metaData.title || !metaData.description) {
+        return res.status(400).json({ error: 'Title and description are required' });
+      }
+
+      const result = generatorService.generateMetaTags(metaData);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DEVELOPER TOOLS ENDPOINTS
+
+  // Regex Tester
+  app.post('/api/developer/regex', async (req, res) => {
+    try {
+      const { pattern, flags, testString } = req.body;
+      if (!pattern || !testString) {
+        return res.status(400).json({ error: 'Pattern and test string are required' });
+      }
+
+      const result = developerService.testRegex(pattern, flags || '', testString);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // API Tester
+  app.post('/api/developer/api-test', async (req, res) => {
+    try {
+      const { url, method, headers, body } = req.body;
+      if (!url || !method) {
+        return res.status(400).json({ error: 'URL and method are required' });
+      }
+
+      const result = await developerService.testAPI(url, method, headers, body);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // JWT Decoder
+  app.post('/api/developer/jwt', async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ error: 'JWT token is required' });
+      }
+
+      const result = developerService.decodeJWT(token);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // HTML Encoder/Decoder
+  app.post('/api/developer/html', async (req, res) => {
+    try {
+      const { text, operation } = req.body;
+      if (!text || !operation) {
+        return res.status(400).json({ error: 'Text and operation are required' });
+      }
+
+      const result = operation === 'encode' 
+        ? developerService.encodeHTML(text)
+        : developerService.decodeHTML(text);
+      
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // CSS Minifier
+  app.post('/api/developer/minify-css', async (req, res) => {
+    try {
+      const { css } = req.body;
+      if (!css) {
+        return res.status(400).json({ error: 'CSS code is required' });
+      }
+
+      const result = developerService.minifyCSS(css);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // JavaScript Minifier
+  app.post('/api/developer/minify-js', async (req, res) => {
+    try {
+      const { js } = req.body;
+      if (!js) {
+        return res.status(400).json({ error: 'JavaScript code is required' });
+      }
+
+      const result = developerService.minifyJavaScript(js);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Lorem Picsum
+  app.post('/api/developer/lorem-picsum', async (req, res) => {
+    try {
+      const { width, height, blur, grayscale, seed } = req.body;
+      if (!width || !height) {
+        return res.status(400).json({ error: 'Width and height are required' });
+      }
+
+      const options = { blur, grayscale, seed };
+      const result = developerService.generateLoremPicsum(parseInt(width), parseInt(height), options);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 
