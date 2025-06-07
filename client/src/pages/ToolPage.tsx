@@ -9,6 +9,7 @@ import PasswordGenerator from "@/components/tools/PasswordGenerator";
 import ImageCompressor from "@/components/tools/ImageCompressor";
 import WordCounter from "@/components/tools/WordCounter";
 import UnitConverter from "@/components/tools/UnitConverter";
+import BackgroundRemover from "@/components/tools/BackgroundRemover";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -67,6 +68,8 @@ export default function ToolPage() {
         return <PasswordGenerator />;
       case 'image-compressor':
         return <ImageCompressor />;
+      case 'background-remover':
+        return <BackgroundRemover />;
       case 'word-counter':
         return <WordCounter />;
       case 'unit-converter':

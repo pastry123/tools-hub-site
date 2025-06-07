@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 export interface RemoveBgOptions {
   size?: 'auto' | 'preview' | 'full' | 'regular' | 'medium' | 'hd' | '4k';
   type?: 'auto' | 'person' | 'product' | 'car';
