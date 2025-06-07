@@ -33,9 +33,34 @@ export default function ToolPage() {
   ];
 
   const renderTool = () => {
+    // Handle all barcode-related tools
+    const barcodeTools = [
+      'qr-generator', 'code-128', 'code-11', 'code-2of5', 'code-39', 'code-39-ascii', 
+      'code-93', 'flattermarken', 'gs1-128', 'msi', 'pharmacode-one', 'pharmacode-two',
+      'telepen-alpha', 'australia-post', 'daft', 'dpd-barcode', 'japanese-postal',
+      'kix', 'korean-postal', 'planet-12', 'royal-mail-4state', 'royal-mail-mailmark-4state',
+      'royal-mail-mailmark-2d', 'usps-postnet-5', 'usps-postnet-9', 'usps-postnet-11',
+      'usps-im-package', 'upu-s10', 'gs1-databar-stacked', 'gs1-databar-stacked-omni',
+      'gs1-databar-limited', 'gs1-databar-expanded', 'gs1-databar-expanded-stacked',
+      'gs1-128-composite', 'gs1-databar-composite', 'ean-8', 'ean-13', 'ean-14',
+      'ean-8-composite', 'ean-13-composite', 'upc-a', 'upc-e', 'upc-a-composite',
+      'upc-e-composite', 'qr-code', 'qr-code-mobile', 'data-matrix', 'aztec',
+      'codablock-f', 'maxicode', 'micropdf417', 'pdf417', 'micro-qr', 'han-xin',
+      'dotcode', 'ntin-code', 'ppn-code', 'gs1-qr', 'gs1-datamatrix', 'gs1-digital-link-qr',
+      'gs1-digital-link-dm', 'epc-qr-v2', 'swiss-qr-v1', 'swiss-qr-v2-no-ref',
+      'swiss-qr-v2-creditor', 'swiss-qr-v2-qr-ref', 'zatca-qr', 'mobile-qr',
+      'mobile-datamatrix', 'mobile-aztec', 'code32', 'hibc-lic-128', 'hibc-lic-39',
+      'hibc-lic-aztec', 'hibc-pas-qr', 'ntin-datamatrix', 'pzn7', 'pzn8',
+      'isbn-13', 'isbn-13-5', 'ismn', 'issn', 'issn-2', 'qr-vcard', 'datamatrix-vcard',
+      'qr-mecard', 'datamatrix-mecard', 'event-qr', 'event-datamatrix', 'wifi-qr',
+      'wifi-datamatrix'
+    ];
+
+    if (barcodeTools.includes(tool.id)) {
+      return <BarcodeGenerator />;
+    }
+
     switch (tool.id) {
-      case 'qr-generator':
-        return <QRGenerator />;
       case 'pdf-merger':
         return <PDFMerger />;
       case 'password-generator':
@@ -50,11 +75,11 @@ export default function ToolPage() {
         return (
           <Card>
             <CardContent className="p-8 text-center">
-              <div className={`w-16 h-16 bg-${category.color}-100 rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+              <div className={`w-16 h-16 bg-${category.color}-100 dark:bg-${category.color}-900 rounded-2xl flex items-center justify-center mx-auto mb-4`}>
                 <i className={`fas ${tool.icon} text-${category.color}-500 text-2xl`}></i>
               </div>
-              <h3 className="text-xl font-semibold text-slate-800 mb-2">Tool Coming Soon</h3>
-              <p className="text-slate-600">{tool.description}</p>
+              <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">Tool Coming Soon</h3>
+              <p className="text-slate-600 dark:text-gray-300">{tool.description}</p>
             </CardContent>
           </Card>
         );
