@@ -50,7 +50,7 @@ const BARCODE_CATEGORIES = {
         key.includes('industrial') ||
         key.includes('standard2of5')
       )
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   postal: {
     name: "Postal Codes",
@@ -72,13 +72,13 @@ const BARCODE_CATEGORIES = {
         key.includes('leitcode') ||
         key === 'raw-barcode'
       )
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   gs1_databar: {
     name: "GS1 DataBar",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.includes('gs1-databar') || key.includes('gs1-128') || key.includes('ean128'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   ean_upc: {
     name: "EAN / UPC",
@@ -90,7 +90,7 @@ const BARCODE_CATEGORIES = {
         key.includes('upca-gs1') ||
         key.includes('upce-gs1')
       )
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   two_d: {
     name: "2D Codes",
@@ -113,13 +113,13 @@ const BARCODE_CATEGORIES = {
         key.includes('datamatrix-square') ||
         key.includes('datamatrix-rectangular')
       )
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   gs1_2d: {
     name: "GS1 2D Barcodes",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.startsWith('gs1-') && (key.includes('qr') || key.includes('datamatrix') || key.includes('digital')))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   banking: {
     name: "Banking & Payments", 
@@ -129,49 +129,49 @@ const BARCODE_CATEGORIES = {
         key.includes('swiss') || 
         key.includes('zatca')
       )
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   mobile: {
     name: "Mobile Tagging",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.startsWith('mobile-'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   healthcare: {
     name: "Healthcare Codes",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.includes('hibc') || key.includes('code32') || key.includes('flatter') || key.includes('ntin') || key.includes('pharmaco') || key.includes('ppn') || key.includes('pzn'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   isbn: {
     name: "ISBN Codes",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.includes('isbn') || key.includes('ismn') || key.includes('issn'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   business: {
     name: "Business Cards",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.includes('vcard') || key.includes('mecard'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   events: {
     name: "Event Barcodes",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.startsWith('event-'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   wifi: {
     name: "Wi-Fi Barcodes",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.startsWith('wifi-'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   },
   specialty: {
     name: "Specialty",
     types: Object.entries(BARCODE_TYPES)
       .filter(([key]) => key.includes('bc412') || key.includes('channel') || key.includes('symbol'))
-      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
   }
 };
 
@@ -406,7 +406,7 @@ export default function BarcodeGenerator() {
                   </SelectTrigger>
                   <SelectContent>
                     {category.types.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
+                      <SelectItem key={type.id} value={type.bcid}>
                         {type.name} - {type.description}
                       </SelectItem>
                     ))}
