@@ -109,7 +109,7 @@ export class RemoveBgService {
         };
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return {
         success: true,
         credits: data.attributes?.credits?.total
