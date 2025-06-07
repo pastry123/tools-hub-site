@@ -30,7 +30,24 @@ import CodeFormatter from "@/components/tools/CodeFormatter";
 import TextToSlug from "@/components/tools/TextToSlug";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import ColorConverter from "@/components/tools/ColorConverter";
-// import UUIDGenerator from "@/components/tools/UUIDGenerator";
+import UUIDGenerator from "@/components/tools/UUIDGenerator";
+import TimestampConverter from "@/components/tools/TimestampConverter";
+import Base64Encoder from "@/components/tools/Base64Encoder";
+import URLEncoder from "@/components/tools/URLEncoder";
+import JSONFormatter from "@/components/tools/JSONFormatter";
+import CSVToJSON from "@/components/tools/CSVToJSON";
+import MarkdownToHTML from "@/components/tools/MarkdownToHTML";
+import PlaceholderGenerator from "@/components/tools/PlaceholderGenerator";
+import CSSGradientGenerator from "@/components/tools/CSSGradientGenerator";
+import BoxShadowGenerator from "@/components/tools/BoxShadowGenerator";
+import MetaTagGenerator from "@/components/tools/MetaTagGenerator";
+import RegexTester from "@/components/tools/RegexTester";
+import APITester from "@/components/tools/APITester";
+import JWTDecoder from "@/components/tools/JWTDecoder";
+import HTMLEncoder from "@/components/tools/HTMLEncoder";
+import CSSMinifier from "@/components/tools/CSSMinifier";
+import JSMinifier from "@/components/tools/JSMinifier";
+import LoremPicsum from "@/components/tools/LoremPicsum";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
