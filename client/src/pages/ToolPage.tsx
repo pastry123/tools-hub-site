@@ -49,6 +49,7 @@ import LoremPicsum from "@/components/tools/LoremPicsum";
 import PDFRotate from "@/components/tools/PDFRotate";
 import PDFWatermark from "@/components/tools/PDFWatermark";
 import ImageToText from "@/components/tools/ImageToText";
+import BarcodeScanner from "@/components/tools/BarcodeScanner";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -101,6 +102,8 @@ export default function ToolPage() {
     }
 
     switch (tool.id) {
+      case 'barcode-scanner':
+        return <BarcodeScanner />;
       case 'pdf-merger':
         return <PDFMerger />;
       case 'pdf-splitter':

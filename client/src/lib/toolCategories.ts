@@ -104,6 +104,7 @@ export const toolCategories: ToolCategory[] = [
     color: "teal",
     tools: [
       { id: "qr-generator", name: "QR & Barcode Generator", description: "Generate QR codes and 200+ barcode types", icon: "fa-qrcode", popular: true },
+      { id: "barcode-scanner", name: "Barcode Scanner", description: "Scan and decode barcodes and QR codes from images", icon: "fa-camera", popular: true },
       { id: "password-generator", name: "Password Generator", description: "Create secure passwords with custom options", icon: "fa-key", popular: true },
       { id: "uuid-generator", name: "UUID Generator", description: "Generate unique identifiers", icon: "fa-fingerprint" },
       { id: "placeholder-generator", name: "Placeholder Generator", description: "Generate placeholder images and text", icon: "fa-image" },
