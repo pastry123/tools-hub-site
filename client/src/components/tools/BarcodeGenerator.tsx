@@ -43,7 +43,12 @@ const BARCODE_CATEGORIES = {
         key.includes('fim') ||
         key.includes('rational') ||
         key === 'code-25' ||
-        key === 'code-25-iata'
+        key === 'code-25-iata' ||
+        key.includes('2of5') ||
+        key.includes('datalogic') ||
+        key.includes('matrix2of5') ||
+        key.includes('industrial') ||
+        key.includes('standard2of5')
       )
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
@@ -78,13 +83,36 @@ const BARCODE_CATEGORIES = {
   ean_upc: {
     name: "EAN / UPC",
     types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('ean') || key.includes('upc') || key.includes('itf'))
+      .filter(([key]) => 
+        key.includes('ean') || 
+        key.includes('upc') || 
+        key.includes('itf') ||
+        key.includes('upca-gs1') ||
+        key.includes('upce-gs1')
+      )
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   two_d: {
     name: "2D Codes",
     types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key === 'qrcode' || key === 'datamatrix' || key === 'pdf417' || key === 'micropdf417' || key === 'azteccode' || key === 'maxicode' || key === 'dotcode' || key === 'microqr' || key === 'hanxin' || key === 'codeone' || key === 'codablockf' || key === 'code16k' || key === 'code49' || key.includes('compact'))
+      .filter(([key]) => 
+        key === 'qrcode' || 
+        key === 'datamatrix' || 
+        key === 'pdf417' || 
+        key === 'micropdf417' || 
+        key === 'azteccode' || 
+        key === 'maxicode' || 
+        key === 'dotcode' || 
+        key === 'microqr' || 
+        key === 'hanxin' || 
+        key === 'codeone' || 
+        key === 'codablockf' || 
+        key === 'code16k' || 
+        key === 'code49' || 
+        key.includes('compact') ||
+        key.includes('datamatrix-square') ||
+        key.includes('datamatrix-rectangular')
+      )
       .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   gs1_2d: {
