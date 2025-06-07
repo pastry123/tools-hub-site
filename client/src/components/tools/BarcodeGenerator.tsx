@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy, RefreshCw } from "lucide-react";
-import { BARCODE_TYPES, generateBarcode, validateBarcodeText, downloadBarcodeImage } from "@/lib/barcodeGenerator";
+import { BARCODE_TYPES, generateBarcode as generateBarcodeLib, validateBarcodeText, downloadBarcodeImage } from "@/lib/barcodeGenerator";
 
 interface BarcodeOptions {
   text: string;
@@ -29,63 +29,91 @@ interface BarcodeOptions {
   paddingbottom: number;
 }
 
+// Organize BARCODE_TYPES into categories for the UI
 const BARCODE_CATEGORIES = {
   linear: {
     name: "Linear Codes",
-    types: [
-      { id: 'code128', name: 'Code 128', description: 'High-density linear barcode' },
-      { id: 'code39', name: 'Code 39', description: 'Alphanumeric barcode' },
-      { id: 'code39ext', name: 'Code 39 Extended', description: 'Full ASCII Code 39' },
-      { id: 'code93', name: 'Code 93', description: 'Compact alphanumeric barcode' },
-      { id: 'code11', name: 'Code 11', description: 'Telecommunications barcode' },
-      { id: 'interleaved2of5', name: 'Interleaved 2 of 5', description: 'Numeric barcode' },
-      { id: 'msi', name: 'MSI', description: 'Modified Plessey barcode' },
-      { id: 'codabar', name: 'Codabar', description: 'NW-7 barcode' }
-    ]
-  },
-  ean_upc: {
-    name: "EAN/UPC",
-    types: [
-      { id: 'ean8', name: 'EAN-8', description: '8-digit European Article Number' },
-      { id: 'ean13', name: 'EAN-13', description: '13-digit European Article Number' },
-      { id: 'upca', name: 'UPC-A', description: 'Universal Product Code A' },
-      { id: 'upce', name: 'UPC-E', description: 'Universal Product Code E' },
-      { id: 'ean14', name: 'EAN-14', description: '14-digit shipping container code' },
-      { id: 'itf14', name: 'ITF-14', description: '14-digit Interleaved 2 of 5' }
-    ]
-  },
-  two_d: {
-    name: "2D Codes",
-    types: [
-      { id: 'qrcode', name: 'QR Code', description: 'Quick Response matrix barcode' },
-      { id: 'datamatrix', name: 'Data Matrix', description: '2D matrix barcode' },
-      { id: 'pdf417', name: 'PDF417', description: 'Portable Data File 417' },
-      { id: 'micropdf417', name: 'MicroPDF417', description: 'Compact PDF417' },
-      { id: 'azteccode', name: 'Aztec Code', description: '2D matrix symbology' },
-      { id: 'maxicode', name: 'MaxiCode', description: 'Fixed-size 2D barcode' },
-      { id: 'dotcode', name: 'DotCode', description: '2D dot matrix barcode' }
-    ]
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.startsWith('code-') || key.includes('msi') || key.includes('codabar') || key.includes('telepen') || key.includes('plessey') || key.includes('fim'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
   postal: {
     name: "Postal Codes",
-    types: [
-      { id: 'postnet', name: 'POSTNET', description: 'USPS Postal Numeric Encoding' },
-      { id: 'planet', name: 'PLANET', description: 'USPS PLANET barcode' },
-      { id: 'royalmail', name: 'Royal Mail 4-State', description: 'UK postal barcode' },
-      { id: 'kix', name: 'KIX', description: 'Netherlands postal barcode' },
-      { id: 'japanpost', name: 'Japan Post', description: 'Japanese postal barcode' },
-      { id: 'auspost', name: 'Australia Post', description: 'Australian postal barcode' }
-    ]
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('post') || key.includes('planet') || key.includes('royal') || key.includes('kix') || key.includes('japan') || key.includes('aus') || key.includes('deutsche') || key.includes('usps') || key.includes('rm4') || key.includes('daft') || key.includes('flatter'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   },
-  gs1: {
+  gs1_databar: {
     name: "GS1 DataBar",
-    types: [
-      { id: 'gs1databar', name: 'GS1 DataBar', description: 'Omnidirectional DataBar' },
-      { id: 'gs1databarstacked', name: 'GS1 DataBar Stacked', description: 'Stacked DataBar' },
-      { id: 'gs1databarlimited', name: 'GS1 DataBar Limited', description: 'Limited DataBar' },
-      { id: 'gs1databarexpanded', name: 'GS1 DataBar Expanded', description: 'Expanded DataBar' },
-      { id: 'gs1-128', name: 'GS1-128', description: 'Application identifier barcode' }
-    ]
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('gs1-databar') || key.includes('gs1-128') || key.includes('ean128'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  ean_upc: {
+    name: "EAN / UPC",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('ean') || key.includes('upc') || key.includes('itf'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  two_d: {
+    name: "2D Codes",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key === 'qrcode' || key === 'datamatrix' || key === 'pdf417' || key === 'micropdf417' || key === 'azteccode' || key === 'maxicode' || key === 'dotcode' || key === 'microqr' || key === 'hanxin' || key === 'codeone' || key === 'codablockf' || key === 'code16k' || key === 'code49' || key.includes('compact'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  gs1_2d: {
+    name: "GS1 2D Barcodes",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.startsWith('gs1-') && (key.includes('qr') || key.includes('datamatrix') || key.includes('digital')))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  banking: {
+    name: "Banking & Payments",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('epc') || key.includes('swiss') || key.includes('zatca') || key.includes('generate-free') || key.includes('linear-2d'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  mobile: {
+    name: "Mobile Tagging",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.startsWith('mobile-'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  healthcare: {
+    name: "Healthcare Codes",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('hibc') || key.includes('code32') || key.includes('flatter') || key.includes('ntin') || key.includes('pharmaco') || key.includes('ppn') || key.includes('pzn'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  isbn: {
+    name: "ISBN Codes",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('isbn') || key.includes('ismn') || key.includes('issn'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  business: {
+    name: "Business Cards",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('vcard') || key.includes('mecard'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  events: {
+    name: "Event Barcodes",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.startsWith('event-'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  wifi: {
+    name: "Wi-Fi Barcodes",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.startsWith('wifi-'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
+  },
+  specialty: {
+    name: "Specialty",
+    types: Object.entries(BARCODE_TYPES)
+      .filter(([key]) => key.includes('bc412') || key.includes('channel') || key.includes('symbol'))
+      .map(([key, value]) => ({ id: value.bcid, key, name: value.name, description: value.description }))
   }
 };
 
@@ -126,64 +154,56 @@ export default function BarcodeGenerator() {
       return;
     }
 
+    // Validate text for the selected barcode type
+    const validation = validateBarcodeText(options.text, options.bcid);
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid Input",
+        description: validation.error || "Invalid text for this barcode type",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
-      // Use external barcode generation API for comprehensive support
-      const params = new URLSearchParams({
-        bcid: options.bcid,
+      const barcodeOptions = {
         text: options.text,
-        scale: options.scale.toString(),
-        height: options.height.toString(),
-        includetext: options.includetext ? 'true' : 'false',
+        bcid: options.bcid,
+        scale: options.scale,
+        height: options.height,
+        includetext: options.includetext,
         textxalign: options.textxalign,
         textyalign: options.textyalign,
-        textsize: options.textsize.toString(),
+        textsize: options.textsize,
+        rotate: options.rotate,
         backgroundcolor: options.backgroundcolor,
-        paddingleft: options.paddingleft.toString(),
-        paddingright: options.paddingright.toString(),
-        paddingtop: options.paddingtop.toString(),
-        paddingbottom: options.paddingbottom.toString()
-      });
+        paddingleft: options.paddingleft,
+        paddingright: options.paddingright,
+        paddingtop: options.paddingtop,
+        paddingbottom: options.paddingbottom
+      };
 
-      if (options.rotate !== "N") {
-        params.append('rotate', options.rotate);
-      }
-
-      // Use bwip-js online service for reliable barcode generation
-      const url = `https://bwipjs-api.metafloor.com/?${params.toString()}`;
+      const result = await generateBarcodeLib(barcodeOptions);
       
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to generate barcode');
-      }
-
-      const blob = await response.blob();
-      const barcodeUrl = URL.createObjectURL(blob);
-      setBarcodeUrl(barcodeUrl);
-      
-      toast({
-        title: "Barcode Generated",
-        description: "Your barcode has been generated successfully!",
-      });
-    } catch (error) {
-      // Fallback to simple canvas-based generation for basic types
-      try {
-        const canvas = await generateCanvasBarcode(options);
-        const dataUrl = canvas.toDataURL('image/png');
+      if (result.success && result.canvas) {
+        const dataUrl = result.canvas.toDataURL('image/png');
         setBarcodeUrl(dataUrl);
         
         toast({
           title: "Barcode Generated",
-          description: "Your barcode has been generated using fallback method!",
+          description: "Your barcode has been generated successfully!",
         });
-      } catch (fallbackError) {
-        toast({
-          title: "Generation Failed",
-          description: "Unable to generate barcode. Please try a different format or text.",
-          variant: "destructive",
-        });
+      } else {
+        throw new Error(result.error || 'Failed to generate barcode');
       }
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Unable to generate barcode. Please try a different format or text.",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -235,17 +255,38 @@ export default function BarcodeGenerator() {
 
   const downloadBarcode = () => {
     if (barcodeUrl) {
-      const link = document.createElement('a');
-      link.href = barcodeUrl;
-      link.download = `barcode-${options.bcid}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Download Started",
-        description: "Your barcode is being downloaded.",
-      });
+      try {
+        // Convert data URL to canvas for download
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0);
+          
+          downloadBarcodeImage(canvas, `barcode-${options.bcid}`, 'png');
+          
+          toast({
+            title: "Download Started",
+            description: "Your barcode is being downloaded.",
+          });
+        };
+        img.src = barcodeUrl;
+      } catch (error) {
+        // Fallback to simple download
+        const link = document.createElement('a');
+        link.href = barcodeUrl;
+        link.download = `barcode-${options.bcid}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Download Started",
+          description: "Your barcode is being downloaded.",
+        });
+      }
     }
   };
 
@@ -280,12 +321,21 @@ export default function BarcodeGenerator() {
       {/* Input Section */}
       <div className="space-y-6">
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="linear">Linear</TabsTrigger>
-            <TabsTrigger value="two_d">2D Codes</TabsTrigger>
-            <TabsTrigger value="ean_upc">EAN/UPC</TabsTrigger>
-            <TabsTrigger value="postal">Postal</TabsTrigger>
-            <TabsTrigger value="gs1">GS1</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 gap-1 h-auto flex-wrap">
+            <TabsTrigger value="linear" className="text-xs">Linear</TabsTrigger>
+            <TabsTrigger value="postal" className="text-xs">Postal</TabsTrigger>
+            <TabsTrigger value="gs1_databar" className="text-xs">GS1 DataBar</TabsTrigger>
+            <TabsTrigger value="ean_upc" className="text-xs">EAN/UPC</TabsTrigger>
+            <TabsTrigger value="two_d" className="text-xs">2D Codes</TabsTrigger>
+            <TabsTrigger value="gs1_2d" className="text-xs">GS1 2D</TabsTrigger>
+            <TabsTrigger value="banking" className="text-xs">Banking</TabsTrigger>
+            <TabsTrigger value="mobile" className="text-xs">Mobile</TabsTrigger>
+            <TabsTrigger value="healthcare" className="text-xs">Healthcare</TabsTrigger>
+            <TabsTrigger value="isbn" className="text-xs">ISBN</TabsTrigger>
+            <TabsTrigger value="business" className="text-xs">Business</TabsTrigger>
+            <TabsTrigger value="events" className="text-xs">Events</TabsTrigger>
+            <TabsTrigger value="wifi" className="text-xs">Wi-Fi</TabsTrigger>
+            <TabsTrigger value="specialty" className="text-xs">Specialty</TabsTrigger>
           </TabsList>
           
           {Object.entries(BARCODE_CATEGORIES).map(([key, category]) => (

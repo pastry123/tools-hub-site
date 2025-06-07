@@ -545,18 +545,36 @@ export class BarcodeGenerator {
 
 // Helper functions for common barcode operations
 export const generateBarcode = async (options: BarcodeOptions): Promise<BarcodeResult> => {
-  const generator = BarcodeGenerator.getInstance();
-  return generator.generateToCanvas(options);
+  try {
+    const generator = BarcodeGenerator.getInstance();
+    return await generator.generateToCanvas(options);
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate barcode'
+    };
+  }
 };
 
 export const generateBarcodeSVG = async (options: BarcodeOptions): Promise<BarcodeResult> => {
-  const generator = BarcodeGenerator.getInstance();
-  return generator.generateToSVG(options);
+  try {
+    const generator = BarcodeGenerator.getInstance();
+    return await generator.generateToSVG(options);
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate SVG'
+    };
+  }
 };
 
 export const validateBarcodeText = (text: string, bcid: string): { isValid: boolean; error?: string } => {
-  const generator = BarcodeGenerator.getInstance();
-  return generator.validateText(text, bcid);
+  try {
+    const generator = BarcodeGenerator.getInstance();
+    return generator.validateText(text, bcid);
+  } catch (error) {
+    return { isValid: false, error: 'Barcode library not available' };
+  }
 };
 
 export const downloadBarcodeImage = (canvas: HTMLCanvasElement, filename: string, format: 'png' | 'jpg' = 'png'): void => {
