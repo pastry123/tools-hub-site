@@ -193,22 +193,200 @@ export class BarcodeService {
 
   private async analyzeRawImage(imageBuffer: Buffer): Promise<BarcodeResult | null> {
     try {
-      // Get image metadata and analyze structure
+      // Get image metadata
       const metadata = await sharp(imageBuffer).metadata();
       
       if (metadata.width && metadata.height) {
         const aspectRatio = metadata.width / metadata.height;
         
-        // Check for linear barcode characteristics
-        if (aspectRatio > 2.0 && aspectRatio < 10) {
-          // Enhanced barcode detection with proper decoding
-          const result = await this.detectAndDecodeBarcode(imageBuffer, metadata);
+        // Process images that could contain linear barcodes
+        if (aspectRatio > 1.5) {
+          // Enhanced multi-line scanning for barcode detection
+          const result = await this.scanImageForBarcodes(imageBuffer, metadata);
           if (result) {
             return result;
           }
         }
       }
       
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private async scanImageForBarcodes(imageBuffer: Buffer, metadata: sharp.Metadata): Promise<BarcodeResult | null> {
+    try {
+      // Convert to high-contrast binary image
+      const { data, info } = await sharp(imageBuffer)
+        .greyscale()
+        .normalize()
+        .threshold(120)
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      // Scan multiple horizontal lines across the image
+      const scanLines = [];
+      for (let y = Math.floor(info.height * 0.2); y <= Math.floor(info.height * 0.8); y += Math.floor(info.height * 0.05)) {
+        scanLines.push(y);
+      }
+
+      let maxTransitions = 0;
+      let bestScanLine = -1;
+
+      for (const y of scanLines) {
+        const transitions = this.analyzeRowForBarcode(data, info.width, info.height, y);
+        
+        if (transitions > maxTransitions) {
+          maxTransitions = transitions;
+          bestScanLine = y;
+        }
+      }
+
+      // Only return results for images that clearly contain barcode patterns
+      if (maxTransitions >= 30 && metadata.width! / metadata.height! > 2.0) {
+        return {
+          value: 'BARCODE_PATTERN_DETECTED',
+          type: 'Linear Barcode',
+          format: 'UNKNOWN',
+          confidence: 0.7,
+          metadata: {
+            version: 'Pattern Detection',
+            transitions: maxTransitions,
+            aspectRatio: metadata.width! / metadata.height!,
+            scanLine: bestScanLine,
+            note: 'Barcode pattern identified - specialized library required for content extraction'
+          }
+        };
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private analyzeRowForBarcode(data: Buffer, width: number, height: number, y: number): number {
+    if (y >= height || y < 0) return 0;
+
+    let transitions = 0;
+    let lastPixel = -1;
+
+    for (let x = 0; x < width; x++) {
+      const pixelIndex = y * width + x;
+      if (pixelIndex < data.length) {
+        const pixel = data[pixelIndex] > 0 ? 1 : 0;
+        if (lastPixel !== -1 && pixel !== lastPixel) {
+          transitions++;
+        }
+        lastPixel = pixel;
+      }
+    }
+
+    return transitions;
+  }
+
+  private extractBarcodeData(data: Buffer, width: number, height: number, y: number): string | null {
+    // Extract the actual barcode content by analyzing the bar pattern
+    const bars = this.getBarPattern(data, width, height, y);
+    
+    if (bars.length < 20) return null;
+
+    // Look for text patterns in the barcode
+    // Code 128 often encodes alphanumeric data
+    const decodedText = this.decodeCode128Bars(bars);
+    
+    return decodedText;
+  }
+
+  private getBarPattern(data: Buffer, width: number, height: number, y: number): number[] {
+    const bars: number[] = [];
+    let currentRun = 0;
+    let currentColor = -1;
+
+    for (let x = 0; x < width; x++) {
+      const pixelIndex = y * width + x;
+      if (pixelIndex < data.length) {
+        const pixel = data[pixelIndex] === 0 ? 0 : 1; // 0 = black, 1 = white
+        
+        if (currentColor === -1) {
+          currentColor = pixel;
+          currentRun = 1;
+        } else if (pixel === currentColor) {
+          currentRun++;
+        } else {
+          bars.push(currentRun);
+          currentRun = 1;
+          currentColor = pixel;
+        }
+      }
+    }
+    
+    if (currentRun > 0) {
+      bars.push(currentRun);
+    }
+
+    return bars;
+  }
+
+  private decodeCode128Bars(bars: number[]): string | null {
+    // Simplified Code 128 decoding that analyzes the bar pattern
+    if (bars.length < 20) return null;
+
+    // Normalize the bars to find patterns
+    const minBar = Math.min(...bars.filter(b => b > 0));
+    const normalizedBars = bars.map(b => Math.round(b / minBar));
+
+    // Code 128 analysis - look for recognizable patterns
+    const patternSignature = this.analyzeBarcodePatternsForContent(normalizedBars);
+    
+    return patternSignature;
+  }
+
+  private analyzeBarcodePatternsForContent(bars: number[]): string | null {
+    // Linear barcode decoding requires specialized libraries like ZXing or QuaggaJS
+    // Pattern analysis alone cannot reliably extract encoded content
+    // Return null to indicate professional decoding is required
+    return null;
+  }
+
+  private async performComprehensiveAnalysis(imageBuffer: Buffer, metadata: sharp.Metadata): Promise<BarcodeResult | null> {
+    try {
+      const aspectRatio = metadata.width! / metadata.height!;
+      
+      // Only process images that could contain linear barcodes
+      if (aspectRatio < 1.5) return null;
+      
+      // Convert to binary and extract bar patterns
+      const { data, info } = await sharp(imageBuffer)
+        .greyscale()
+        .threshold(128)
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      // Scan multiple horizontal lines
+      for (let y = Math.floor(info.height * 0.3); y <= Math.floor(info.height * 0.7); y += Math.floor(info.height * 0.1)) {
+        const barPattern = this.extractBarPattern(data, info.width, info.height, y);
+        
+        if (barPattern && barPattern.transitions >= 20) {
+          const decodedValue = this.decodeBarPattern(barPattern);
+          
+          if (decodedValue && decodedValue !== 'CONTENT_EXTRACTION_REQUIRED') {
+            return {
+              value: decodedValue,
+              type: 'Linear Barcode',
+              format: 'CODE_128',
+              confidence: 0.9,
+              metadata: {
+                version: 'Code 128',
+                transitions: barPattern.transitions,
+                aspectRatio
+              }
+            };
+          }
+        }
+      }
+
       return null;
     } catch (error) {
       return null;
