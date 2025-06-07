@@ -10,6 +10,8 @@ import Dashboard from "@/pages/Dashboard";
 import CategoryPage from "@/pages/CategoryPage";
 import CategoryDetailPage from "@/pages/CategoryDetailPage";
 import ToolPage from "@/pages/ToolPage";
+import BarcodeSubcategoriesPage from "@/pages/BarcodeSubcategoriesPage";
+import BarcodeSubcategoryPage from "@/pages/BarcodeSubcategoryPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {

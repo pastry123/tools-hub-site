@@ -120,6 +120,62 @@ const translations = {
     "common.download": "Descargar",
     "common.copy": "Copiar",
     "common.clear": "Limpiar",
+  },
+  ar: {
+    // Header
+    "header.title": "ToolHub",
+    "header.subtitle": "أدوات احترافية على الإنترنت",
+    "header.search": "البحث في الأدوات...",
+    "header.dashboard": "لوحة التحكم",
+    "header.favorites": "المفضلة",
+    "header.recent": "الحديثة",
+    
+    // Dashboard
+    "dashboard.title": "أدوات احترافية على الإنترنت",
+    "dashboard.description": "احصل على أدوات قوية لتعزيز إنتاجيتك وتحسين سير عملك",
+    "dashboard.stats.tools": "إجمالي الأدوات",
+    "dashboard.stats.categories": "الفئات",
+    "dashboard.stats.popular": "الأكثر شعبية",
+    "dashboard.stats.free": "مجاني للاستخدام",
+    "dashboard.quickAccess": "الوصول السريع",
+    "dashboard.allCategories": "جميع فئات الأدوات",
+    "dashboard.features.title": "لماذا تختار ToolHub؟",
+    "dashboard.features.secure": "آمن وخاص",
+    "dashboard.features.secureDesc": "تتم جميع العمليات في متصفحك. بياناتك لا تغادر جهازك أبداً.",
+    "dashboard.features.fast": "سريع جداً",
+    "dashboard.features.fastDesc": "أدوات محسنة تعمل فوراً بدون تأخير من الخادم.",
+    "dashboard.features.mobile": "متوافق مع الجوال",
+    "dashboard.features.mobileDesc": "يعمل بشكل مثالي على جميع الأجهزة، من سطح المكتب إلى الجوال.",
+    
+    // Categories
+    "category.barcode.title": "أدوات الباركود و QR",
+    "category.barcode.description": "إنشاء أنواع مختلفة من الباركود ورموز QR والرموز البريدية",
+    "category.pdf.title": "أدوات PDF",
+    "category.pdf.description": "تحويل ودمج وتقسيم وضغط ومعالجة مستندات PDF",
+    "category.image.title": "أدوات الصور",
+    "category.image.description": "تغيير الحجم والضغط والتحويل وتحرير الصور بتنسيقات مختلفة",
+    "category.text.title": "أدوات النص والمحتوى",
+    "category.text.description": "تنسيق وتحليل ومعالجة محتوى النص والكود",
+    "category.converter.title": "أدوات التحويل",
+    "category.converter.description": "تحويل الوحدات والعملات والألوان وتنسيقات الملفات",
+    "category.generator.title": "أدوات الإنشاء",
+    "category.generator.description": "إنشاء كلمات المرور والتوقيعات والفواتير وتدرجات CSS",
+    "category.developer.title": "أدوات المطورين",
+    "category.developer.description": "أدوات تطوير الويب والمدققات والمنسقات",
+    "category.rfid.title": "RFID والملصقات",
+    "category.rfid.description": "مولدات علامات RFID وأدوات تصميم الملصقات الاحترافية",
+    
+    // Common
+    "common.tools": "الأدوات",
+    "common.popular": "شائع",
+    "common.free": "مجاني",
+    "common.useTool": "استخدم الأداة",
+    "common.back": "العودة للوحة التحكم",
+    "common.notFound": "غير موجود",
+    "common.generate": "إنشاء",
+    "common.download": "تحميل",
+    "common.copy": "نسخ",
+    "common.clear": "مسح",
   }
 };
 
