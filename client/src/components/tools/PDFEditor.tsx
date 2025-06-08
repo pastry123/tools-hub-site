@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Initialize PDF.js worker
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+}
 
 interface PDFTextElement {
   id: string;
@@ -12,10 +17,10 @@ interface PDFTextElement {
   width: number;
   height: number;
   fontSize: number;
-  fontFamily: string;
   color: string;
   page: number;
   isEditing: boolean;
+  isOriginal: boolean;
 }
 
 interface PDFImageElement {
@@ -30,7 +35,7 @@ interface PDFImageElement {
 
 interface PDFShapeElement {
   id: string;
-  type: 'rectangle' | 'circle' | 'line';
+  type: 'rectangle' | 'circle';
   x: number;
   y: number;
   width: number;
@@ -44,7 +49,7 @@ interface PDFShapeElement {
 interface PDFPageData {
   width: number;
   height: number;
-  backgroundColor: string;
+  canvasDataUrl: string;
   textElements: PDFTextElement[];
   imageElements: PDFImageElement[];
   shapeElements: PDFShapeElement[];
@@ -58,47 +63,103 @@ export default function PDFEditor() {
   const [selectedTool, setSelectedTool] = useState<'select' | 'text' | 'image' | 'rectangle' | 'circle'>('select');
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [scale, setScale] = useState(1.0);
+  const [scale, setScale] = useState(0.8);
+  const [isLoading, setIsLoading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
+  const extractPDFContent = async (file: File): Promise<PDFPageData[]> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const loadedPdf = await PDFDocument.load(arrayBuffer, {
+      updateMetadata: true,
+      ignoreEncryption: true,
+    });
+    
+    setPdfDoc(loadedPdf);
+    
+    // Load with PDF.js to render pages as images
+    const pdfData = new Uint8Array(arrayBuffer);
+    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+    
+    const extractedPages: PDFPageData[] = [];
+    
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better quality
+      
+      // Create canvas to render PDF page
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d')!;
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      // Render PDF page to canvas
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      // Extract text content
+      const textContent = await page.getTextContent();
+      const textElements: PDFTextElement[] = [];
+      
+      textContent.items.forEach((item: any, index: number) => {
+        if (item.str && item.str.trim()) {
+          // Calculate position and size
+          const transform = item.transform;
+          const x = transform[4];
+          const y = viewport.height - transform[5]; // Flip Y coordinate
+          const fontSize = Math.abs(transform[0]) || 12;
+          
+          textElements.push({
+            id: `original-text-${pageNum}-${index}`,
+            text: item.str,
+            x: x / 2.0, // Scale back down since we rendered at 2x
+            y: y / 2.0,
+            width: item.width ? item.width / 2.0 : item.str.length * fontSize * 0.6,
+            height: fontSize / 2.0,
+            fontSize: fontSize / 2.0,
+            color: '#000000',
+            page: pageNum - 1,
+            isEditing: false,
+            isOriginal: true
+          });
+        }
+      });
+      
+      const pdfPage = loadedPdf.getPage(pageNum - 1);
+      const { width, height } = pdfPage.getSize();
+      
+      extractedPages.push({
+        width: width,
+        height: height,
+        canvasDataUrl: canvas.toDataURL(),
+        textElements,
+        imageElements: [],
+        shapeElements: []
+      });
+    }
+    
+    return extractedPages;
+  };
+
   const loadPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    setIsLoading(true);
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const loadedPdf = await PDFDocument.load(arrayBuffer, {
-        updateMetadata: true,
-        ignoreEncryption: true,
-      });
-      
-      setPdfDoc(loadedPdf);
-      
-      // Convert PDF pages to editable page data
-      const pdfPages = loadedPdf.getPages();
-      const editablePages: PDFPageData[] = pdfPages.map((page, index) => {
-        const { width, height } = page.getSize();
-        return {
-          width,
-          height,
-          backgroundColor: '#ffffff',
-          textElements: [],
-          imageElements: [],
-          shapeElements: []
-        };
-      });
-      
-      setPages(editablePages);
+      const extractedPages = await extractPDFContent(file);
+      setPages(extractedPages);
       setCurrentPageIndex(0);
       setSelectedElement(null);
-      
     } catch (error) {
       console.error('Error loading PDF:', error);
       alert('Error loading PDF. Please try a different file.');
     }
+    setIsLoading(false);
   };
 
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -120,16 +181,16 @@ export default function PDFEditor() {
   const addTextElement = (x: number, y: number) => {
     const newElement: PDFTextElement = {
       id: `text-${Date.now()}`,
-      text: "Double-click to edit",
-      x: x - 75,
+      text: "Click to edit",
+      x: x - 50,
       y: y - 15,
-      width: 150,
+      width: 100,
       height: 30,
       fontSize: 16,
-      fontFamily: 'Arial',
       color: '#000000',
       page: currentPageIndex,
-      isEditing: false,
+      isEditing: true,
+      isOriginal: false
     };
     
     setPages(prev => prev.map((page, index) => 
@@ -267,7 +328,6 @@ export default function PDFEditor() {
       const currentPage = pages[currentPageIndex];
       if (!currentPage) return;
       
-      // Update position based on element type
       const textElement = currentPage.textElements.find(el => el.id === selectedElement);
       if (textElement) {
         updateTextElement(selectedElement, {
@@ -320,8 +380,26 @@ export default function PDFEditor() {
         const pageData = pages[i];
         const page = newPdf.addPage([pageData.width, pageData.height]);
         
-        // Add text elements
-        for (const textElement of pageData.textElements) {
+        // Add background (original PDF content)
+        if (pageData.canvasDataUrl) {
+          try {
+            const response = await fetch(pageData.canvasDataUrl);
+            const imageBytes = await response.arrayBuffer();
+            const backgroundImage = await newPdf.embedPng(imageBytes);
+            page.drawImage(backgroundImage, {
+              x: 0,
+              y: 0,
+              width: pageData.width,
+              height: pageData.height,
+            });
+          } catch (error) {
+            console.error('Error adding background:', error);
+          }
+        }
+        
+        // Add only new text elements (not original ones)
+        const newTextElements = pageData.textElements.filter(el => !el.isOriginal);
+        for (const textElement of newTextElements) {
           const font = await newPdf.embedFont(StandardFonts.Helvetica);
           page.drawText(textElement.text, {
             x: textElement.x,
@@ -401,14 +479,15 @@ export default function PDFEditor() {
 
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Real-Time PDF Editor</h1>
+      <h1 className="text-2xl font-bold">PDF Visual Editor</h1>
       
       <div className="flex items-center gap-4">
         <Button 
           onClick={() => fileInputRef.current?.click()}
           variant={pages.length ? "outline" : "default"}
+          disabled={isLoading}
         >
-          {pages.length ? "Change PDF" : "Upload PDF"}
+          {isLoading ? "Loading..." : pages.length ? "Change PDF" : "Upload PDF"}
         </Button>
         <input 
           type="file" 
@@ -417,7 +496,7 @@ export default function PDFEditor() {
           ref={fileInputRef} 
           className="hidden"
         />
-        {pages.length > 0 && <span className="text-sm text-green-600">✓ PDF loaded ({pages.length} pages)</span>}
+        {pages.length > 0 && <span className="text-sm text-green-600">✓ PDF loaded with visible content ({pages.length} pages)</span>}
       </div>
       
       {pages.length > 0 && (
@@ -471,7 +550,7 @@ export default function PDFEditor() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
+                onClick={() => setScale(prev => Math.max(0.3, prev - 0.1))}
               >
                 -
               </Button>
@@ -479,7 +558,7 @@ export default function PDFEditor() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setScale(prev => Math.min(2.0, prev + 0.1))}
+                onClick={() => setScale(prev => Math.min(1.5, prev + 0.1))}
               >
                 +
               </Button>
@@ -525,10 +604,10 @@ export default function PDFEditor() {
             </div>
           )}
 
-          {/* Real-Time Editor Canvas */}
+          {/* Visual PDF Editor */}
           <div className="border border-gray-300 rounded">
             <h3 className="p-2 bg-gray-100 font-medium text-sm">
-              Real-Time Editor - {selectedTool === 'select' ? 'Select and edit elements' : `Click to add ${selectedTool}`}
+              Visual Editor - See and edit actual PDF content - {selectedTool === 'select' ? 'Select elements to edit' : `Click to add ${selectedTool}`}
             </h3>
             <div className="p-4 bg-gray-200 flex justify-center overflow-auto" style={{ minHeight: '70vh' }}>
               <div 
@@ -537,32 +616,42 @@ export default function PDFEditor() {
                 style={{ 
                   width: pageWidth * scale, 
                   height: pageHeight * scale,
-                  cursor: selectedTool !== 'select' ? 'crosshair' : 'default',
-                  transform: `scale(${scale})`,
-                  transformOrigin: 'top left'
+                  cursor: selectedTool !== 'select' ? 'crosshair' : 'default'
                 }}
                 onClick={handleEditorClick}
               >
-                {/* Text Elements */}
+                {/* PDF Background Image */}
+                {currentPage?.canvasDataUrl && (
+                  <img
+                    src={currentPage.canvasDataUrl}
+                    alt="PDF Page"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                    style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+                  />
+                )}
+                
+                {/* Editable Text Elements */}
                 {currentPage?.textElements.map((element) => (
                   <div
                     key={element.id}
                     className={`absolute border-2 ${
-                      selectedElement === element.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-400'
+                      selectedElement === element.id ? 'border-blue-500 bg-blue-50 bg-opacity-70' : 
+                      element.isOriginal ? 'border-transparent hover:border-yellow-400 hover:bg-yellow-50 hover:bg-opacity-50' :
+                      'border-transparent hover:border-gray-400'
                     } cursor-move`}
                     style={{
-                      left: element.x,
-                      top: element.y,
-                      width: element.width,
-                      height: element.height,
-                      fontSize: element.fontSize,
-                      fontFamily: element.fontFamily,
-                      color: element.color,
-                      padding: '4px',
+                      left: element.x * scale,
+                      top: element.y * scale,
+                      width: element.width * scale,
+                      height: element.height * scale,
+                      fontSize: element.fontSize * scale,
+                      color: element.isOriginal ? 'transparent' : element.color,
+                      padding: '2px',
                       zIndex: 10,
                     }}
                     onMouseDown={(e) => handleMouseDown(e, element.id)}
                     onDoubleClick={() => updateTextElement(element.id, { isEditing: true })}
+                    title={element.isOriginal ? `Original text: "${element.text}"` : 'Added text'}
                   >
                     {element.isEditing ? (
                       <Textarea
@@ -574,21 +663,20 @@ export default function PDFEditor() {
                             updateTextElement(element.id, { isEditing: false });
                           }
                         }}
-                        className="w-full h-full border-none bg-transparent p-0 resize-none focus:ring-0"
+                        className="w-full h-full border-none bg-white p-1 resize-none focus:ring-0 text-black"
                         style={{ 
-                          fontSize: element.fontSize, 
-                          fontFamily: element.fontFamily,
-                          color: element.color 
+                          fontSize: element.fontSize * scale,
+                          minHeight: element.height * scale
                         }}
                         autoFocus
                       />
                     ) : (
                       <div 
-                        className="w-full h-full whitespace-pre-wrap"
+                        className="w-full h-full whitespace-pre-wrap overflow-hidden"
                         style={{ 
-                          fontSize: element.fontSize, 
-                          fontFamily: element.fontFamily,
-                          color: element.color 
+                          fontSize: element.fontSize * scale,
+                          color: element.isOriginal ? '#333' : element.color,
+                          backgroundColor: element.isOriginal ? 'rgba(255, 255, 255, 0.8)' : 'transparent'
                         }}
                       >
                         {element.text}
@@ -605,17 +693,17 @@ export default function PDFEditor() {
                       selectedElement === element.id ? 'border-blue-500' : 'border-transparent hover:border-gray-400'
                     } cursor-move overflow-hidden`}
                     style={{
-                      left: element.x,
-                      top: element.y,
-                      width: element.width,
-                      height: element.height,
+                      left: element.x * scale,
+                      top: element.y * scale,
+                      width: element.width * scale,
+                      height: element.height * scale,
                       zIndex: 10,
                     }}
                     onMouseDown={(e) => handleMouseDown(e, element.id)}
                   >
                     <img
                       src={element.src}
-                      alt="PDF Element"
+                      alt="Added Image"
                       className="w-full h-full object-contain"
                       draggable={false}
                     />
@@ -630,10 +718,10 @@ export default function PDFEditor() {
                       selectedElement === element.id ? 'border-blue-500' : 'hover:border-gray-400'
                     }`}
                     style={{
-                      left: element.x,
-                      top: element.y,
-                      width: element.width,
-                      height: element.height,
+                      left: element.x * scale,
+                      top: element.y * scale,
+                      width: element.width * scale,
+                      height: element.height * scale,
                       borderColor: element.strokeColor,
                       borderWidth: element.strokeWidth,
                       borderRadius: element.type === 'circle' ? '50%' : '0',
@@ -648,23 +736,23 @@ export default function PDFEditor() {
           </div>
 
           <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded space-y-2">
-            <p><strong>Real-Time PDF Editor:</strong></p>
-            <p>• Select tools from toolbar and click on the canvas to add elements</p>
-            <p>• Double-click text to edit content directly</p>
-            <p>• Drag any element to reposition it</p>
-            <p>• Use zoom controls to adjust the view</p>
-            <p>• All changes are immediately visible and editable</p>
-            <p>• Download creates a new PDF with all your modifications</p>
+            <p><strong>Visual PDF Editor with Real Content:</strong></p>
+            <p>• See the actual PDF content rendered as background</p>
+            <p>• Original text appears with yellow highlight on hover - double-click to edit</p>
+            <p>• Add new text, shapes, and images that overlay on the content</p>
+            <p>• Drag any element to reposition it precisely</p>
+            <p>• Use zoom controls to work at different detail levels</p>
+            <p>• Download preserves original content plus your additions</p>
           </div>
         </>
       )}
       
-      {pages.length === 0 && (
+      {pages.length === 0 && !isLoading && (
         <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
           <div className="space-y-4">
-            <div className="text-6xl text-gray-400">✏️</div>
-            <h3 className="text-xl font-medium text-gray-700">Real-Time PDF Editor</h3>
-            <p className="text-gray-500">Upload a PDF to start editing with live, interactive elements</p>
+            <div className="text-6xl text-gray-400">👁️</div>
+            <h3 className="text-xl font-medium text-gray-700">Visual PDF Editor</h3>
+            <p className="text-gray-500">Upload a PDF to see and edit the actual content visually</p>
             <Button 
               onClick={() => fileInputRef.current?.click()}
               size="lg"
