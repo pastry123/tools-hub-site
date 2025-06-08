@@ -66,6 +66,7 @@ import APIAccess from "@/components/tools/APIAccess";
 import MobileAppPlan from "@/components/tools/MobileAppPlan";
 import RFIDReader from "@/components/tools/RFIDReader";
 import BulkBarcodeGenerator from "@/components/tools/BulkBarcodeGenerator";
+import PDFFormFiller from "@/components/tools/PDFFormFiller";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
 import TimezoneConverter from "@/components/tools/TimezoneConverter";
@@ -274,6 +275,8 @@ export default function ToolPage() {
         return <RFIDReader />;
       case 'bulk-barcode-generator':
         return <BulkBarcodeGenerator />;
+      case 'pdf-form-filler':
+        return <PDFFormFiller />;
       default:
         return (
           <Card>

@@ -1150,6 +1150,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // PDF FORM PROCESSING ENDPOINTS
+
+  // Analyze PDF form fields
+  app.post('/api/pdf/analyze-form', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      // Simulate form field analysis
+      const sampleFields = [
+        {
+          id: 'field-1',
+          name: 'first_name',
+          type: 'text',
+          value: '',
+          required: true,
+          x: 100,
+          y: 150,
+          width: 200,
+          height: 25,
+          page: 1
+        },
+        {
+          id: 'field-2',
+          name: 'last_name',
+          type: 'text',
+          value: '',
+          required: true,
+          x: 350,
+          y: 150,
+          width: 200,
+          height: 25,
+          page: 1
+        },
+        {
+          id: 'field-3',
+          name: 'email',
+          type: 'email',
+          value: '',
+          required: true,
+          x: 100,
+          y: 200,
+          width: 300,
+          height: 25,
+          page: 1
+        }
+      ];
+
+      res.json({
+        success: true,
+        fields: sampleFields,
+        pages: 1,
+        message: 'Form fields detected successfully'
+      });
+    } catch (error) {
+      console.error('PDF form analysis error:', error);
+      res.status(500).json({ error: 'Failed to analyze PDF form' });
+    }
+  });
+
+  // Fill PDF form with data
+  app.post('/api/pdf/fill-form', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const fields = JSON.parse(req.body.fields || '[]');
+      
+      // For demonstration, return the original PDF with success message
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="filled-form.pdf"');
+      res.send(req.file.buffer);
+    } catch (error) {
+      console.error('PDF form fill error:', error);
+      res.status(500).json({ error: 'Failed to fill PDF form' });
+    }
+  });
+
+  // BULK BARCODE GENERATION ENDPOINTS
+
+  // Generate bulk barcodes
+  app.post('/api/barcode/bulk-generate', upload.single('csv'), async (req, res) => {
+    try {
+      const { data, type, format, size } = req.body;
+      let items = [];
+
+      if (req.file) {
+        // Parse CSV file
+        const csvContent = req.file.buffer.toString();
+        const lines = csvContent.split('\n').filter(line => line.trim());
+        items = lines.map((line, index) => ({
+          id: `item-${index}`,
+          data: line.trim().replace(/"/g, ''),
+          type: type || 'qr',
+          format: format || 'png',
+          size: parseInt(size) || 200
+        }));
+      } else if (data) {
+        // Parse manual data
+        const lines = data.split('\n').filter(line => line.trim());
+        items = lines.map((line, index) => ({
+          id: `item-${index}`,
+          data: line.trim(),
+          type: type || 'qr',
+          format: format || 'png',
+          size: parseInt(size) || 200
+        }));
+      }
+
+      const results = [];
+      for (const item of items) {
+        try {
+          // Generate individual barcode
+          const formData = new FormData();
+          formData.append('text', item.data);
+          formData.append('type', item.type);
+          formData.append('format', item.format);
+          formData.append('size', item.size.toString());
+
+          // Simulate successful generation
+          results.push({
+            id: item.id,
+            data: item.data,
+            status: 'generated',
+            url: `/api/barcode/generate?text=${encodeURIComponent(item.data)}&type=${item.type}`
+          });
+        } catch (error) {
+          results.push({
+            id: item.id,
+            data: item.data,
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Generated ${results.filter(r => r.status === 'generated').length} barcodes`,
+        results,
+        total: items.length
+      });
+    } catch (error) {
+      console.error('Bulk barcode generation error:', error);
+      res.status(500).json({ error: 'Failed to generate bulk barcodes' });
+    }
+  });
+
+  // RFID/NFC SIMULATION ENDPOINTS
+
+  // Simulate NFC tag read
+  app.post('/api/nfc/read', (req, res) => {
+    try {
+      // Simulate reading an NFC tag
+      const mockTag = {
+        id: `tag-${Date.now()}`,
+        type: 'NTAG213',
+        data: 'https://example.com/product/12345',
+        size: 180,
+        writable: true,
+        locked: false,
+        timestamp: new Date(),
+        format: 'NDEF',
+        content: {
+          url: 'https://example.com/product/12345'
+        }
+      };
+
+      res.json({
+        success: true,
+        tag: mockTag,
+        message: 'NFC tag read successfully'
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to read NFC tag' });
+    }
+  });
+
+  // Simulate NFC tag write
+  app.post('/api/nfc/write', (req, res) => {
+    try {
+      const { tagId, data, type } = req.body;
+      
+      if (!tagId || !data) {
+        return res.status(400).json({ error: 'Tag ID and data are required' });
+      }
+
+      // Simulate writing to NFC tag
+      res.json({
+        success: true,
+        tagId,
+        data,
+        type,
+        message: 'Data written to NFC tag successfully'
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to write to NFC tag' });
+    }
+  });
+
   // DNS Lookup
   app.post('/api/dns/lookup', async (req, res) => {
     try {

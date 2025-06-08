@@ -157,6 +157,12 @@ export const toolCategories: ToolCategory[] = [
         name: 'Advanced PDF Editor',
         description: 'Comprehensive PDF editing with batch processing',
         icon: 'fa-edit'
+      },
+      {
+        id: 'pdf-form-filler',
+        name: 'PDF Form Filler',
+        description: 'Fill interactive PDF forms with templates',
+        icon: 'fa-wpforms'
       }
     ]
   },
