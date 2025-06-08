@@ -40,6 +40,24 @@ export const toolCategories: ToolCategory[] = [
         name: 'Barcode Scanner',
         description: 'Scan and decode barcodes from images',
         icon: 'fa-camera'
+      },
+      {
+        id: 'code128-generator',
+        name: 'Code 128 Generator',
+        description: 'Generate Code 128 barcodes',
+        icon: 'fa-barcode'
+      },
+      {
+        id: 'ean13-generator',
+        name: 'EAN-13 Generator',
+        description: 'Generate EAN-13 product barcodes',
+        icon: 'fa-barcode'
+      },
+      {
+        id: 'datamatrix-generator',
+        name: 'Data Matrix Generator',
+        description: 'Generate Data Matrix 2D codes',
+        icon: 'fa-qrcode'
       }
     ]
   },
@@ -103,6 +121,12 @@ export const toolCategories: ToolCategory[] = [
         name: 'PDF Protect',
         description: 'Password protect PDF files',
         icon: 'fa-lock'
+      },
+      {
+        id: 'pdf-unlock',
+        name: 'PDF Unlock',
+        description: 'Remove password protection from PDF files',
+        icon: 'fa-unlock'
       }
     ]
   },

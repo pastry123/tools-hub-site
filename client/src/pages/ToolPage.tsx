@@ -56,6 +56,7 @@ import LoremPicsum from "@/components/tools/LoremPicsum";
 import TextDiffTool from "@/components/tools/TextDiffTool";
 import PDFRotate from "@/components/tools/PDFRotate";
 import PDFWatermark from "@/components/tools/PDFWatermark";
+import PDFUnlocker from "@/components/tools/PDFUnlocker";
 import ImageToText from "@/components/tools/ImageToText";
 import BarcodeScanner from "@/components/tools/BarcodeScanner";
 import { Shield, Smartphone, Download } from "lucide-react";
@@ -135,8 +136,9 @@ export default function ToolPage() {
         return <PDFRotate />;
       case 'pdf-protect':
       case 'pdf-protector':
-      case 'pdf-unlock':
         return <PDFProtector />;
+      case 'pdf-unlock':
+        return <PDFUnlocker />;
       case 'password-generator':
         return <PasswordGenerator />;
       case 'hash-generator':
