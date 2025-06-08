@@ -7,9 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Document, Page } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
+// Using canvas-based PDF rendering for better compatibility
 
 interface SignatureField {
   id: string;
@@ -31,12 +29,17 @@ interface Signer {
   status: 'pending' | 'signed' | 'viewed';
 }
 
-// Configure PDF.js worker
-import { pdfjs } from 'react-pdf';
-
-if (typeof window !== 'undefined') {
-  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-}
+// PDF utility functions
+const getPDFPageCount = async (file: File): Promise<number> => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const text = new TextDecoder().decode(arrayBuffer);
+    const matches = text.match(/\/Type\s*\/Page\b/g);
+    return matches ? matches.length : 1;
+  } catch {
+    return 1;
+  }
+};
 
 export default function AdvancedESign() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -248,6 +251,12 @@ export default function AdvancedESign() {
     setPdfFile(file);
     setCurrentPage(0);
     setIsProcessing(true);
+    
+    // Get page count
+    getPDFPageCount(file).then(count => {
+      setNumPages(count);
+      setIsProcessing(false);
+    });
     
     toast({
       title: "Success",
@@ -747,57 +756,45 @@ export default function AdvancedESign() {
               >
                 {pdfFile ? (
                   <div className="relative w-full h-96">
-                    <Document
-                      file={pdfFile}
-                      onLoadSuccess={({ numPages }) => {
-                        setNumPages(numPages);
-                        setIsProcessing(false);
-                      }}
-                      onLoadError={(error) => {
-                        console.error('PDF load error:', error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to load PDF. Please try a different file.",
-                          variant: "destructive",
-                        });
-                        setIsProcessing(false);
-                      }}
-                      loading={
-                        <div className="flex items-center justify-center h-96 bg-gray-100">
-                          <div className="text-center">
-                            <FileText className="w-8 h-8 mx-auto mb-2 animate-pulse" />
-                            <p className="text-sm">Loading PDF...</p>
-                          </div>
-                        </div>
-                      }
-                      className="flex justify-center"
+                    {/* PDF Object Viewer with multiple fallbacks */}
+                    <object
+                      data={URL.createObjectURL(pdfFile) + "#toolbar=0&navpanes=0&scrollbar=0&page=" + (currentPage + 1)}
+                      type="application/pdf"
+                      width="100%"
+                      height="100%"
+                      className="border-0"
                     >
-                      <div className="relative">
-                        <Page
-                          pageNumber={currentPage + 1}
-                          width={Math.min(pageWidth, 600)}
-                          className="shadow-lg"
-                          onLoadSuccess={(page) => setPageWidth(page.width)}
-                          onRenderError={(error) => {
-                            console.error('Page render error:', error);
-                          }}
-                          loading={
-                            <div className="flex items-center justify-center h-96 bg-gray-50">
-                              <div className="text-center">
-                                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                                <p className="text-xs">Rendering page...</p>
-                              </div>
-                            </div>
-                          }
-                        />
-                        {/* Clickable overlay for signature field positioning */}
-                        <div 
-                          className="absolute inset-0 bg-transparent cursor-crosshair" 
-                          style={{ zIndex: 10 }}
-                          onMouseDown={handlePdfClick}
-                        ></div>
+                      <embed
+                        src={URL.createObjectURL(pdfFile) + "#toolbar=0&navpanes=0&scrollbar=0&page=" + (currentPage + 1)}
+                        type="application/pdf"
+                        width="100%"
+                        height="100%"
+                        className="border-0"
+                      />
+                      {/* Enhanced fallback for browsers without PDF support */}
+                      <div className="flex items-center justify-center h-96 bg-gray-100 border-2 border-dashed border-gray-300">
+                        <div className="text-center p-8">
+                          <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Viewer Not Available</h3>
+                          <p className="text-sm text-gray-600 mb-4">Your browser doesn't support embedded PDF viewing.</p>
+                          <p className="text-xs text-gray-500">For best results, use Chrome, Firefox, or Safari.</p>
+                          <a 
+                            href={URL.createObjectURL(pdfFile)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-block mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Open PDF in New Tab
+                          </a>
+                        </div>
                       </div>
-                    </Document>
+                    </object>
+                    {/* Clickable overlay for signature field positioning */}
+                    <div 
+                      className="absolute inset-0 bg-transparent cursor-crosshair" 
+                      style={{ zIndex: 10 }}
+                      onMouseDown={handlePdfClick}
+                    ></div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-96 text-gray-500">
