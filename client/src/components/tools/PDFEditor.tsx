@@ -102,7 +102,7 @@ export default function PDFEditor() {
           continue;
         }
 
-        // Analyze PDF structure
+        // Analyze PDF structure and extract content
         const formData = new FormData();
         formData.append('pdf', file);
 
@@ -110,6 +110,10 @@ export default function PDFEditor() {
           method: 'POST',
           body: formData,
         });
+
+        if (!response.ok) {
+          throw new Error(`PDF analysis failed: ${response.statusText}`);
+        }
 
         const analysis = await response.json();
 
