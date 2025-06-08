@@ -2,19 +2,23 @@ import { useState, useRef, useEffect } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
-interface TextElement {
+interface PDFTextElement {
   id: string;
   text: string;
   x: number;
   y: number;
+  width: number;
+  height: number;
   fontSize: number;
+  fontFamily: string;
   color: string;
   page: number;
   isEditing: boolean;
 }
 
-interface ImageElement {
+interface PDFImageElement {
   id: string;
   src: string;
   x: number;
@@ -24,29 +28,37 @@ interface ImageElement {
   page: number;
 }
 
-interface ShapeElement {
+interface PDFShapeElement {
   id: string;
   type: 'rectangle' | 'circle' | 'line';
   x: number;
   y: number;
   width: number;
   height: number;
-  color: string;
+  strokeColor: string;
+  fillColor: string;
+  strokeWidth: number;
   page: number;
+}
+
+interface PDFPageData {
+  width: number;
+  height: number;
+  backgroundColor: string;
+  textElements: PDFTextElement[];
+  imageElements: PDFImageElement[];
+  shapeElements: PDFShapeElement[];
 }
 
 export default function PDFEditor() {
   const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [numPages, setNumPages] = useState(0);
-  const [textElements, setTextElements] = useState<TextElement[]>([]);
-  const [imageElements, setImageElements] = useState<ImageElement[]>([]);
-  const [shapeElements, setShapeElements] = useState<ShapeElement[]>([]);
+  const [pages, setPages] = useState<PDFPageData[]>([]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<'select' | 'text' | 'image' | 'rectangle' | 'circle'>('select');
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(1.0);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -64,19 +76,24 @@ export default function PDFEditor() {
       });
       
       setPdfDoc(loadedPdf);
-      setNumPages(loadedPdf.getPageCount());
       
-      // Create blob URL for PDF display
-      const blob = new Blob([arrayBuffer], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
+      // Convert PDF pages to editable page data
+      const pdfPages = loadedPdf.getPages();
+      const editablePages: PDFPageData[] = pdfPages.map((page, index) => {
+        const { width, height } = page.getSize();
+        return {
+          width,
+          height,
+          backgroundColor: '#ffffff',
+          textElements: [],
+          imageElements: [],
+          shapeElements: []
+        };
+      });
       
-      // Reset state
-      setTextElements([]);
-      setImageElements([]);
-      setShapeElements([]);
+      setPages(editablePages);
+      setCurrentPageIndex(0);
       setSelectedElement(null);
-      setCurrentPage(1);
       
     } catch (error) {
       console.error('Error loading PDF:', error);
@@ -85,11 +102,11 @@ export default function PDFEditor() {
   };
 
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!editorRef.current) return;
+    if (!editorRef.current || selectedTool === 'select') return;
     
     const rect = editorRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
     
     if (selectedTool === 'text') {
       addTextElement(x, y);
@@ -97,41 +114,54 @@ export default function PDFEditor() {
       addShapeElement('rectangle', x, y);
     } else if (selectedTool === 'circle') {
       addShapeElement('circle', x, y);
-    } else {
-      setSelectedElement(null);
     }
   };
 
   const addTextElement = (x: number, y: number) => {
-    const newElement: TextElement = {
+    const newElement: PDFTextElement = {
       id: `text-${Date.now()}`,
-      text: "Edit me",
-      x: x - 50,
+      text: "Double-click to edit",
+      x: x - 75,
       y: y - 15,
+      width: 150,
+      height: 30,
       fontSize: 16,
-      color: "#000000",
-      page: currentPage,
-      isEditing: true,
+      fontFamily: 'Arial',
+      color: '#000000',
+      page: currentPageIndex,
+      isEditing: false,
     };
     
-    setTextElements(prev => [...prev, newElement]);
+    setPages(prev => prev.map((page, index) => 
+      index === currentPageIndex 
+        ? { ...page, textElements: [...page.textElements, newElement] }
+        : page
+    ));
+    
     setSelectedElement(newElement.id);
     setSelectedTool('select');
   };
 
   const addShapeElement = (type: 'rectangle' | 'circle', x: number, y: number) => {
-    const newElement: ShapeElement = {
+    const newElement: PDFShapeElement = {
       id: `${type}-${Date.now()}`,
       type,
       x: x - 50,
-      y: y - 50,
+      y: y - 40,
       width: 100,
-      height: type === 'circle' ? 100 : 80,
-      color: "#000000",
-      page: currentPage,
+      height: 80,
+      strokeColor: '#000000',
+      fillColor: 'transparent',
+      strokeWidth: 2,
+      page: currentPageIndex,
     };
     
-    setShapeElements(prev => [...prev, newElement]);
+    setPages(prev => prev.map((page, index) => 
+      index === currentPageIndex 
+        ? { ...page, shapeElements: [...page.shapeElements, newElement] }
+        : page
+    ));
+    
     setSelectedElement(newElement.id);
     setSelectedTool('select');
   };
@@ -143,68 +173,126 @@ export default function PDFEditor() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const src = event.target?.result as string;
-      const newElement: ImageElement = {
+      const newElement: PDFImageElement = {
         id: `image-${Date.now()}`,
         src,
         x: 100,
         y: 100,
         width: 200,
         height: 150,
-        page: currentPage,
+        page: currentPageIndex,
       };
-      setImageElements(prev => [...prev, newElement]);
+      
+      setPages(prev => prev.map((page, index) => 
+        index === currentPageIndex 
+          ? { ...page, imageElements: [...page.imageElements, newElement] }
+          : page
+      ));
+      
       setSelectedElement(newElement.id);
     };
     reader.readAsDataURL(file);
   };
 
-  const updateTextElement = (id: string, text: string) => {
-    setTextElements(prev => prev.map(el => 
-      el.id === id ? { ...el, text } : el
+  const updateTextElement = (id: string, updates: Partial<PDFTextElement>) => {
+    setPages(prev => prev.map((page, index) => 
+      index === currentPageIndex 
+        ? {
+            ...page, 
+            textElements: page.textElements.map(el => 
+              el.id === id ? { ...el, ...updates } : el
+            )
+          }
+        : page
     ));
   };
 
-  const toggleTextEdit = (id: string) => {
-    setTextElements(prev => prev.map(el => 
-      el.id === id ? { ...el, isEditing: !el.isEditing } : el
+  const updateImageElement = (id: string, updates: Partial<PDFImageElement>) => {
+    setPages(prev => prev.map((page, index) => 
+      index === currentPageIndex 
+        ? {
+            ...page, 
+            imageElements: page.imageElements.map(el => 
+              el.id === id ? { ...el, ...updates } : el
+            )
+          }
+        : page
+    ));
+  };
+
+  const updateShapeElement = (id: string, updates: Partial<PDFShapeElement>) => {
+    setPages(prev => prev.map((page, index) => 
+      index === currentPageIndex 
+        ? {
+            ...page, 
+            shapeElements: page.shapeElements.map(el => 
+              el.id === id ? { ...el, ...updates } : el
+            )
+          }
+        : page
     ));
   };
 
   const deleteElement = (id: string) => {
-    setTextElements(prev => prev.filter(el => el.id !== id));
-    setImageElements(prev => prev.filter(el => el.id !== id));
-    setShapeElements(prev => prev.filter(el => el.id !== id));
+    setPages(prev => prev.map((page, index) => 
+      index === currentPageIndex 
+        ? {
+            ...page,
+            textElements: page.textElements.filter(el => el.id !== id),
+            imageElements: page.imageElements.filter(el => el.id !== id),
+            shapeElements: page.shapeElements.filter(el => el.id !== id),
+          }
+        : page
+    ));
     setSelectedElement(null);
-  };
-
-  const moveElement = (id: string, deltaX: number, deltaY: number) => {
-    setTextElements(prev => prev.map(el => 
-      el.id === id ? { ...el, x: el.x + deltaX, y: el.y + deltaY } : el
-    ));
-    setImageElements(prev => prev.map(el => 
-      el.id === id ? { ...el, x: el.x + deltaX, y: el.y + deltaY } : el
-    ));
-    setShapeElements(prev => prev.map(el => 
-      el.id === id ? { ...el, x: el.x + deltaX, y: el.y + deltaY } : el
-    ));
   };
 
   const handleMouseDown = (e: React.MouseEvent, elementId: string) => {
     e.stopPropagation();
     setSelectedElement(elementId);
     setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
+    setDragStart({ 
+      x: e.clientX / scale, 
+      y: e.clientY / scale 
+    });
   };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || !selectedElement) return;
       
-      const deltaX = e.clientX - dragStart.x;
-      const deltaY = e.clientY - dragStart.y;
+      const deltaX = (e.clientX / scale) - dragStart.x;
+      const deltaY = (e.clientY / scale) - dragStart.y;
       
-      moveElement(selectedElement, deltaX, deltaY);
-      setDragStart({ x: e.clientX, y: e.clientY });
+      const currentPage = pages[currentPageIndex];
+      if (!currentPage) return;
+      
+      // Update position based on element type
+      const textElement = currentPage.textElements.find(el => el.id === selectedElement);
+      if (textElement) {
+        updateTextElement(selectedElement, {
+          x: textElement.x + deltaX,
+          y: textElement.y + deltaY
+        });
+      }
+      
+      const imageElement = currentPage.imageElements.find(el => el.id === selectedElement);
+      if (imageElement) {
+        updateImageElement(selectedElement, {
+          x: imageElement.x + deltaX,
+          y: imageElement.y + deltaY
+        });
+      }
+      
+      const shapeElement = currentPage.shapeElements.find(el => el.id === selectedElement);
+      if (shapeElement) {
+        updateShapeElement(selectedElement, {
+          x: shapeElement.x + deltaX,
+          y: shapeElement.y + deltaY
+        });
+      }
+      
+      setDragStart({ x: e.clientX / scale, y: e.clientY / scale });
     };
 
     const handleMouseUp = () => {
@@ -220,77 +308,71 @@ export default function PDFEditor() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, selectedElement, dragStart]);
+  }, [isDragging, selectedElement, dragStart, scale, currentPageIndex, pages]);
 
-  const savePdfWithElements = async () => {
-    if (!pdfDoc) return;
+  const exportToPDF = async () => {
+    if (!pdfDoc || pages.length === 0) return;
     
     try {
-      const pdfCopy = await PDFDocument.create();
-      const pages = pdfDoc.getPages();
+      const newPdf = await PDFDocument.create();
       
       for (let i = 0; i < pages.length; i++) {
-        const [copiedPage] = await pdfCopy.copyPages(pdfDoc, [i]);
-        pdfCopy.addPage(copiedPage);
-        const pageHeight = copiedPage.getHeight();
+        const pageData = pages[i];
+        const page = newPdf.addPage([pageData.width, pageData.height]);
         
-        // Add text elements for this page
-        const pageTextElements = textElements.filter(el => el.page === i + 1);
-        for (const element of pageTextElements) {
-          const font = await pdfCopy.embedFont(StandardFonts.Helvetica);
-          copiedPage.drawText(element.text, {
-            x: element.x,
-            y: pageHeight - element.y - element.fontSize,
-            size: element.fontSize,
+        // Add text elements
+        for (const textElement of pageData.textElements) {
+          const font = await newPdf.embedFont(StandardFonts.Helvetica);
+          page.drawText(textElement.text, {
+            x: textElement.x,
+            y: pageData.height - textElement.y - textElement.fontSize,
+            size: textElement.fontSize,
             font,
             color: rgb(0, 0, 0),
           });
         }
         
-        // Add shape elements for this page
-        const pageShapeElements = shapeElements.filter(el => el.page === i + 1);
-        for (const element of pageShapeElements) {
-          if (element.type === 'rectangle') {
-            copiedPage.drawRectangle({
-              x: element.x,
-              y: pageHeight - element.y - element.height,
-              width: element.width,
-              height: element.height,
+        // Add shape elements
+        for (const shapeElement of pageData.shapeElements) {
+          if (shapeElement.type === 'rectangle') {
+            page.drawRectangle({
+              x: shapeElement.x,
+              y: pageData.height - shapeElement.y - shapeElement.height,
+              width: shapeElement.width,
+              height: shapeElement.height,
               borderColor: rgb(0, 0, 0),
-              borderWidth: 2,
+              borderWidth: shapeElement.strokeWidth,
             });
-          } else if (element.type === 'circle') {
-            // Draw circle as ellipse
-            copiedPage.drawEllipse({
-              x: element.x + element.width / 2,
-              y: pageHeight - element.y - element.height / 2,
-              xScale: element.width / 2,
-              yScale: element.height / 2,
+          } else if (shapeElement.type === 'circle') {
+            page.drawEllipse({
+              x: shapeElement.x + shapeElement.width / 2,
+              y: pageData.height - shapeElement.y - shapeElement.height / 2,
+              xScale: shapeElement.width / 2,
+              yScale: shapeElement.height / 2,
               borderColor: rgb(0, 0, 0),
-              borderWidth: 2,
+              borderWidth: shapeElement.strokeWidth,
             });
           }
         }
         
-        // Add image elements for this page
-        const pageImageElements = imageElements.filter(el => el.page === i + 1);
-        for (const element of pageImageElements) {
+        // Add image elements
+        for (const imageElement of pageData.imageElements) {
           try {
-            const response = await fetch(element.src);
+            const response = await fetch(imageElement.src);
             const imageBytes = await response.arrayBuffer();
             
             let image;
-            if (element.src.includes('image/png')) {
-              image = await pdfCopy.embedPng(imageBytes);
+            if (imageElement.src.includes('image/png')) {
+              image = await newPdf.embedPng(imageBytes);
             } else {
-              image = await pdfCopy.embedJpg(imageBytes);
+              image = await newPdf.embedJpg(imageBytes);
             }
             
-            copiedPage.drawImage(image, {
-              x: element.x,
-              y: pageHeight - element.y - element.height,
-              width: element.width,
-              height: element.height,
+            page.drawImage(image, {
+              x: imageElement.x,
+              y: pageData.height - imageElement.y - imageElement.height,
+              width: imageElement.width,
+              height: imageElement.height,
             });
           } catch (error) {
             console.error('Error embedding image:', error);
@@ -298,7 +380,7 @@ export default function PDFEditor() {
         }
       }
       
-      const pdfBytes = await pdfCopy.save();
+      const pdfBytes = await newPdf.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -308,25 +390,25 @@ export default function PDFEditor() {
       URL.revokeObjectURL(url);
       
     } catch (error) {
-      console.error('Error saving PDF:', error);
-      alert('Error saving PDF. Please try again.');
+      console.error('Error exporting PDF:', error);
+      alert('Error exporting PDF. Please try again.');
     }
   };
 
-  const currentPageTextElements = textElements.filter(el => el.page === currentPage);
-  const currentPageImageElements = imageElements.filter(el => el.page === currentPage);
-  const currentPageShapeElements = shapeElements.filter(el => el.page === currentPage);
+  const currentPage = pages[currentPageIndex];
+  const pageWidth = currentPage?.width || 600;
+  const pageHeight = currentPage?.height || 800;
 
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Professional PDF Editor</h1>
+      <h1 className="text-2xl font-bold">Real-Time PDF Editor</h1>
       
       <div className="flex items-center gap-4">
         <Button 
           onClick={() => fileInputRef.current?.click()}
-          variant={pdfUrl ? "outline" : "default"}
+          variant={pages.length ? "outline" : "default"}
         >
-          {pdfUrl ? "Change PDF" : "Upload PDF"}
+          {pages.length ? "Change PDF" : "Upload PDF"}
         </Button>
         <input 
           type="file" 
@@ -335,10 +417,10 @@ export default function PDFEditor() {
           ref={fileInputRef} 
           className="hidden"
         />
-        {pdfUrl && <span className="text-sm text-green-600">✓ PDF loaded</span>}
+        {pages.length > 0 && <span className="text-sm text-green-600">✓ PDF loaded ({pages.length} pages)</span>}
       </div>
       
-      {pdfUrl && (
+      {pages.length > 0 && (
         <>
           {/* Toolbar */}
           <div className="flex flex-wrap gap-2 p-3 bg-gray-100 rounded border">
@@ -383,38 +465,59 @@ export default function PDFEditor() {
               className="hidden"
               onChange={addImageElement}
             />
+            
+            <div className="flex items-center gap-2 ml-4">
+              <span className="text-sm">Zoom:</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
+              >
+                -
+              </Button>
+              <span className="text-sm w-12 text-center">{Math.round(scale * 100)}%</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setScale(prev => Math.min(2.0, prev + 0.1))}
+              >
+                +
+              </Button>
+            </div>
+            
             {selectedElement && (
               <Button
                 size="sm"
                 variant="destructive"
                 onClick={() => deleteElement(selectedElement)}
               >
-                Delete Selected
+                Delete
               </Button>
             )}
+            
             <div className="ml-auto">
-              <Button onClick={savePdfWithElements} variant="outline">
-                Download Edited PDF
+              <Button onClick={exportToPDF} variant="outline">
+                Download PDF
               </Button>
             </div>
           </div>
 
           {/* Page Navigation */}
-          {numPages > 1 && (
+          {pages.length > 1 && (
             <div className="flex items-center justify-center gap-2">
               <Button 
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage <= 1}
+                onClick={() => setCurrentPageIndex(prev => Math.max(0, prev - 1))}
+                disabled={currentPageIndex <= 0}
                 size="sm"
               >
                 ← Previous
               </Button>
               <span className="text-sm px-4">
-                Page {currentPage} of {numPages}
+                Page {currentPageIndex + 1} of {pages.length}
               </span>
               <Button 
-                onClick={() => setCurrentPage(prev => Math.min(numPages, prev + 1))}
-                disabled={currentPage >= numPages}
+                onClick={() => setCurrentPageIndex(prev => Math.min(pages.length - 1, prev + 1))}
+                disabled={currentPageIndex >= pages.length - 1}
                 size="sm"
               >
                 Next →
@@ -422,71 +525,85 @@ export default function PDFEditor() {
             </div>
           )}
 
-          {/* PDF Editor Area */}
+          {/* Real-Time Editor Canvas */}
           <div className="border border-gray-300 rounded">
             <h3 className="p-2 bg-gray-100 font-medium text-sm">
-              Editor - {selectedTool === 'select' ? 'Select and edit elements' : `Click to add ${selectedTool}`}
+              Real-Time Editor - {selectedTool === 'select' ? 'Select and edit elements' : `Click to add ${selectedTool}`}
             </h3>
-            <div className="p-4 bg-gray-50 flex justify-center">
+            <div className="p-4 bg-gray-200 flex justify-center overflow-auto" style={{ minHeight: '70vh' }}>
               <div 
                 ref={editorRef}
-                className="relative bg-white border-2 border-gray-300 shadow-lg"
-                style={{ width: '800px', height: '600px', cursor: selectedTool !== 'select' ? 'crosshair' : 'default' }}
+                className="relative bg-white shadow-lg border border-gray-400"
+                style={{ 
+                  width: pageWidth * scale, 
+                  height: pageHeight * scale,
+                  cursor: selectedTool !== 'select' ? 'crosshair' : 'default',
+                  transform: `scale(${scale})`,
+                  transformOrigin: 'top left'
+                }}
                 onClick={handleEditorClick}
               >
-                {/* PDF Background */}
-                <iframe
-                  src={`${pdfUrl}#page=${currentPage}&zoom=100`}
-                  className="w-full h-full pointer-events-none"
-                  title="PDF Background"
-                />
-                
-                {/* Text Elements Overlay */}
-                {currentPageTextElements.map((element) => (
+                {/* Text Elements */}
+                {currentPage?.textElements.map((element) => (
                   <div
                     key={element.id}
                     className={`absolute border-2 ${
-                      selectedElement === element.id ? 'border-blue-500 bg-blue-50' : 'border-transparent'
-                    } hover:border-gray-400 cursor-move`}
+                      selectedElement === element.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-400'
+                    } cursor-move`}
                     style={{
                       left: element.x,
                       top: element.y,
+                      width: element.width,
+                      height: element.height,
                       fontSize: element.fontSize,
+                      fontFamily: element.fontFamily,
                       color: element.color,
-                      padding: '2px 4px',
-                      minWidth: '50px',
-                      minHeight: '20px',
+                      padding: '4px',
                       zIndex: 10,
                     }}
                     onMouseDown={(e) => handleMouseDown(e, element.id)}
-                    onDoubleClick={() => toggleTextEdit(element.id)}
+                    onDoubleClick={() => updateTextElement(element.id, { isEditing: true })}
                   >
                     {element.isEditing ? (
-                      <Input
-                        type="text"
+                      <Textarea
                         value={element.text}
-                        onChange={(e) => updateTextElement(element.id, e.target.value)}
-                        onBlur={() => toggleTextEdit(element.id)}
+                        onChange={(e) => updateTextElement(element.id, { text: e.target.value })}
+                        onBlur={() => updateTextElement(element.id, { isEditing: false })}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') toggleTextEdit(element.id);
+                          if (e.key === 'Escape') {
+                            updateTextElement(element.id, { isEditing: false });
+                          }
                         }}
-                        className="border-none bg-transparent p-0 h-auto focus:ring-0"
-                        style={{ fontSize: element.fontSize, color: element.color }}
+                        className="w-full h-full border-none bg-transparent p-0 resize-none focus:ring-0"
+                        style={{ 
+                          fontSize: element.fontSize, 
+                          fontFamily: element.fontFamily,
+                          color: element.color 
+                        }}
                         autoFocus
                       />
                     ) : (
-                      <span>{element.text}</span>
+                      <div 
+                        className="w-full h-full whitespace-pre-wrap"
+                        style={{ 
+                          fontSize: element.fontSize, 
+                          fontFamily: element.fontFamily,
+                          color: element.color 
+                        }}
+                      >
+                        {element.text}
+                      </div>
                     )}
                   </div>
                 ))}
 
-                {/* Image Elements Overlay */}
-                {currentPageImageElements.map((element) => (
+                {/* Image Elements */}
+                {currentPage?.imageElements.map((element) => (
                   <div
                     key={element.id}
                     className={`absolute border-2 ${
-                      selectedElement === element.id ? 'border-blue-500' : 'border-transparent'
-                    } hover:border-gray-400 cursor-move overflow-hidden`}
+                      selectedElement === element.id ? 'border-blue-500' : 'border-transparent hover:border-gray-400'
+                    } cursor-move overflow-hidden`}
                     style={{
                       left: element.x,
                       top: element.y,
@@ -498,28 +615,29 @@ export default function PDFEditor() {
                   >
                     <img
                       src={element.src}
-                      alt="Annotation"
+                      alt="PDF Element"
                       className="w-full h-full object-contain"
                       draggable={false}
                     />
                   </div>
                 ))}
 
-                {/* Shape Elements Overlay */}
-                {currentPageShapeElements.map((element) => (
+                {/* Shape Elements */}
+                {currentPage?.shapeElements.map((element) => (
                   <div
                     key={element.id}
-                    className={`absolute border-2 ${
-                      selectedElement === element.id ? 'border-blue-500' : 'border-gray-400'
-                    } hover:border-blue-400 cursor-move`}
+                    className={`absolute border-2 cursor-move ${
+                      selectedElement === element.id ? 'border-blue-500' : 'hover:border-gray-400'
+                    }`}
                     style={{
                       left: element.x,
                       top: element.y,
                       width: element.width,
                       height: element.height,
-                      borderColor: element.color,
+                      borderColor: element.strokeColor,
+                      borderWidth: element.strokeWidth,
                       borderRadius: element.type === 'circle' ? '50%' : '0',
-                      background: 'transparent',
+                      backgroundColor: element.fillColor,
                       zIndex: 10,
                     }}
                     onMouseDown={(e) => handleMouseDown(e, element.id)}
@@ -530,23 +648,23 @@ export default function PDFEditor() {
           </div>
 
           <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded space-y-2">
-            <p><strong>Professional PDF Editor Features:</strong></p>
-            <p>• Select tools from the toolbar and click on the PDF to add elements</p>
-            <p>• Drag elements to reposition them</p>
-            <p>• Double-click text to edit directly</p>
-            <p>• Add images, shapes, and text annotations</p>
-            <p>• Navigate between pages for multi-page documents</p>
-            <p>• All edits are permanently saved to the downloaded PDF</p>
+            <p><strong>Real-Time PDF Editor:</strong></p>
+            <p>• Select tools from toolbar and click on the canvas to add elements</p>
+            <p>• Double-click text to edit content directly</p>
+            <p>• Drag any element to reposition it</p>
+            <p>• Use zoom controls to adjust the view</p>
+            <p>• All changes are immediately visible and editable</p>
+            <p>• Download creates a new PDF with all your modifications</p>
           </div>
         </>
       )}
       
-      {!pdfUrl && (
+      {pages.length === 0 && (
         <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
           <div className="space-y-4">
-            <div className="text-6xl text-gray-400">📝</div>
-            <h3 className="text-xl font-medium text-gray-700">Professional PDF Editor</h3>
-            <p className="text-gray-500">Upload a PDF to start editing with professional tools</p>
+            <div className="text-6xl text-gray-400">✏️</div>
+            <h3 className="text-xl font-medium text-gray-700">Real-Time PDF Editor</h3>
+            <p className="text-gray-500">Upload a PDF to start editing with live, interactive elements</p>
             <Button 
               onClick={() => fileInputRef.current?.click()}
               size="lg"
