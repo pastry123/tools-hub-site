@@ -36,6 +36,16 @@ export default function AdvancedESign() {
   const [pdfPages, setPdfPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
+  const [brushSize, setBrushSize] = useState<number>(3);
+  const [signaturePositions, setSignaturePositions] = useState<Array<{
+    x: number;
+    y: number;
+    page: number;
+    width: number;
+    height: number;
+    id: string;
+  }>>([]);
+  const [isPlacingSignature, setIsPlacingSignature] = useState<boolean>(false);
 
   const { toast } = useToast();
 
@@ -161,6 +171,38 @@ export default function AdvancedESign() {
     await renderPage(pdfDoc, pageNumber);
   };
 
+  const handlePdfCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isPlacingSignature || !currentSignature) return;
+    
+    const canvas = pdfCanvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
+    const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+    
+    const newPosition = {
+      x,
+      y,
+      page: currentPage,
+      width: 120,
+      height: 40,
+      id: `sig-${Date.now()}`
+    };
+    
+    setSignaturePositions([...signaturePositions, newPosition]);
+    setIsPlacingSignature(false);
+    
+    toast({
+      title: "Signature Placed",
+      description: `Signature added to page ${currentPage}`,
+    });
+  };
+
+  const removeSignaturePosition = (id: string) => {
+    setSignaturePositions(signaturePositions.filter(pos => pos.id !== id));
+  };
+
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
@@ -227,6 +269,10 @@ export default function AdvancedESign() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
+    ctx.strokeStyle = color;
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
   };
@@ -449,12 +495,38 @@ export default function AdvancedESign() {
                 </div>
                 
                 <div className="border rounded-lg overflow-hidden bg-white p-4">
-                  <div className="flex justify-center">
+                  <div className="flex justify-center relative">
                     <canvas
                       ref={pdfCanvasRef}
-                      className="max-w-full shadow-lg border"
+                      className={`max-w-full shadow-lg border ${isPlacingSignature ? 'cursor-crosshair' : 'cursor-default'}`}
                       style={{ display: 'block' }}
+                      onClick={handlePdfCanvasClick}
                     />
+                    {/* Signature Position Overlays */}
+                    {signaturePositions
+                      .filter(pos => pos.page === currentPage)
+                      .map(pos => (
+                        <div
+                          key={pos.id}
+                          className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-50 flex items-center justify-center"
+                          style={{
+                            left: `${(pos.x / (pdfCanvasRef.current?.width || 1)) * 100}%`,
+                            top: `${(pos.y / (pdfCanvasRef.current?.height || 1)) * 100}%`,
+                            width: `${(pos.width / (pdfCanvasRef.current?.width || 1)) * 100}%`,
+                            height: `${(pos.height / (pdfCanvasRef.current?.height || 1)) * 100}%`,
+                          }}
+                        >
+                          <div className="text-xs text-blue-800 font-medium">Signature</div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-5 w-5 p-0"
+                            onClick={() => removeSignaturePosition(pos.id)}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
                   </div>
                 </div>
                 
@@ -591,6 +663,35 @@ export default function AdvancedESign() {
               </div>
             )}
 
+            {mode === "draw" && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Brush Size</label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={brushSize}
+                        onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                        className="flex-1"
+                      />
+                      <Badge variant="outline">{brushSize}px</Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Color</label>
+                    <Input
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-4">
               <canvas
                 ref={canvasRef}
@@ -613,6 +714,15 @@ export default function AdvancedESign() {
                       <Download className="w-4 h-4 mr-2" />
                       Download
                     </Button>
+                    <Button 
+                      variant="default" 
+                      onClick={() => setIsPlacingSignature(true)} 
+                      size="sm"
+                      disabled={!pdfFile}
+                    >
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Place on PDF
+                    </Button>
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Check className="w-3 h-3" />
                       Signature Ready
@@ -620,6 +730,11 @@ export default function AdvancedESign() {
                   </>
                 )}
               </div>
+              {isPlacingSignature && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                  Click on the PDF preview to place your signature
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
