@@ -54,8 +54,10 @@ export default function PDFTextEditor() {
   const [isLoading, setIsLoading] = useState(false);
   const [tool, setTool] = useState<'select' | 'text'>('select');
   const [isResizing, setIsResizing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragThreshold] = useState(5); // Minimum pixels to start drag
 
   const loadPDF = useCallback(async (file: File) => {
     if (!file || file.type !== 'application/pdf') {
@@ -84,33 +86,29 @@ export default function PDFTextEditor() {
       if (result.success) {
         setPages(result.pages);
         
-        // Extract original text as selectable text layers
+        // Use text elements directly from backend with proper positioning
         const allTextLayers: TextLayer[] = [];
-        result.pages.forEach((page: any, pageIndex: number) => {
-          if (page.extractedText) {
-            // Create text regions from extracted text
-            const lines = page.extractedText.split('\n').filter((line: string) => line.trim());
-            lines.forEach((line: string, lineIndex: number) => {
-              if (line.trim()) {
-                allTextLayers.push({
-                  id: `original-${pageIndex + 1}-${lineIndex}`,
-                  content: line.trim(),
-                  x: 50,
-                  y: 80 + (lineIndex * 25),
-                  width: 495,
-                  height: 20,
-                  fontSize: 14,
-                  fontFamily: 'Arial',
-                  color: '#1f2937',
-                  bold: false,
-                  italic: false,
-                  underline: false,
-                  alignment: 'left',
-                  isEditing: false,
-                  isSelected: false,
-                  isOriginal: true
-                });
-              }
+        result.pages.forEach((page: any) => {
+          if (page.textElements && Array.isArray(page.textElements)) {
+            page.textElements.forEach((textEl: any) => {
+              allTextLayers.push({
+                id: textEl.id,
+                content: textEl.content,
+                x: textEl.x,
+                y: textEl.y,
+                width: textEl.width,
+                height: textEl.height,
+                fontSize: textEl.fontSize,
+                fontFamily: textEl.fontFamily,
+                color: textEl.color,
+                bold: textEl.bold,
+                italic: textEl.italic,
+                underline: textEl.underline,
+                alignment: textEl.alignment,
+                isEditing: false,
+                isSelected: false,
+                isOriginal: textEl.isOriginal
+              });
             });
           }
         });
@@ -229,6 +227,8 @@ export default function PDFTextEditor() {
     if (handle) {
       setIsResizing(true);
       setResizeHandle(handle);
+    } else {
+      setIsDragging(false); // Don't start dragging immediately
     }
     
     setDragStart({
@@ -243,24 +243,33 @@ export default function PDFTextEditor() {
     const selectedText = textLayers.find(t => t.id === selectedTextId);
     if (!selectedText) return;
 
-    const deltaX = (event.clientX - dragStart.x) / zoom;
-    const deltaY = (event.clientY - dragStart.y) / zoom;
+    const deltaX = event.clientX - dragStart.x;
+    const deltaY = event.clientY - dragStart.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // Only start dragging if moved beyond threshold
+    if (!isDragging && !isResizing && distance > dragThreshold) {
+      setIsDragging(true);
+    }
 
     if (isResizing && resizeHandle) {
+      const scaledDeltaX = deltaX / zoom;
+      const scaledDeltaY = deltaY / zoom;
+      
       let newWidth = selectedText.width;
       let newHeight = selectedText.height;
       let newX = selectedText.x;
       let newY = selectedText.y;
 
-      if (resizeHandle.includes('e')) newWidth = Math.max(50, selectedText.width + deltaX);
+      if (resizeHandle.includes('e')) newWidth = Math.max(50, selectedText.width + scaledDeltaX);
       if (resizeHandle.includes('w')) {
-        newWidth = Math.max(50, selectedText.width - deltaX);
-        newX = selectedText.x + deltaX;
+        newWidth = Math.max(50, selectedText.width - scaledDeltaX);
+        newX = selectedText.x + scaledDeltaX;
       }
-      if (resizeHandle.includes('s')) newHeight = Math.max(20, selectedText.height + deltaY);
+      if (resizeHandle.includes('s')) newHeight = Math.max(20, selectedText.height + scaledDeltaY);
       if (resizeHandle.includes('n')) {
-        newHeight = Math.max(20, selectedText.height - deltaY);
-        newY = selectedText.y + deltaY;
+        newHeight = Math.max(20, selectedText.height - scaledDeltaY);
+        newY = selectedText.y + scaledDeltaY;
       }
 
       updateTextLayer(selectedTextId, {
@@ -269,19 +278,22 @@ export default function PDFTextEditor() {
         x: newX,
         y: newY
       });
-    } else {
-      // Dragging
+      
+      setDragStart({ x: event.clientX, y: event.clientY });
+    } else if (isDragging) {
+      // Only move if actively dragging
       updateTextLayer(selectedTextId, {
-        x: selectedText.x + deltaX,
-        y: selectedText.y + deltaY
+        x: selectedText.x + (deltaX / zoom),
+        y: selectedText.y + (deltaY / zoom)
       });
+      
+      setDragStart({ x: event.clientX, y: event.clientY });
     }
-
-    setDragStart({ x: event.clientX, y: event.clientY });
   };
 
   const handleMouseUp = () => {
     setIsResizing(false);
+    setIsDragging(false);
     setResizeHandle(null);
   };
 
@@ -464,7 +476,7 @@ export default function PDFTextEditor() {
                       }
                       e.stopPropagation();
                     }}
-                    className="w-full h-full border-none outline-none resize-none bg-transparent p-1"
+                    className="w-full h-full border-none outline-none resize-none bg-white p-2"
                     style={{
                       fontSize: textLayer.fontSize / zoom,
                       fontFamily: textLayer.fontFamily,
@@ -478,7 +490,9 @@ export default function PDFTextEditor() {
                   />
                 ) : (
                   <div
-                    className="w-full h-full p-1 whitespace-pre-wrap break-words select-text"
+                    className={`w-full h-full p-2 whitespace-pre-wrap break-words ${
+                      textLayer.isOriginal ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-gray-200'
+                    }`}
                     style={{
                       fontSize: textLayer.fontSize / zoom,
                       fontFamily: textLayer.fontFamily,
@@ -487,10 +501,34 @@ export default function PDFTextEditor() {
                       fontStyle: textLayer.italic ? 'italic' : 'normal',
                       textDecoration: textLayer.underline ? 'underline' : 'none',
                       textAlign: textLayer.alignment,
-                      cursor: 'text'
+                      cursor: textLayer.isSelected ? 'move' : 'text',
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      lineHeight: '1.4'
+                    }}
+                    onMouseDown={(e) => {
+                      // Allow text selection on triple click or when shift is held
+                      if (e.detail === 3 || e.shiftKey) {
+                        e.stopPropagation();
+                        return;
+                      }
+                      handleMouseDown(textLayer, null, e);
                     }}
                   >
                     {textLayer.content}
+                    
+                    {/* Show content type indicator */}
+                    {textLayer.isOriginal && (
+                      <div className="absolute -top-2 -left-2 text-xs bg-blue-500 text-white px-1 rounded">
+                        PDF
+                      </div>
+                    )}
+                    {!textLayer.isOriginal && (
+                      <div className="absolute -top-2 -left-2 text-xs bg-green-500 text-white px-1 rounded">
+                        NEW
+                      </div>
+                    )}
                   </div>
                 )}
 

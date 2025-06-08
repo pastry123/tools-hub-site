@@ -1361,35 +1361,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No PDF file provided' });
       }
 
-      // Get PDF info and convert pages to images for proper display
+      // Get PDF info and extract text with positioning
       const pdfInfo = await pdfService.getPDFInfo(req.file.buffer);
-      
-      // Import and use PDF image service for real page rendering
-      const { pdfImageService } = await import('./pdfImageService');
-      const pageImages = await pdfImageService.convertPDFToImages(req.file.buffer, 120);
-      
-      // Extract text content for editing
       const pdfText = await pdfService.pdfToText(req.file.buffer);
-      const textPerPage = Math.ceil(pdfText.length / pdfInfo.pages);
       
-      // Create pages with actual PDF page images as backgrounds - NO automatic text elements
+      // Create clean background and extract actual text layers
       const pages = Array.from({ length: pdfInfo.pages }, (_, i) => {
+        const pageText = pdfText.substring(i * Math.ceil(pdfText.length / pdfInfo.pages), (i + 1) * Math.ceil(pdfText.length / pdfInfo.pages));
+        
+        // Parse text into individual text blocks with positioning
+        const textBlocks: any[] = [];
+        if (pageText.trim()) {
+          const sentences = pageText.split(/[.!?]+/).filter(s => s.trim().length > 10);
+          let yPosition = 80;
+          
+          sentences.forEach((sentence, idx) => {
+            if (idx < 15 && sentence.trim()) { // Limit number of text blocks
+              const cleanSentence = sentence.trim().replace(/\s+/g, ' ');
+              const estimatedWidth = Math.min(500, Math.max(200, cleanSentence.length * 8));
+              const estimatedHeight = Math.max(20, Math.ceil(cleanSentence.length / 60) * 16);
+              
+              textBlocks.push({
+                id: `original-${i + 1}-${idx}`,
+                content: cleanSentence,
+                x: 50 + (idx % 2) * 20, // Slight horizontal variation
+                y: yPosition,
+                width: estimatedWidth,
+                height: estimatedHeight,
+                fontSize: 14,
+                fontFamily: 'Arial',
+                color: '#1f2937',
+                bold: false,
+                italic: false,
+                underline: false,
+                alignment: 'left',
+                isOriginal: true,
+                isSelectable: true
+              });
+              
+              yPosition += estimatedHeight + 15;
+            }
+          });
+        }
+        
         return {
           id: `page-${i + 1}`,
           number: i + 1,
           width: 595,
           height: 842,
-          background: pageImages[i] || `data:image/svg+xml;base64,${Buffer.from(`
+          // Use white background with subtle grid for text editing
+          background: `data:image/svg+xml;base64,${Buffer.from(`
             <svg width="595" height="842" xmlns="http://www.w3.org/2000/svg">
-              <rect width="100%" height="100%" fill="#ffffff" stroke="#e5e7eb"/>
-              <text x="297" y="421" text-anchor="middle" font-family="Arial" font-size="16" fill="#9ca3af">
-                Page ${i + 1}
+              <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f9fafb" stroke-width="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="#ffffff"/>
+              <rect width="100%" height="100%" fill="url(#grid)"/>
+              <text x="30" y="30" font-family="Arial" font-size="12" fill="#9ca3af">
+                ${pdfInfo.title || 'PDF Document'} - Page ${i + 1}
               </text>
+              <line x1="0" y1="50" x2="595" y2="50" stroke="#e5e7eb" stroke-width="1"/>
             </svg>
           `).toString('base64')}`,
-          textElements: [], // Start with empty text elements - user adds them manually
+          textElements: textBlocks,
           imageElements: [],
-          extractedText: pdfText.substring(i * textPerPage, (i + 1) * textPerPage).substring(0, 500)
+          extractedText: pageText.substring(0, 1000)
         };
       });
 
