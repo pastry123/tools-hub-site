@@ -19,6 +19,7 @@ interface Signer {
 export default function AdvancedESign() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureText, setSignatureText] = useState("");
   const [fontFamily, setFontFamily] = useState("Dancing Script");
@@ -32,6 +33,9 @@ export default function AdvancedESign() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pdfPages, setPdfPages] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pdfDoc, setPdfDoc] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -70,7 +74,7 @@ export default function AdvancedESign() {
     setSigners(signers.filter(signer => signer.id !== id));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -86,16 +90,75 @@ export default function AdvancedESign() {
     setPdfFile(file);
     setIsProcessing(true);
     
-    // Create URL for PDF preview
-    const url = URL.createObjectURL(file);
-    setPdfUrl(url);
+    try {
+      // Load PDF.js library
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      if (!document.querySelector('script[src*="pdf.min.js"]')) {
+        document.head.appendChild(script);
+        await new Promise(resolve => script.onload = resolve);
+      }
+
+      // Configure worker
+      const pdfjsLib = (window as any).pdfjsLib;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      // Load PDF document
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      setPdfDoc(pdf);
+      setPdfPages(pdf.numPages);
+      setCurrentPage(1);
+      
+      // Render first page
+      await renderPage(pdf, 1);
+      
+      setIsProcessing(false);
+      toast({
+        title: "Success",
+        description: `PDF loaded successfully! ${pdf.numPages} pages found.`,
+      });
+    } catch (error) {
+      setIsProcessing(false);
+      toast({
+        title: "Error",
+        description: "Failed to load PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const renderPage = async (pdf: any, pageNumber: number) => {
+    if (!pdfCanvasRef.current || !pdf) return;
+
+    try {
+      const page = await pdf.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = pdfCanvasRef.current;
+      const context = canvas.getContext('2d');
+
+      if (!context) return;
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport,
+      };
+
+      await page.render(renderContext).promise;
+    } catch (error) {
+      console.error('Error rendering PDF page:', error);
+    }
+  };
+
+  const goToPage = async (pageNumber: number) => {
+    if (!pdfDoc || pageNumber < 1 || pageNumber > pdfPages) return;
     
-    setTimeout(() => setIsProcessing(false), 1000);
-    
-    toast({
-      title: "Success",
-      description: "PDF uploaded successfully!",
-    });
+    setCurrentPage(pageNumber);
+    await renderPage(pdfDoc, pageNumber);
   };
 
   const triggerFileUpload = () => {
@@ -342,58 +405,74 @@ export default function AdvancedESign() {
                 <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Eye className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-blue-800">PDFEdit Integration Active</span>
+                    <span className="font-medium text-blue-800">Canvas PDF Viewer Active</span>
+                    {pdfPages > 0 && (
+                      <Badge variant="secondary">
+                        Page {currentPage} of {pdfPages}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex gap-2">
+                    {pdfPages > 1 && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => goToPage(currentPage - 1)}
+                          disabled={currentPage <= 1}
+                        >
+                          Previous
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => goToPage(currentPage + 1)}
+                          disabled={currentPage >= pdfPages}
+                        >
+                          Next
+                        </Button>
+                      </>
+                    )}
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => window.open(`https://www.pdfedit.app/edit?url=${encodeURIComponent(pdfUrl)}`, '_blank')}
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(pdfFile!);
+                        link.download = pdfFile?.name || 'document.pdf';
+                        link.click();
+                      }}
                     >
-                      Open in New Tab
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.open(pdfUrl, '_blank')}
-                    >
-                      Download PDF
+                      Download
                     </Button>
                   </div>
                 </div>
                 
-                <div className="border rounded-lg overflow-hidden bg-white">
-                  <iframe
-                    src={`https://www.pdfedit.app/edit?url=${encodeURIComponent(pdfUrl)}&toolbar=minimal&readonly=true&theme=light`}
-                    className="w-full border-0"
-                    style={{ height: '700px' }}
-                    title="PDF Document Preview - PDFEdit"
-                    sandbox="allow-scripts allow-same-origin allow-downloads"
-                    onError={() => {
-                      toast({
-                        title: "Preview Error",
-                        description: "PDFEdit preview unavailable. Use 'Open in New Tab' for full functionality.",
-                        variant: "destructive",
-                      });
-                    }}
-                  />
+                <div className="border rounded-lg overflow-hidden bg-white p-4">
+                  <div className="flex justify-center">
+                    <canvas
+                      ref={pdfCanvasRef}
+                      className="max-w-full shadow-lg border"
+                      style={{ display: 'block' }}
+                    />
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="text-center">
-                    <FileText className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-                    <p className="text-sm font-medium">Document Analysis</p>
-                    <p className="text-xs text-gray-500">Review content structure</p>
+                    <FileText className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                    <p className="text-sm font-medium text-blue-800">Real Content Display</p>
+                    <p className="text-xs text-gray-600">Authentic PDF rendering</p>
                   </div>
                   <div className="text-center">
-                    <Pen className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-                    <p className="text-sm font-medium">Signature Planning</p>
-                    <p className="text-xs text-gray-500">Identify signature areas</p>
+                    <Pen className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                    <p className="text-sm font-medium text-blue-800">Signature Planning</p>
+                    <p className="text-xs text-gray-600">Identify signature areas</p>
                   </div>
                   <div className="text-center">
-                    <Shield className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-                    <p className="text-sm font-medium">Document Security</p>
-                    <p className="text-xs text-gray-500">Verify authenticity</p>
+                    <Shield className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                    <p className="text-sm font-medium text-blue-800">Document Security</p>
+                    <p className="text-xs text-gray-600">Verify authenticity</p>
                   </div>
                 </div>
               </div>
