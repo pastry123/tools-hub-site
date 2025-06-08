@@ -362,7 +362,7 @@ export default function AdvancedESign() {
     // Don't add field if clicking on an existing field
     if ((e.target as HTMLElement).closest('.signature-field')) return;
     
-    const rect = pdfViewRef.current?.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     if (!rect) return;
     
     const x = e.clientX - rect.left;
@@ -378,6 +378,11 @@ export default function AdvancedESign() {
       required: true
     };
     setSignatureFields([...signatureFields, newField]);
+    
+    toast({
+      title: "Signature Field Added",
+      description: "Click and drag to reposition, double-click to remove",
+    });
   };
 
   const addSignatureField = () => {
@@ -873,16 +878,32 @@ export default function AdvancedESign() {
               
               <div 
                 ref={pdfViewRef} 
-                className="relative border bg-gray-50 min-h-96 overflow-auto"
+                className="relative border bg-white min-h-96 overflow-hidden"
                 onClick={handlePdfClick}
               >
-                {pdfPages[currentPage] && (
-                  <img
-                    src={pdfPages[currentPage]}
-                    alt={`Page ${currentPage + 1}`}
-                    className="max-w-full h-auto"
-                    draggable={false}
-                  />
+                {pdfFile ? (
+                  <div className="relative w-full h-96">
+                    <iframe
+                      src={URL.createObjectURL(pdfFile) + "#page=" + (currentPage + 1) + "&toolbar=0&navpanes=0&scrollbar=0"}
+                      width="100%"
+                      height="100%"
+                      className="border-0"
+                      title={`PDF Page ${currentPage + 1}`}
+                    />
+                    {/* Clickable overlay for signature field positioning */}
+                    <div 
+                      className="absolute inset-0 bg-transparent cursor-crosshair" 
+                      style={{ zIndex: 10 }}
+                      onMouseDown={handlePdfClick}
+                    ></div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-96 text-gray-500">
+                    <div className="text-center">
+                      <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Upload a PDF to start</p>
+                    </div>
+                  </div>
                 )}
                 
                 {/* Signature field overlays */}
@@ -897,7 +918,7 @@ export default function AdvancedESign() {
                         top: field.y,
                         width: field.width,
                         height: field.height,
-                        zIndex: 10
+                        zIndex: 20
                       }}
                       onMouseDown={(e) => handleFieldMouseDown(e, field.id)}
                       onDoubleClick={(e) => {
