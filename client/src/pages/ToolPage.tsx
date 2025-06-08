@@ -60,6 +60,7 @@ import ImageToText from "@/components/tools/ImageToText";
 import BarcodeScanner from "@/components/tools/BarcodeScanner";
 import InvoiceGenerator from "@/components/tools/InvoiceGenerator";
 import SignatureGenerator from "@/components/tools/SignatureGenerator";
+import AdvancedESign from "@/components/tools/AdvancedESign";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
 import TimezoneConverter from "@/components/tools/TimezoneConverter";
@@ -248,7 +249,7 @@ export default function ToolPage() {
       case 'pdf-page-numbers':
         return <PDFPageNumbers />;
       case 'pdf-esign':
-        return <SignatureGenerator />;
+        return <AdvancedESign />;
       case 'timezone-converter':
         return <TimezoneConverter />;
       case 'video-to-gif':

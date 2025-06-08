@@ -12,6 +12,7 @@ import { developerService } from "./developerService";
 import { barcodeService } from "./barcodeService";
 import { currencyService } from "./currencyService";
 import { analyticsService } from "./analyticsService";
+import { eSignService } from "./eSignService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -976,6 +977,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Multiple barcode scan error:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to scan barcodes' });
+    }
+  });
+
+  // ESIGN & DIGITAL SIGNATURE ENDPOINTS
+
+  // AI Signature Generator
+  app.post('/api/signature/ai-generate', async (req, res) => {
+    try {
+      const { name, style, format } = req.body;
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required for signature generation' });
+      }
+
+      const result = await eSignService.generateAISignature({
+        name,
+        style: style || 'sophisticated-cursive',
+        format: format || 'svg'
+      });
+
+      if (result.success) {
+        res.json({ signature: result.signature });
+      } else {
+        res.status(500).json({ error: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate signature' });
+    }
+  });
+
+  // PDF Preview for eSign
+  app.post('/api/pdf/preview', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const result = await eSignService.generatePDFPreview(req.file.buffer);
+      
+      if (result.success) {
+        res.json({ pages: result.pages });
+      } else {
+        res.status(500).json({ error: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate PDF preview' });
+    }
+  });
+
+  // Sign PDF with signature
+  app.post('/api/pdf/sign', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { signature, fields } = req.body;
+      if (!signature) {
+        return res.status(400).json({ error: 'Signature is required' });
+      }
+
+      const signatureFields = fields ? JSON.parse(fields) : [];
+      const signedPdfBuffer = await eSignService.addSignatureToPDF(
+        req.file.buffer,
+        signature,
+        signatureFields
+      );
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="signed-document.pdf"');
+      res.send(signedPdfBuffer);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to sign PDF' });
+    }
+  });
+
+  // Send document for signing
+  app.post('/api/esign/send', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { signature, signers, fields, title, message } = req.body;
+      const signersData = signers ? JSON.parse(signers) : [];
+      const fieldsData = fields ? JSON.parse(fields) : [];
+
+      const result = await eSignService.sendDocumentForSigning(
+        req.file.buffer,
+        signersData,
+        fieldsData,
+        title || 'Document for Signature',
+        message || 'Please review and sign this document.'
+      );
+
+      if (result.success) {
+        res.json({ documentId: result.documentId, message: 'Document sent successfully' });
+      } else {
+        res.status(500).json({ error: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to send document' });
+    }
+  });
+
+  // Add page numbers to PDF
+  app.post('/api/pdf/add-page-numbers', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { position, startNumber, fontSize, marginX, marginY } = req.body;
+      
+      const numberedPdfBuffer = await eSignService.addPageNumbers(req.file.buffer, {
+        position: position || 'bottom-center',
+        startNumber: parseInt(startNumber) || 1,
+        fontSize: parseInt(fontSize) || 12,
+        marginX: parseInt(marginX) || 50,
+        marginY: parseInt(marginY) || 30
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="numbered-document.pdf"');
+      res.send(numberedPdfBuffer);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to add page numbers' });
     }
   });
 
