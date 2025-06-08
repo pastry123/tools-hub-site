@@ -1469,6 +1469,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export edited PDF with overlays
+  app.post('/api/pdf/export', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const edits = JSON.parse(req.body.edits || '{}');
+      
+      // Use eSignService to add text overlays to PDF
+      const modifiedPDF = await eSignService.addSignatureToPDF(
+        req.file.buffer,
+        '', // No signature, just text overlays
+        edits.pages?.flatMap((page: any) => 
+          page.textElements?.map((textEl: any) => ({
+            id: textEl.id,
+            x: textEl.x,
+            y: textEl.y,
+            width: textEl.width,
+            height: textEl.height,
+            page: page.number,
+            required: false,
+            signerName: textEl.content,
+            signerEmail: ''
+          })) || []
+        ) || []
+      );
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="edited-document.pdf"');
+      res.send(modifiedPDF);
+    } catch (error) {
+      console.error('PDF export error:', error);
+      res.status(500).json({ error: 'Failed to export PDF' });
+    }
+  });
+
   // Apply edits to PDF
   app.post('/api/pdf/apply-edits', uploadPDF.single('pdf'), async (req, res) => {
     try {
