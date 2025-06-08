@@ -402,20 +402,34 @@ export default function PDFEditor() {
   };
 
   const handleElementDragEnd = (e: DragEvent) => {
-    if (!selectedDoc || !selectedElement) return;
+    // We'll handle positioning through onDrag instead
+  };
 
-    const rect = e.currentTarget.parentElement?.getBoundingClientRect();
-    if (!rect) return;
+  const handleElementDrag = (e: DragEvent, elementId: string, elementType: 'text' | 'image') => {
+    if (!selectedDoc || e.clientX === 0) return;
 
+    const canvas = document.getElementById('pdf-canvas');
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
     const x = Math.max(0, (e.clientX - rect.left) / selectedDoc.zoom);
     const y = Math.max(0, (e.clientY - rect.top) / selectedDoc.zoom);
 
-    const elementType = e.dataTransfer.getData('elementType');
-    
-    if (elementType === 'text') {
-      updateTextElement(selectedElement, { x, y });
-    } else if (elementType === 'image') {
-      updateImageElement(selectedElement, { x, y });
+    if (snapToGrid) {
+      const gridX = Math.round(x / 20) * 20;
+      const gridY = Math.round(y / 20) * 20;
+      
+      if (elementType === 'text') {
+        updateTextElement(elementId, { x: gridX, y: gridY });
+      } else if (elementType === 'image') {
+        updateImageElement(elementId, { x: gridX, y: gridY });
+      }
+    } else {
+      if (elementType === 'text') {
+        updateTextElement(elementId, { x, y });
+      } else if (elementType === 'image') {
+        updateImageElement(elementId, { x, y });
+      }
     }
   };
 
@@ -560,6 +574,34 @@ export default function PDFEditor() {
               </div>
 
               {selectedDoc && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => updateDocument({
+                      ...selectedDoc,
+                      zoom: Math.max(0.25, selectedDoc.zoom - 0.25)
+                    })}
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <span className="text-sm px-2 min-w-[4rem] text-center">
+                    {Math.round(selectedDoc.zoom * 100)}%
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => updateDocument({
+                      ...selectedDoc,
+                      zoom: Math.min(2, selectedDoc.zoom + 0.25)
+                    })}
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+
+              {selectedDoc && (
                 <Button 
                   onClick={exportPDF}
                   disabled={isProcessing}
@@ -654,21 +696,29 @@ export default function PDFEditor() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="relative border rounded-lg overflow-hidden">
+                  <div className="relative border rounded-lg overflow-hidden bg-gray-100">
                     <div 
-                      className={`relative bg-white ${showGrid ? 'bg-grid' : ''}`}
+                      id="pdf-canvas"
+                      className={`relative bg-white shadow-lg mx-auto ${showGrid ? 'bg-grid' : ''}`}
                       style={{
-                        width: '100%',
-                        height: '600px',
+                        width: '595px',
+                        height: '842px',
                         transform: `scale(${selectedDoc.zoom})`,
-                        transformOrigin: 'top left'
+                        transformOrigin: 'top center',
+                        backgroundImage: selectedDoc.pages[selectedDoc.currentPage]?.background 
+                          ? `url(${selectedDoc.pages[selectedDoc.currentPage].background})` 
+                          : 'none',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
                       }}
                       onClick={(e) => {
                         if (tool === 'text') {
                           const rect = e.currentTarget.getBoundingClientRect();
-                          const x = (e.clientX - rect.left) / selectedDoc.zoom;
-                          const y = (e.clientY - rect.top) / selectedDoc.zoom;
+                          const x = Math.max(0, (e.clientX - rect.left) / selectedDoc.zoom);
+                          const y = Math.max(0, (e.clientY - rect.top) / selectedDoc.zoom);
                           addTextElement(x, y);
+                          setTool('select');
                         }
                       }}
                     >
@@ -676,9 +726,8 @@ export default function PDFEditor() {
                       {getCurrentPage()?.textElements.map((textEl) => (
                         <div
                           key={textEl.id}
-                          draggable
                           className={`absolute cursor-move border-2 select-none ${
-                            selectedElement === textEl.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-300'
+                            selectedElement === textEl.id ? 'border-blue-500 bg-blue-50 bg-opacity-20' : 'border-transparent hover:border-gray-300'
                           }`}
                           style={{
                             left: textEl.x,
@@ -693,14 +742,48 @@ export default function PDFEditor() {
                             textDecoration: textEl.underline ? 'underline' : 'none',
                             textAlign: textEl.alignment,
                             transform: `rotate(${textEl.rotation}deg)`,
-                            padding: '4px'
+                            padding: '4px',
+                            zIndex: selectedElement === textEl.id ? 1000 : 10
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedElement(textEl.id);
                           }}
-                          onDragStart={(e) => handleElementDragStart(e, textEl.id, 'text')}
-                          onDragEnd={handleElementDragEnd}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setSelectedElement(textEl.id);
+                            
+                            const startX = e.clientX;
+                            const startY = e.clientY;
+                            const elementStartX = textEl.x;
+                            const elementStartY = textEl.y;
+
+                            const handleMouseMove = (moveEvent: MouseEvent) => {
+                              const deltaX = (moveEvent.clientX - startX) / selectedDoc.zoom;
+                              const deltaY = (moveEvent.clientY - startY) / selectedDoc.zoom;
+                              
+                              let newX = elementStartX + deltaX;
+                              let newY = elementStartY + deltaY;
+
+                              if (snapToGrid) {
+                                newX = Math.round(newX / 20) * 20;
+                                newY = Math.round(newY / 20) * 20;
+                              }
+
+                              newX = Math.max(0, Math.min(595 - textEl.width, newX));
+                              newY = Math.max(0, Math.min(842 - textEl.height, newY));
+
+                              updateTextElement(textEl.id, { x: newX, y: newY });
+                            };
+
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
                         >
                           {textEl.content}
                         </div>
@@ -710,9 +793,8 @@ export default function PDFEditor() {
                       {getCurrentPage()?.imageElements.map((imgEl) => (
                         <div
                           key={imgEl.id}
-                          draggable
                           className={`absolute cursor-move border-2 select-none ${
-                            selectedElement === imgEl.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-300'
+                            selectedElement === imgEl.id ? 'border-blue-500 bg-blue-50 bg-opacity-20' : 'border-transparent hover:border-gray-300'
                           }`}
                           style={{
                             left: imgEl.x,
@@ -720,14 +802,48 @@ export default function PDFEditor() {
                             width: imgEl.width,
                             height: imgEl.height,
                             transform: `rotate(${imgEl.rotation}deg)`,
-                            opacity: imgEl.opacity
+                            opacity: imgEl.opacity,
+                            zIndex: selectedElement === imgEl.id ? 1000 : 10
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedElement(imgEl.id);
                           }}
-                          onDragStart={(e) => handleElementDragStart(e, imgEl.id, 'image')}
-                          onDragEnd={handleElementDragEnd}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setSelectedElement(imgEl.id);
+                            
+                            const startX = e.clientX;
+                            const startY = e.clientY;
+                            const elementStartX = imgEl.x;
+                            const elementStartY = imgEl.y;
+
+                            const handleMouseMove = (moveEvent: MouseEvent) => {
+                              const deltaX = (moveEvent.clientX - startX) / selectedDoc.zoom;
+                              const deltaY = (moveEvent.clientY - startY) / selectedDoc.zoom;
+                              
+                              let newX = elementStartX + deltaX;
+                              let newY = elementStartY + deltaY;
+
+                              if (snapToGrid) {
+                                newX = Math.round(newX / 20) * 20;
+                                newY = Math.round(newY / 20) * 20;
+                              }
+
+                              newX = Math.max(0, Math.min(595 - imgEl.width, newX));
+                              newY = Math.max(0, Math.min(842 - imgEl.height, newY));
+
+                              updateImageElement(imgEl.id, { x: newX, y: newY });
+                            };
+
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
                         >
                           <img
                             src={imgEl.src}
