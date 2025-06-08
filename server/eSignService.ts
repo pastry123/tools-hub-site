@@ -1,5 +1,7 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import * as pdfParse from 'pdf-parse';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 import fs from 'fs';
 import path from 'path';
 
@@ -221,6 +223,8 @@ export class ESignService {
       const pdfDoc = await PDFDocument.load(pdfBuffer);
       const pageCount = pdfDoc.getPageCount();
       
+      console.log(`Extracted ${pdfData.text.length} characters from PDF with ${pageCount} pages`);
+      
       // Analyze text content for intelligent layout
       const textAnalysis = this.analyzeTextContent(pdfData.text, pageCount);
       const pages: string[] = [];
@@ -230,7 +234,9 @@ export class ESignService {
         const { width, height } = page.getSize();
         
         // Get content for this specific page
-        const pageContent = textAnalysis.pages[i] || { lines: [], emptyAreas: [] };
+        const pageContent = textAnalysis.pages[i] || { lines: [], emptyAreas: [], hasContent: false };
+        
+        console.log(`Page ${i + 1}: ${pageContent.lines.length} lines, ${pageContent.emptyAreas.length} empty areas`);
         
         // Create realistic preview with actual content structure
         const contentPage = this.generateContentBasedPage(i + 1, width, height, pageContent);
@@ -240,10 +246,27 @@ export class ESignService {
       return { success: true, pages };
     } catch (error) {
       console.error('PDF preview generation failed:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate preview'
-      };
+      
+      // Fallback with enhanced previews
+      try {
+        const pdfDoc = await PDFDocument.load(pdfBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        const pages = [];
+        
+        for (let i = 0; i < pageCount; i++) {
+          const page = pdfDoc.getPage(i);
+          const { width, height } = page.getSize();
+          const fallbackPage = this.generateEnhancedPage(i + 1, width, height);
+          pages.push(fallbackPage);
+        }
+        
+        return { success: true, pages };
+      } catch (fallbackError) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to generate preview'
+        };
+      }
     }
   }
 
