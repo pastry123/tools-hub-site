@@ -289,6 +289,9 @@ export default function AdvancedESign() {
   const handlePdfClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!pdfFile || isDragging || isResizing) return;
     
+    // Don't add field if clicking on an existing field
+    if ((e.target as HTMLElement).closest('.signature-field')) return;
+    
     const rect = pdfViewRef.current?.getBoundingClientRect();
     if (!rect) return;
     
@@ -297,8 +300,8 @@ export default function AdvancedESign() {
     
     const newField: SignatureField = {
       id: Date.now().toString(),
-      x: x - 100, // Center the field on click
-      y: y - 40,
+      x: Math.max(0, x - 100), // Center the field on click
+      y: Math.max(0, y - 40),
       width: 200,
       height: 80,
       page: currentPage,
@@ -337,33 +340,31 @@ export default function AdvancedESign() {
     e.preventDefault();
     e.stopPropagation();
     
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    const field = signatureFields.find(f => f.id === fieldId);
+    if (!field) return;
+    
+    const startFieldX = field.x;
+    const startFieldY = field.y;
+    
     setIsDragging(true);
     setSelectedField(fieldId);
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY
-    });
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isDragging) return;
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
       
-      const deltaX = moveEvent.clientX - dragStart.x;
-      const deltaY = moveEvent.clientY - dragStart.y;
-      
-      setSignatureFields(prev => prev.map(field => 
-        field.id === fieldId 
+      setSignatureFields(prev => prev.map(f => 
+        f.id === fieldId 
           ? { 
-              ...field, 
-              x: Math.max(0, field.x + deltaX),
-              y: Math.max(0, field.y + deltaY)
+              ...f, 
+              x: Math.max(0, startFieldX + deltaX),
+              y: Math.max(0, startFieldY + deltaY)
             }
-          : field
+          : f
       ));
-      
-      setDragStart({
-        x: moveEvent.clientX,
-        y: moveEvent.clientY
-      });
     };
 
     const handleMouseUp = () => {
@@ -718,35 +719,57 @@ export default function AdvancedESign() {
                   .map((field) => (
                     <div
                       key={field.id}
-                      className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-50 cursor-move resize"
+                      className="signature-field absolute border-2 border-blue-500 bg-blue-100 bg-opacity-50 cursor-move select-none"
                       style={{
                         left: field.x,
                         top: field.y,
                         width: field.width,
                         height: field.height,
+                        zIndex: 10
                       }}
                       onMouseDown={(e) => handleFieldMouseDown(e, field.id)}
-                      onDoubleClick={() => removeSignatureField(field.id)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        removeSignatureField(field.id);
+                      }}
                     >
-                      <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                      <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
                         Signature {field.required && '*'}
+                        <button 
+                          className="ml-2 text-white hover:text-red-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSignatureField(field.id);
+                          }}
+                        >
+                          ×
+                        </button>
                       </div>
-                      <div className="w-full h-full flex items-center justify-center text-blue-600 text-sm">
-                        {field.signerName || 'Click to sign'}
+                      <div className="w-full h-full flex items-center justify-center text-blue-600 text-sm pointer-events-none">
+                        {field.signerName || 'Drag to move'}
                       </div>
                       
                       {/* Resize handles */}
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                           onMouseDown={(e) => handleResizeMouseDown(e, field.id)}></div>
+                      <div 
+                        className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 cursor-se-resize"
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          handleResizeMouseDown(e, field.id);
+                        }}
+                      ></div>
                     </div>
                   ))}
               </div>
               
-              <div className="mt-4 text-sm text-gray-600">
-                <p>• Click on the document to add signature fields</p>
-                <p>• Drag signature fields to reposition them</p>
-                <p>• Double-click a field to remove it</p>
-                <p>• Drag the corner to resize fields</p>
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Signature Field Controls:</h4>
+                <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                  <p>• Click empty areas to add signature fields</p>
+                  <p>• Drag blue boxes to move signature areas</p>
+                  <p>• Click the × button or double-click to remove fields</p>
+                  <p>• Drag bottom-right corner to resize fields</p>
+                  <p>• Fields: {signatureFields.filter(f => f.page === currentPage).length} on this page</p>
+                </div>
               </div>
             </div>
           )}
