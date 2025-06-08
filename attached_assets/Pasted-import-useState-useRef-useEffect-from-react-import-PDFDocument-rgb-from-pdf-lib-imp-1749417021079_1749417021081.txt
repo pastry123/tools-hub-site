@@ -1,27 +1,17 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PDFDocument, rgb } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 
-interface TextField {
-  id: number;
-  x: number;
-  y: number;
-  text: string;
-  width: number;
-  height: number;
-}
-
 export default function PDFEditor() {
-  const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [url, setUrl] = useState(null);
+  const fileInputRef = useRef(null);
+  const overlayRef = useRef(null);
   const [transparentField, setTransparentField] = useState(false);
-  const [fields, setFields] = useState<TextField[]>([]);
+  const [fields, setFields] = useState([]);
 
-  async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function loadPdf(e) {
+    const file = e.target.files[0];
     const arrayBuffer = await file.arrayBuffer();
     const loadedPdf = await PDFDocument.load(arrayBuffer, {
       updateMetadata: true,
@@ -37,7 +27,7 @@ export default function PDFEditor() {
     setFields([...fields, { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30 }]);
   }
 
-  function updateField(id: number, updates: Partial<TextField>) {
+  function updateField(id, updates) {
     setFields(fields.map(f => f.id === id ? { ...f, ...updates } : f));
   }
 
@@ -58,45 +48,6 @@ export default function PDFEditor() {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     setUrl(URL.createObjectURL(blob));
     setFields([]);
-  }
-
-  async function addImageToFirstPage(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!pdfDoc || !e.target.files?.[0]) return;
-    const file = e.target.files[0];
-    const imageBytes = await file.arrayBuffer();
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-    const { width, height } = firstPage.getSize();
-
-    let img;
-    if (file.type === "image/jpeg") {
-      img = await pdfDoc.embedJpg(imageBytes);
-    } else {
-      img = await pdfDoc.embedPng(imageBytes);
-    }
-
-    const imgDims = img.scale(0.5);
-
-    firstPage.drawImage(img, {
-      x: width / 2 - imgDims.width / 2,
-      y: height / 2 - imgDims.height / 2,
-      width: imgDims.width,
-      height: imgDims.height,
-    });
-
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    setUrl(URL.createObjectURL(blob));
-  }
-
-  async function downloadPdf() {
-    if (!pdfDoc) return;
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "edited.pdf";
-    a.click();
   }
 
   return (
@@ -120,7 +71,7 @@ export default function PDFEditor() {
                   onMouseDown={e => {
                     const offsetX = e.nativeEvent.offsetX;
                     const offsetY = e.nativeEvent.offsetY;
-                    const onMove = (moveEvent: MouseEvent) => {
+                    const onMove = moveEvent => {
                       updateField(field.id, {
                         x: moveEvent.clientX - offsetX,
                         y: moveEvent.clientY - offsetY,
@@ -174,4 +125,43 @@ export default function PDFEditor() {
       </label>
     </div>
   );
+
+  async function addImageToFirstPage(e) {
+    if (!pdfDoc || !e.target.files[0]) return;
+    const file = e.target.files[0];
+    const imageBytes = await file.arrayBuffer();
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+    const { width, height } = firstPage.getSize();
+
+    let img;
+    if (file.type === "image/jpeg") {
+      img = await pdfDoc.embedJpg(imageBytes);
+    } else {
+      img = await pdfDoc.embedPng(imageBytes);
+    }
+
+    const imgDims = img.scale(0.5);
+
+    firstPage.drawImage(img, {
+      x: width / 2 - imgDims.width / 2,
+      y: height / 2 - imgDims.height / 2,
+      width: imgDims.width,
+      height: imgDims.height,
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    setUrl(URL.createObjectURL(blob));
+  }
+
+  async function downloadPdf() {
+    if (!pdfDoc) return;
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "edited.pdf";
+    a.click();
+  }
 }
