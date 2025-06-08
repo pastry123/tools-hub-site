@@ -1361,42 +1361,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No PDF file provided' });
       }
 
-      // Get PDF info and extract actual text content
+      // Get PDF info and convert pages to images for proper display
       const pdfInfo = await pdfService.getPDFInfo(req.file.buffer);
+      
+      // Import and use PDF image service for real page rendering
+      const { pdfImageService } = await import('./pdfImageService');
+      const pageImages = await pdfImageService.convertPDFToImages(req.file.buffer, 120);
+      
+      // Extract text content for editing
       const pdfText = await pdfService.pdfToText(req.file.buffer);
-      
-      // Split text content by pages (rough estimation)
       const textPerPage = Math.ceil(pdfText.length / pdfInfo.pages);
-      const pageTexts = Array.from({ length: pdfInfo.pages }, (_, i) => {
-        const startIdx = i * textPerPage;
-        const endIdx = Math.min((i + 1) * textPerPage, pdfText.length);
-        return pdfText.substring(startIdx, endIdx);
-      });
       
-      // Create pages with extracted text as editable elements
+      // Create pages with actual PDF page images as backgrounds
       const pages = Array.from({ length: pdfInfo.pages }, (_, i) => {
-        const pageText = pageTexts[i];
-        const textElements = [];
+        const pageText = pdfText.substring(i * textPerPage, (i + 1) * textPerPage);
+        const textElements: any[] = [];
         
         if (pageText.trim()) {
-          // Split text into paragraphs and create editable text elements
-          const paragraphs = pageText.split('\n\n').filter(p => p.trim());
-          let y = 60;
+          // Create editable text elements from extracted content
+          const paragraphs = pageText.split(/\n\s*\n/).filter(p => p.trim());
+          let y = 80;
           
           paragraphs.forEach((paragraph, idx) => {
-            if (idx < 10 && y < 700) { // Limit to prevent overflow
-              const lines = paragraph.trim().split('\n');
-              const content = lines.join(' ').substring(0, 200); // Limit content length
+            if (idx < 8 && y < 700) { // Reasonable limit
+              const cleanText = paragraph.trim().replace(/\s+/g, ' ').substring(0, 300);
               
-              if (content.length > 10) {
+              if (cleanText.length > 5) {
                 textElements.push({
-                  id: `extracted-text-${i}-${idx}`,
-                  content: content,
+                  id: `text-${i + 1}-${idx}`,
+                  content: cleanText,
                   x: 50,
                   y: y,
                   width: 495,
-                  height: Math.max(20, Math.ceil(content.length / 60) * 16),
-                  fontSize: 12,
+                  height: Math.max(25, Math.ceil(cleanText.length / 70) * 18),
+                  fontSize: 14,
                   fontFamily: 'Arial',
                   color: '#1f2937',
                   bold: false,
@@ -1405,34 +1403,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   alignment: 'left',
                   page: i + 1,
                   rotation: 0,
-                  isOriginal: true // Mark as original PDF content
+                  isOriginal: true
                 });
                 
-                y += Math.max(30, Math.ceil(content.length / 60) * 20);
+                y += Math.max(35, Math.ceil(cleanText.length / 70) * 22);
               }
             }
-          });
-        }
-        
-        // If no text extracted, add a placeholder
-        if (textElements.length === 0) {
-          textElements.push({
-            id: `placeholder-text-${i}`,
-            content: `Page ${i + 1} content - Click to edit this text or add new elements`,
-            x: 50,
-            y: 100,
-            width: 495,
-            height: 30,
-            fontSize: 14,
-            fontFamily: 'Arial',
-            color: '#6b7280',
-            bold: false,
-            italic: false,
-            underline: false,
-            alignment: 'left',
-            page: i + 1,
-            rotation: 0,
-            isOriginal: false
           });
         }
         
@@ -1441,18 +1417,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           number: i + 1,
           width: 595,
           height: 842,
-          background: `data:image/svg+xml;base64,${Buffer.from(`
+          background: pageImages[i] || `data:image/svg+xml;base64,${Buffer.from(`
             <svg width="595" height="842" xmlns="http://www.w3.org/2000/svg">
-              <rect width="100%" height="100%" fill="#ffffff"/>
-              <rect x="0" y="0" width="595" height="30" fill="#f8fafc"/>
-              <text x="30" y="20" font-family="Arial" font-size="12" fill="#64748b">
-                ${pdfInfo.title || 'PDF Document'} - Page ${i + 1}
+              <rect width="100%" height="100%" fill="#ffffff" stroke="#e5e7eb"/>
+              <text x="297" y="421" text-anchor="middle" font-family="Arial" font-size="16" fill="#9ca3af">
+                Page ${i + 1}
               </text>
-              <line x1="0" y1="30" x2="595" y2="30" stroke="#e2e8f0"/>
             </svg>
           `).toString('base64')}`,
           textElements,
-          imageElements: []
+          imageElements: [],
+          extractedText: pageText.substring(0, 200) + (pageText.length > 200 ? '...' : '')
         };
       });
 
