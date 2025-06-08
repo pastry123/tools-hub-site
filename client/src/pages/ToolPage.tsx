@@ -189,6 +189,7 @@ export default function ToolPage() {
       case 'text-to-slug':
         return <TextToSlug />;
       case 'dummy-text':
+      case 'dummy-text-generator':
         return <DummyTextGenerator />;
       case 'color-converter':
         return <ColorConverter />;
@@ -236,6 +237,10 @@ export default function ToolPage() {
       case 'gradient-generator':
       case 'css-gradient':
         return <CSSGradientGenerator />;
+      case 'invoice-generator':
+        return <InvoiceGenerator />;
+      case 'signature-generator':
+        return <SignatureGenerator />;
       default:
         return (
           <Card>
