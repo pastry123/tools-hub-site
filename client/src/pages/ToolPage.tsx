@@ -239,7 +239,6 @@ export default function ToolPage() {
       case 'meta-tags':
       case 'meta-tag-generator':
         return <MetaTagGenerator />;
-      case 'gradient-generator':
       case 'css-gradient':
         return <CSSGradientGenerator />;
       case 'invoice-generator':
