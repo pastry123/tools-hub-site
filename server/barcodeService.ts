@@ -1,6 +1,13 @@
 import sharp from 'sharp';
 import jsQR from 'jsqr';
-import { BinaryBitmap, HybridBinarizer, MultiFormatReader } from '@zxing/library';
+import { 
+  BinaryBitmap, 
+  HybridBinarizer, 
+  MultiFormatReader,
+  LuminanceSource,
+  DecodeHintType,
+  BarcodeFormat
+} from '@zxing/library';
 
 export interface BarcodeResult {
   value: string;
@@ -28,6 +35,22 @@ export class BarcodeService {
 
   constructor() {
     this.zxingReader = new MultiFormatReader();
+    
+    // Configure hints for better barcode detection
+    const hints = new Map();
+    hints.set(DecodeHintType.TRY_HARDER, true);
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.QR_CODE,
+      BarcodeFormat.DATA_MATRIX,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.PDF_417,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E
+    ]);
+    this.zxingReader.setHints(hints);
   }
 
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {
@@ -492,19 +515,63 @@ export class BarcodeService {
         .raw()
         .toBuffer({ resolveWithObject: true });
 
-      // Create luminance source
-      const luminanceSource = {
-        getRow: (y: number, row?: Uint8ClampedArray) => {
-          const start = y * info.width;
-          const end = start + info.width;
-          return new Uint8ClampedArray(data.slice(start, end));
-        },
-        getMatrix: () => new Uint8ClampedArray(data),
-        getWidth: () => info.width,
-        getHeight: () => info.height,
-        isCropSupported: () => false,
-        isRotateSupported: () => false
-      };
+      // Create proper luminance source class
+      class BufferLuminanceSource extends LuminanceSource {
+        private matrix: Uint8ClampedArray;
+
+        constructor(matrix: Uint8ClampedArray, width: number, height: number) {
+          super(width, height);
+          this.matrix = matrix;
+        }
+
+        getRow(y: number, row?: Uint8ClampedArray): Uint8ClampedArray {
+          const start = y * this.getWidth();
+          const end = start + this.getWidth();
+          if (row && row.length >= this.getWidth()) {
+            row.set(this.matrix.slice(start, end));
+            return row;
+          }
+          return new Uint8ClampedArray(this.matrix.slice(start, end));
+        }
+
+        getMatrix(): Uint8ClampedArray {
+          return this.matrix;
+        }
+
+        isCropSupported(): boolean {
+          return false;
+        }
+
+        crop(left: number, top: number, width: number, height: number): LuminanceSource {
+          throw new Error('Crop not supported');
+        }
+
+        isRotateSupported(): boolean {
+          return false;
+        }
+
+        rotateCounterClockwise(): LuminanceSource {
+          throw new Error('Rotate not supported');
+        }
+
+        rotateCounterClockwise45(): LuminanceSource {
+          throw new Error('Rotate not supported');
+        }
+
+        invert(): LuminanceSource {
+          const inverted = new Uint8ClampedArray(this.matrix.length);
+          for (let i = 0; i < this.matrix.length; i++) {
+            inverted[i] = 255 - this.matrix[i];
+          }
+          return new BufferLuminanceSource(inverted, this.getWidth(), this.getHeight());
+        }
+      }
+
+      const luminanceSource = new BufferLuminanceSource(
+        new Uint8ClampedArray(data),
+        info.width,
+        info.height
+      );
 
       // Create binary bitmap
       const binarizer = new HybridBinarizer(luminanceSource);
@@ -568,18 +635,63 @@ export class BarcodeService {
             .raw()
             .toBuffer({ resolveWithObject: true });
 
-          const luminanceSource = {
-            getRow: (y: number, row?: Uint8ClampedArray) => {
-              const start = y * info.width;
-              const end = start + info.width;
-              return new Uint8ClampedArray(data.slice(start, end));
-            },
-            getMatrix: () => new Uint8ClampedArray(data),
-            getWidth: () => info.width,
-            getHeight: () => info.height,
-            isCropSupported: () => false,
-            isRotateSupported: () => false
-          };
+          // Create proper luminance source class
+          class BufferLuminanceSource extends LuminanceSource {
+            private matrix: Uint8ClampedArray;
+
+            constructor(matrix: Uint8ClampedArray, width: number, height: number) {
+              super(width, height);
+              this.matrix = matrix;
+            }
+
+            getRow(y: number, row?: Uint8ClampedArray): Uint8ClampedArray {
+              const start = y * this.getWidth();
+              const end = start + this.getWidth();
+              if (row && row.length >= this.getWidth()) {
+                row.set(this.matrix.slice(start, end));
+                return row;
+              }
+              return new Uint8ClampedArray(this.matrix.slice(start, end));
+            }
+
+            getMatrix(): Uint8ClampedArray {
+              return this.matrix;
+            }
+
+            isCropSupported(): boolean {
+              return false;
+            }
+
+            crop(left: number, top: number, width: number, height: number): LuminanceSource {
+              throw new Error('Crop not supported');
+            }
+
+            isRotateSupported(): boolean {
+              return false;
+            }
+
+            rotateCounterClockwise(): LuminanceSource {
+              throw new Error('Rotate not supported');
+            }
+
+            rotateCounterClockwise45(): LuminanceSource {
+              throw new Error('Rotate not supported');
+            }
+
+            invert(): LuminanceSource {
+              const inverted = new Uint8ClampedArray(this.matrix.length);
+              for (let i = 0; i < this.matrix.length; i++) {
+                inverted[i] = 255 - this.matrix[i];
+              }
+              return new BufferLuminanceSource(inverted, this.getWidth(), this.getHeight());
+            }
+          }
+
+          const luminanceSource = new BufferLuminanceSource(
+            new Uint8ClampedArray(data),
+            info.width,
+            info.height
+          );
 
           const binarizer = new HybridBinarizer(luminanceSource);
           const bitmap = new BinaryBitmap(binarizer);
