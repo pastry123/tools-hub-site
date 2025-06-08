@@ -32,7 +32,6 @@ import TextReverser from "@/components/tools/TextReverser";
 import HashGenerator from "@/components/tools/HashGenerator";
 import CodeFormatter from "@/components/tools/CodeFormatter";
 import TextToSlug from "@/components/tools/TextToSlug";
-import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import ColorConverter from "@/components/tools/ColorConverter";
 import CurrencyConverter from "@/components/tools/CurrencyConverter";
 import UUIDGenerator from "@/components/tools/UUIDGenerator";
@@ -59,6 +58,9 @@ import PDFWatermark from "@/components/tools/PDFWatermark";
 import PDFUnlocker from "@/components/tools/PDFUnlocker";
 import ImageToText from "@/components/tools/ImageToText";
 import BarcodeScanner from "@/components/tools/BarcodeScanner";
+import InvoiceGenerator from "@/components/tools/InvoiceGenerator";
+import SignatureGenerator from "@/components/tools/SignatureGenerator";
+import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {

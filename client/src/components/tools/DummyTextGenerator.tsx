@@ -1,73 +1,101 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { FileText, Copy } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Copy, FileText, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DummyTextGenerator() {
-  const [paragraphs, setParagraphs] = useState('3');
-  const [outputText, setOutputText] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [textType, setTextType] = useState("lorem");
+  const [count, setCount] = useState(5);
+  const [countType, setCountType] = useState("paragraphs");
+  const [generatedText, setGeneratedText] = useState("");
   const { toast } = useToast();
 
-  const handleGenerate = async () => {
-    if (!paragraphs || parseInt(paragraphs) <= 0) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid number of paragraphs",
-        variant: "destructive"
-      });
-      return;
+  const loremWords = [
+    "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",
+    "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore",
+    "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud",
+    "exercitation", "ullamco", "laboris", "nisi", "aliquip", "ex", "ea", "commodo",
+    "consequat", "duis", "aute", "irure", "in", "reprehenderit", "voluptate",
+    "velit", "esse", "cillum", "fugiat", "nulla", "pariatur", "excepteur", "sint",
+    "occaecat", "cupidatat", "non", "proident", "sunt", "culpa", "qui", "officia",
+    "deserunt", "mollit", "anim", "id", "est", "laborum"
+  ];
+
+  const randomWords = [
+    "apple", "banana", "computer", "mountain", "ocean", "forest", "building",
+    "sunshine", "rainbow", "butterfly", "adventure", "journey", "discovery",
+    "innovation", "creativity", "inspiration", "freedom", "harmony", "balance",
+    "wisdom", "knowledge", "experience", "growth", "development", "progress",
+    "success", "achievement", "excellence", "quality", "performance", "efficiency"
+  ];
+
+  const generateSentence = (words: string[], minWords = 8, maxWords = 20) => {
+    const sentenceLength = Math.floor(Math.random() * (maxWords - minWords + 1)) + minWords;
+    const sentence = [];
+    
+    for (let i = 0; i < sentenceLength; i++) {
+      const word = words[Math.floor(Math.random() * words.length)];
+      sentence.push(i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word);
+    }
+    
+    return sentence.join(" ") + ".";
+  };
+
+  const generateParagraph = (words: string[], sentences = 5) => {
+    const paragraph = [];
+    for (let i = 0; i < sentences; i++) {
+      paragraph.push(generateSentence(words));
+    }
+    return paragraph.join(" ");
+  };
+
+  const generateText = () => {
+    const words = textType === "lorem" ? loremWords : randomWords;
+    let result = "";
+
+    switch (countType) {
+      case "words":
+        const wordArray = [];
+        for (let i = 0; i < count; i++) {
+          wordArray.push(words[Math.floor(Math.random() * words.length)]);
+        }
+        result = wordArray.join(" ");
+        break;
+
+      case "sentences":
+        const sentences = [];
+        for (let i = 0; i < count; i++) {
+          sentences.push(generateSentence(words));
+        }
+        result = sentences.join(" ");
+        break;
+
+      case "paragraphs":
+        const paragraphs = [];
+        for (let i = 0; i < count; i++) {
+          paragraphs.push(generateParagraph(words));
+        }
+        result = paragraphs.join("\n\n");
+        break;
     }
 
-    setIsProcessing(true);
-
-    try {
-      const response = await fetch('/api/text/dummy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          paragraphs: parseInt(paragraphs)
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate dummy text');
-      }
-
-      const data = await response.json();
-      setOutputText(data.result);
-
-      toast({
-        title: "Success",
-        description: "Dummy text generated successfully"
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate dummy text",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    setGeneratedText(result);
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(outputText);
+    navigator.clipboard.writeText(generatedText);
     toast({
       title: "Copied",
-      description: "Text copied to clipboard"
+      description: "Text copied to clipboard",
     });
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -75,39 +103,71 @@ export default function DummyTextGenerator() {
             Dummy Text Generator
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="paragraphs">Number of Paragraphs</Label>
-            <Input
-              id="paragraphs"
-              type="number"
-              value={paragraphs}
-              onChange={(e) => setParagraphs(e.target.value)}
-              placeholder="3"
-              min="1"
-              max="20"
-              className="mt-2"
-            />
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Text Type</label>
+              <Select value={textType} onValueChange={setTextType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lorem">Lorem Ipsum</SelectItem>
+                  <SelectItem value="random">Random Words</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Count</label>
+              <Input
+                type="number"
+                value={count}
+                onChange={(e) => setCount(parseInt(e.target.value) || 1)}
+                min="1"
+                max="100"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Generate</label>
+              <Select value={countType} onValueChange={setCountType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="words">Words</SelectItem>
+                  <SelectItem value="sentences">Sentences</SelectItem>
+                  <SelectItem value="paragraphs">Paragraphs</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <Button onClick={handleGenerate} disabled={isProcessing} className="w-full">
-            {isProcessing ? 'Generating...' : 'Generate Dummy Text'}
+          <Button onClick={generateText} className="w-full">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Generate Text
           </Button>
 
-          {outputText && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label>Generated Text</Label>
-                <Button variant="outline" size="sm" onClick={copyToClipboard}>
+          {generatedText && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium">Generated Text</label>
+                <Button size="sm" variant="outline" onClick={copyToClipboard}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy
                 </Button>
               </div>
               <Textarea
-                value={outputText}
+                value={generatedText}
                 readOnly
-                className="min-h-[300px] bg-gray-50 dark:bg-gray-900"
+                className="min-h-64 font-mono text-sm"
               />
+              <div className="text-xs text-gray-500">
+                Words: {generatedText.split(/\s+/).length} | 
+                Characters: {generatedText.length} | 
+                Characters (no spaces): {generatedText.replace(/\s/g, '').length}
+              </div>
             </div>
           )}
         </CardContent>

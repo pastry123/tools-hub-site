@@ -241,6 +241,18 @@ export const toolCategories: ToolCategory[] = [
         name: 'Text Diff',
         description: 'Compare and find differences between texts',
         icon: 'fa-code-branch'
+      },
+      {
+        id: 'text-reverser',
+        name: 'Text Reverser',
+        description: 'Reverse text characters or words',
+        icon: 'fa-exchange-alt'
+      },
+      {
+        id: 'dummy-text-generator',
+        name: 'Dummy Text Generator',
+        description: 'Generate Lorem Ipsum placeholder text',
+        icon: 'fa-paragraph'
       }
     ]
   },
@@ -298,6 +310,12 @@ export const toolCategories: ToolCategory[] = [
         name: 'Markdown to HTML',
         description: 'Convert Markdown to HTML',
         icon: 'fa-markdown'
+      },
+      {
+        id: 'unit-converter',
+        name: 'Unit Converter',
+        description: 'Convert between various units of measurement',
+        icon: 'fa-calculator'
       }
     ]
   },
@@ -337,6 +355,24 @@ export const toolCategories: ToolCategory[] = [
         name: 'Meta Tag Generator',
         description: 'Generate HTML meta tags',
         icon: 'fa-tags'
+      },
+      {
+        id: 'invoice-generator',
+        name: 'Invoice Generator',
+        description: 'Generate professional invoices',
+        icon: 'fa-receipt'
+      },
+      {
+        id: 'signature-generator',
+        name: 'Signature Generator',
+        description: 'Create digital signatures',
+        icon: 'fa-signature'
+      },
+      {
+        id: 'gradient-generator',
+        name: 'CSS Gradient Generator',
+        description: 'Create CSS gradients with live preview',
+        icon: 'fa-paint-brush'
       }
     ]
   },
