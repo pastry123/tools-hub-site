@@ -22,11 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 // PDF.js configuration
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure worker for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.js',
-  import.meta.url
-).toString();
+// Configure worker for PDF.js - using CDN for reliability
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 interface PDFTextItem {
   id: string;
@@ -67,10 +64,19 @@ export default function PDFEditorNew() {
   const [tool, setTool] = useState<'select' | 'text' | 'move'>('select');
 
   const loadPDF = useCallback(async (file: File) => {
-    if (!file || file.type !== 'application/pdf') {
+    if (!file) {
       toast({
-        title: "Invalid file",
-        description: "Please select a valid PDF file",
+        title: "No file selected",
+        description: "Please select a PDF file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: "Invalid file type",
+        description: `Selected file type: ${file.type}. Please select a PDF file.`,
         variant: "destructive"
       });
       return;
@@ -78,33 +84,47 @@ export default function PDFEditorNew() {
 
     setIsLoading(true);
     try {
+      console.log('Loading PDF file:', file.name, file.size, 'bytes');
+      
       const arrayBuffer = await file.arrayBuffer();
+      console.log('PDF arraybuffer loaded, size:', arrayBuffer.byteLength);
+      
       const loadingTask = pdfjsLib.getDocument({
         data: arrayBuffer,
+        verbosity: 0 // Reduce console noise
       });
       
       const pdf = await loadingTask.promise;
+      console.log('PDF document loaded, pages:', pdf.numPages);
       setPdfDoc(pdf);
       
-      // Load all pages
-      const pagePromises = [];
-      for (let i = 1; i <= pdf.numPages; i++) {
-        pagePromises.push(loadPage(pdf, i));
-      }
-      
-      const loadedPages = await Promise.all(pagePromises);
-      setPages(loadedPages);
+      // Load first page only initially for faster loading
+      const firstPage = await loadPage(pdf, 1);
+      setPages([firstPage]);
       setCurrentPage(1);
+      
+      // Load remaining pages in background
+      if (pdf.numPages > 1) {
+        const remainingPagePromises = [];
+        for (let i = 2; i <= pdf.numPages; i++) {
+          remainingPagePromises.push(loadPage(pdf, i));
+        }
+        
+        Promise.all(remainingPagePromises).then(remainingPages => {
+          setPages(prev => [...prev, ...remainingPages]);
+        });
+      }
       
       toast({
         title: "PDF loaded successfully",
         description: `${pdf.numPages} pages loaded with editable text`
       });
-    } catch (error) {
-      console.error('Error loading PDF:', error);
+    } catch (error: any) {
+      console.error('Detailed PDF loading error:', error);
+      const errorMessage = error?.message || 'Unknown error occurred';
       toast({
-        title: "Error loading PDF",
-        description: "Failed to load PDF file",
+        title: "Failed to load PDF",
+        description: `Error: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
@@ -113,55 +133,82 @@ export default function PDFEditorNew() {
   }, [toast]);
 
   const loadPage = async (pdf: any, pageNumber: number): Promise<PDFPage> => {
-    const page = await pdf.getPage(pageNumber);
-    const viewport = page.getViewport({ scale: 1.5 });
-    
-    // Create canvas for PDF rendering
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d')!;
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    
-    // Render PDF page to canvas
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
-    
-    // Extract text content with positioning
-    const textContent = await page.getTextContent();
-    const textItems: PDFTextItem[] = [];
-    
-    textContent.items.forEach((item: any, index: number) => {
-      if (item.str.trim()) {
-        const transform = item.transform;
-        const x = transform[4];
-        const y = viewport.height - transform[5]; // Flip Y coordinate
+    try {
+      const page = await pdf.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1.5 });
+      
+      // Create canvas for PDF rendering
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d')!;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      
+      // Render PDF page to canvas
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      // Extract text content with positioning
+      let textItems: PDFTextItem[] = [];
+      
+      try {
+        const textContent = await page.getTextContent();
+        console.log(`Page ${pageNumber} text items:`, textContent.items.length);
         
-        textItems.push({
-          id: `text-${pageNumber}-${index}`,
-          text: item.str,
-          x: x,
-          y: y - item.height,
-          width: item.width || 100,
-          height: item.height || 12,
-          fontSize: item.height || 12,
-          fontFamily: item.fontName || 'Arial',
-          color: '#000000',
-          transform: transform,
-          isOriginal: true
+        textContent.items.forEach((item: any, index: number) => {
+          if (item.str && item.str.trim()) {
+            const transform = item.transform || [1, 0, 0, 1, 0, 0];
+            const x = transform[4] || 0;
+            const y = viewport.height - (transform[5] || 0); // Flip Y coordinate
+            const height = item.height || Math.abs(transform[3]) || 12;
+            const width = item.width || (item.str.length * (height * 0.6)) || 100;
+            
+            textItems.push({
+              id: `text-${pageNumber}-${index}`,
+              text: item.str,
+              x: Math.max(0, x),
+              y: Math.max(0, y - height),
+              width: width,
+              height: height,
+              fontSize: height,
+              fontFamily: item.fontName?.replace(/[+]/g, ' ') || 'Arial',
+              color: '#000000',
+              transform: transform,
+              isOriginal: true
+            });
+          }
         });
+      } catch (textError) {
+        console.warn(`Failed to extract text from page ${pageNumber}:`, textError);
+        // Add a fallback text element if text extraction fails
+        textItems = [{
+          id: `fallback-text-${pageNumber}`,
+          text: `Page ${pageNumber} - Text extraction failed. Click to add your own text.`,
+          x: 50,
+          y: 100,
+          width: 400,
+          height: 20,
+          fontSize: 14,
+          fontFamily: 'Arial',
+          color: '#666666',
+          transform: [1, 0, 0, 1, 50, 100],
+          isOriginal: false
+        }];
       }
-    });
-    
-    return {
-      pageNumber,
-      canvas,
-      textItems,
-      viewport,
-      width: viewport.width,
-      height: viewport.height
-    };
+      
+      return {
+        pageNumber,
+        canvas,
+        textItems,
+        viewport,
+        width: viewport.width,
+        height: viewport.height
+      };
+    } catch (error) {
+      console.error(`Error loading page ${pageNumber}:`, error);
+      throw error;
+    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
