@@ -61,6 +61,10 @@ import BarcodeScanner from "@/components/tools/BarcodeScanner";
 import InvoiceGenerator from "@/components/tools/InvoiceGenerator";
 import SignatureGenerator from "@/components/tools/SignatureGenerator";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
+import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
+import TimezoneConverter from "@/components/tools/TimezoneConverter";
+import DNSLookup from "@/components/tools/DNSLookup";
+import WebsiteScreenshot from "@/components/tools/WebsiteScreenshot";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -241,6 +245,20 @@ export default function ToolPage() {
         return <InvoiceGenerator />;
       case 'signature-generator':
         return <SignatureGenerator />;
+      case 'pdf-page-numbers':
+        return <PDFPageNumbers />;
+      case 'pdf-esign':
+        return <SignatureGenerator />;
+      case 'timezone-converter':
+        return <TimezoneConverter />;
+      case 'video-to-gif':
+        return <div>Video to GIF converter coming soon</div>;
+      case 'audio-converter':
+        return <div>Audio converter coming soon</div>;
+      case 'dns-lookup':
+        return <DNSLookup />;
+      case 'website-screenshot':
+        return <WebsiteScreenshot />;
       default:
         return (
           <Card>
