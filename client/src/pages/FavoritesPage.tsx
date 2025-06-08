@@ -1,42 +1,15 @@
-import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { toolCategories } from "@/lib/toolCategories";
-import { Heart, Star, ArrowRight } from "lucide-react";
-
-interface FavoriteTool {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: string;
-  addedAt: number;
-}
+import { useUserData } from "@/contexts/UserDataContext";
+import { Heart, Star, ArrowRight, Trash2, Clock } from "lucide-react";
 
 export default function FavoritesPage() {
   const { t } = useLanguage();
-  const [favorites, setFavorites] = useState<FavoriteTool[]>([]);
-
-  useEffect(() => {
-    // Load favorites from localStorage
-    const savedFavorites = localStorage.getItem("favorites");
-    if (savedFavorites) {
-      try {
-        setFavorites(JSON.parse(savedFavorites));
-      } catch (error) {
-        console.error("Failed to parse favorites:", error);
-        setFavorites([]);
-      }
-    }
-  }, []);
-
-  const removeFavorite = (toolId: string) => {
-    const updatedFavorites = favorites.filter(fav => fav.id !== toolId);
-    setFavorites(updatedFavorites);
-    localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-  };
+  const { favorites, removeFromFavorites, clearFavorites } = useUserData();
 
   const getCategoryColor = (categoryId: string) => {
     const category = toolCategories.find(cat => cat.id === categoryId);

@@ -1,7 +1,11 @@
 import { useParams } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Heart } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import { getToolById } from "@/lib/toolCategories";
+import { useUserData } from "@/contexts/UserDataContext";
+import { useEffect } from "react";
 import QRGenerator from "@/components/tools/QRGenerator";
 import BarcodeGenerator from "@/components/tools/BarcodeGenerator";
 import PDFMerger from "@/components/tools/PDFMerger";
@@ -56,6 +60,13 @@ import { Shield, Smartphone, Download } from "lucide-react";
 export default function ToolPage() {
   const { toolId } = useParams<{ toolId: string }>();
   const toolData = getToolById(toolId!);
+  const { addToRecent, addToFavorites, removeFromFavorites, isFavorite } = useUserData();
+
+  useEffect(() => {
+    if (toolId) {
+      addToRecent(toolId);
+    }
+  }, [toolId, addToRecent]);
 
   if (!toolData) {
     return (
@@ -232,15 +243,32 @@ export default function ToolPage() {
       <Breadcrumb items={breadcrumbItems} />
       
       {/* Tool Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 mb-8">
-        <div className="flex items-center space-x-4 mb-6">
-          <div className={`w-16 h-16 bg-${category.color}-100 rounded-2xl flex items-center justify-center`}>
-            <i className={`fas ${tool.icon} text-${category.color}-500 text-2xl`}></i>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <div className={`w-16 h-16 bg-${category.color}-100 dark:bg-${category.color}-900 rounded-2xl flex items-center justify-center`}>
+              <i className={`fas ${tool.icon} text-${category.color}-500 text-2xl`}></i>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{tool.name}</h1>
+              <p className="text-slate-600 dark:text-gray-300">{tool.description}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800">{tool.name}</h1>
-            <p className="text-slate-600">{tool.description}</p>
-          </div>
+          <Button
+            variant={isFavorite(toolId!) ? "default" : "outline"}
+            size="lg"
+            onClick={() => {
+              if (isFavorite(toolId!)) {
+                removeFromFavorites(toolId!);
+              } else {
+                addToFavorites(toolId!);
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <Heart className={`w-5 h-5 ${isFavorite(toolId!) ? 'fill-current' : ''}`} />
+            {isFavorite(toolId!) ? 'Remove from Favorites' : 'Add to Favorites'}
+          </Button>
         </div>
 
         {/* Tool Component */}
