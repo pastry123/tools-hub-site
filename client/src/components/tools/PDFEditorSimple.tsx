@@ -68,6 +68,9 @@ export default function PDFEditorSimple() {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [tool, setTool] = useState<'select' | 'text' | 'move'>('select');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragElement, setDragElement] = useState<string | null>(null);
 
   const handleFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -169,6 +172,41 @@ export default function PDFEditorSimple() {
       )
     );
     setSelectedElement(newTextElement.id);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent, elementId: string) => {
+    if (tool === 'select' || tool === 'move') {
+      e.preventDefault();
+      setIsDragging(true);
+      setDragElement(elementId);
+      setSelectedElement(elementId);
+      
+      const rect = e.currentTarget.getBoundingClientRect();
+      setDragStart({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && dragElement) {
+      const container = e.currentTarget as HTMLElement;
+      const rect = container.getBoundingClientRect();
+      
+      const newX = (e.clientX - rect.left - dragStart.x) / zoom;
+      const newY = (e.clientY - rect.top - dragStart.y) / zoom;
+      
+      updateTextElement(dragElement, {
+        x: Math.max(0, Math.min(newX, (getCurrentPage()?.width || 595) - 100)),
+        y: Math.max(0, Math.min(newY, (getCurrentPage()?.height || 842) - 30))
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragElement(null);
   };
 
   const deleteTextElement = (id: string) => {
@@ -390,6 +428,9 @@ export default function PDFEditorSimple() {
               transform: `scale(${zoom})`,
               transformOrigin: 'top left'
             }}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           >
             {/* PDF Background */}
             {getCurrentPage()?.background && (
@@ -398,6 +439,7 @@ export default function PDFEditorSimple() {
                 alt={`Page ${currentPage}`}
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ zIndex: 1 }}
+                draggable={false}
               />
             )}
 
@@ -405,13 +447,13 @@ export default function PDFEditorSimple() {
             {getCurrentPage()?.textElements.map((textEl) => (
               <div
                 key={textEl.id}
-                className={`absolute cursor-pointer select-none border-2 transition-all ${
-                  selectedElement === textEl.id 
-                    ? 'border-blue-500 bg-blue-50 bg-opacity-50' 
-                    : textEl.isOriginal 
-                      ? 'border-green-300 hover:border-green-500 bg-green-50 bg-opacity-30' 
-                      : 'border-yellow-300 hover:border-yellow-500 bg-yellow-50 bg-opacity-30'
-                }`}
+                className={`absolute select-none border-2 transition-all ${
+                  isDragging && dragElement === textEl.id
+                    ? 'cursor-grabbing border-blue-600 bg-blue-100 bg-opacity-70'
+                    : selectedElement === textEl.id 
+                      ? 'cursor-grab border-blue-500 bg-blue-50 bg-opacity-50' 
+                      : 'cursor-pointer border-transparent hover:border-gray-400 bg-white bg-opacity-80'
+                } ${tool === 'move' ? 'cursor-move' : ''}`}
                 style={{
                   left: textEl.x / zoom,
                   top: textEl.y / zoom,
@@ -425,8 +467,10 @@ export default function PDFEditorSimple() {
                   textDecoration: textEl.underline ? 'underline' : 'none',
                   textAlign: textEl.alignment,
                   zIndex: 2,
-                  padding: '2px'
+                  padding: '4px',
+                  userSelect: 'none'
                 }}
+                onMouseDown={(e) => handleMouseDown(e, textEl.id)}
                 onClick={() => setSelectedElement(textEl.id)}
                 onDoubleClick={() => {
                   const newContent = prompt('Edit text:', textEl.content);
@@ -435,27 +479,72 @@ export default function PDFEditorSimple() {
                   }
                 }}
               >
-                <div className="whitespace-pre-wrap break-words">
+                <div className="whitespace-pre-wrap break-words pointer-events-none">
                   {textEl.content}
                 </div>
+                
+                {/* Selection handles */}
+                {selectedElement === textEl.id && (
+                  <>
+                    <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
+                    <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
+                  </>
+                )}
+                
                 {!textEl.isOriginal && (
                   <Badge 
-                    className="absolute -top-2 -right-2 text-xs"
+                    className="absolute -top-2 -right-2 text-xs pointer-events-none"
                     variant="secondary"
                   >
                     New
                   </Badge>
                 )}
-                {textEl.isOriginal && (
-                  <Badge 
-                    className="absolute -top-2 -right-2 text-xs"
-                    variant="outline"
-                  >
-                    Original
-                  </Badge>
-                )}
               </div>
             ))}
+            
+            {/* Click to add text when text tool is selected */}
+            {tool === 'text' && (
+              <div 
+                className="absolute inset-0 cursor-crosshair"
+                style={{ zIndex: 3 }}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = (e.clientX - rect.left) / zoom;
+                  const y = (e.clientY - rect.top) / zoom;
+                  
+                  const newTextElement: TextElement = {
+                    id: `new-text-${Date.now()}`,
+                    content: 'Click to edit this text',
+                    x: Math.max(0, x - 100),
+                    y: Math.max(0, y - 15),
+                    width: 200,
+                    height: 30,
+                    fontSize: 16,
+                    fontFamily: 'Arial',
+                    color: '#000000',
+                    bold: false,
+                    italic: false,
+                    underline: false,
+                    alignment: 'left',
+                    page: currentPage,
+                    rotation: 0,
+                    isOriginal: false
+                  };
+
+                  setPages(prevPages => 
+                    prevPages.map(page => 
+                      page.number === currentPage 
+                        ? { ...page, textElements: [...page.textElements, newTextElement] }
+                        : page
+                    )
+                  );
+                  setSelectedElement(newTextElement.id);
+                  setTool('select');
+                }}
+              />
+            )}
           </div>
         )}
       </div>

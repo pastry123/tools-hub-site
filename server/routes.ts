@@ -1372,46 +1372,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pdfText = await pdfService.pdfToText(req.file.buffer);
       const textPerPage = Math.ceil(pdfText.length / pdfInfo.pages);
       
-      // Create pages with actual PDF page images as backgrounds
+      // Create pages with actual PDF page images as backgrounds - NO automatic text elements
       const pages = Array.from({ length: pdfInfo.pages }, (_, i) => {
-        const pageText = pdfText.substring(i * textPerPage, (i + 1) * textPerPage);
-        const textElements: any[] = [];
-        
-        if (pageText.trim()) {
-          // Create editable text elements from extracted content
-          const paragraphs = pageText.split(/\n\s*\n/).filter(p => p.trim());
-          let y = 80;
-          
-          paragraphs.forEach((paragraph, idx) => {
-            if (idx < 8 && y < 700) { // Reasonable limit
-              const cleanText = paragraph.trim().replace(/\s+/g, ' ').substring(0, 300);
-              
-              if (cleanText.length > 5) {
-                textElements.push({
-                  id: `text-${i + 1}-${idx}`,
-                  content: cleanText,
-                  x: 50,
-                  y: y,
-                  width: 495,
-                  height: Math.max(25, Math.ceil(cleanText.length / 70) * 18),
-                  fontSize: 14,
-                  fontFamily: 'Arial',
-                  color: '#1f2937',
-                  bold: false,
-                  italic: false,
-                  underline: false,
-                  alignment: 'left',
-                  page: i + 1,
-                  rotation: 0,
-                  isOriginal: true
-                });
-                
-                y += Math.max(35, Math.ceil(cleanText.length / 70) * 22);
-              }
-            }
-          });
-        }
-        
         return {
           id: `page-${i + 1}`,
           number: i + 1,
@@ -1425,9 +1387,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               </text>
             </svg>
           `).toString('base64')}`,
-          textElements,
+          textElements: [], // Start with empty text elements - user adds them manually
           imageElements: [],
-          extractedText: pageText.substring(0, 200) + (pageText.length > 200 ? '...' : '')
+          extractedText: pdfText.substring(i * textPerPage, (i + 1) * textPerPage).substring(0, 500)
         };
       });
 
