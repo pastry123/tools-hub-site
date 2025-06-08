@@ -315,110 +315,13 @@ export default function PDFEditor() {
 
       {url && (
         <div className="border border-gray-300 rounded">
-          <h3 className="p-2 bg-gray-100 font-medium text-sm">PDF Editor - Direct Editing</h3>
-          <div 
+          <h3 className="p-2 bg-gray-100 font-medium text-sm">Direct PDF Editor - Full Interaction</h3>
+          <iframe
             ref={canvasRef}
-            className="relative w-full h-[700px] overflow-hidden bg-white"
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          >
-            {/* PDF Background */}
-            <iframe
-              src={url}
-              className="absolute inset-0 w-full h-full"
-              title="PDF Background"
-              style={{ pointerEvents: 'none' }}
-            />
-            
-            {/* Interactive Elements Overlay */}
-            <div className="absolute inset-0 pointer-events-none">
-              {textElements.map((textEl) => (
-                <div
-                  key={textEl.id}
-                  className={`absolute cursor-move border-2 pointer-events-auto ${
-                    selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
-                  } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-90'} hover:border-gray-400`}
-                  style={{
-                    left: textEl.x,
-                    top: textEl.y,
-                    width: textEl.width,
-                    height: textEl.height,
-                    fontSize: textEl.fontSize,
-                    padding: '4px',
-                    zIndex: selectedElement === textEl.id ? 20 : 10
-                  }}
-                  onMouseDown={(e) => handleMouseDown(e, textEl.id, 'text')}
-                  onDoubleClick={() => handleTextDoubleClick(textEl.id)}
-                >
-                  {textEl.isEditing ? (
-                    <input
-                      type="text"
-                      value={textEl.text}
-                      onChange={(e) => handleTextChange(textEl.id, e.target.value)}
-                      onBlur={() => handleTextBlur(textEl.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleTextBlur(textEl.id);
-                        }
-                      }}
-                      className="w-full h-full bg-transparent border-none outline-none"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="select-none">{textEl.text}</span>
-                  )}
-                  
-                  {selectedElement === textEl.id && (
-                    <div
-                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                      onMouseDown={(e) => handleResizeMouseDown(e, textEl.id, 'text')}
-                    />
-                  )}
-                </div>
-              ))}
-
-              {imageElements.map((imgEl) => (
-                <div
-                  key={imgEl.id}
-                  className={`absolute cursor-move border-2 pointer-events-auto ${
-                    selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
-                  } hover:border-gray-400`}
-                  style={{
-                    left: imgEl.x,
-                    top: imgEl.y,
-                    width: imgEl.width,
-                    height: imgEl.height,
-                    zIndex: selectedElement === imgEl.id ? 20 : 10
-                  }}
-                  onMouseDown={(e) => handleMouseDown(e, imgEl.id, 'image')}
-                >
-                  <img
-                    src={imgEl.src}
-                    alt="Uploaded"
-                    className="w-full h-full object-contain"
-                    draggable={false}
-                  />
-                  
-                  {selectedElement === imgEl.id && (
-                    <>
-                      <div
-                        className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                        onMouseDown={(e) => handleResizeMouseDown(e, imgEl.id, 'image')}
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        className="absolute -top-8 -right-2"
-                        onClick={() => setImageElements(prev => prev.filter(i => i.id !== imgEl.id))}
-                      >
-                        ×
-                      </Button>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+            src={url}
+            className="w-full h-[700px]"
+            title="Interactive PDF Editor"
+          />
         </div>
       )}
 
