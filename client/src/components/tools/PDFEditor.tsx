@@ -36,7 +36,6 @@ export default function PDFEditor() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [pdfPages, setPdfPages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -184,32 +183,50 @@ export default function PDFEditor() {
     ));
   };
 
-  const handleResize = (elementId: string, type: 'text' | 'image', direction: string, deltaX: number, deltaY: number) => {
-    if (type === 'text') {
-      setTextElements(prev => prev.map(element => {
-        if (element.id !== elementId) return element;
-        
-        let newWidth = element.width;
-        let newHeight = element.height;
-        
-        if (direction.includes('right')) newWidth = Math.max(50, element.width + deltaX);
-        if (direction.includes('bottom')) newHeight = Math.max(20, element.height + deltaY);
-        
-        return { ...element, width: newWidth, height: newHeight };
-      }));
-    } else {
-      setImageElements(prev => prev.map(element => {
-        if (element.id !== elementId) return element;
-        
-        let newWidth = element.width;
-        let newHeight = element.height;
-        
-        if (direction.includes('right')) newWidth = Math.max(50, element.width + deltaX);
-        if (direction.includes('bottom')) newHeight = Math.max(50, element.height + deltaY);
-        
-        return { ...element, width: newWidth, height: newHeight };
-      }));
-    }
+  const handleResizeMouseDown = (e: React.MouseEvent, elementId: string, type: 'text' | 'image') => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsResizing(true);
+    setSelectedElement(elementId);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    const element = type === 'text' ? 
+      textElements.find(t => t.id === elementId) : 
+      imageElements.find(i => i.id === elementId);
+    
+    if (!element) return;
+    
+    const startWidth = element.width;
+    const startHeight = element.height;
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      const newWidth = Math.max(50, startWidth + deltaX);
+      const newHeight = Math.max(type === 'text' ? 20 : 50, startHeight + deltaY);
+      
+      if (type === 'text') {
+        setTextElements(prev => prev.map(el => 
+          el.id === elementId ? { ...el, width: newWidth, height: newHeight } : el
+        ));
+      } else {
+        setImageElements(prev => prev.map(el => 
+          el.id === elementId ? { ...el, width: newWidth, height: newHeight } : el
+        ));
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   async function downloadPdf() {
@@ -234,9 +251,6 @@ export default function PDFEditor() {
           color: rgb(0, 0, 0),
         });
       });
-      
-      // Add image elements would require converting data URLs back to image data
-      // This is a simplified version - in production you'd want to handle image embedding properly
     }
     
     const pdfBytes = await pdfCopy.save();
@@ -313,7 +327,6 @@ export default function PDFEditor() {
       {/* PDF Canvas Area */}
       {url && (
         <div className="relative">
-          {/* PDF Background */}
           <div 
             ref={canvasRef}
             className="relative w-full h-[600px] border border-gray-300 overflow-hidden bg-white"
@@ -323,14 +336,15 @@ export default function PDFEditor() {
             {/* PDF iframe as background */}
             <iframe
               src={url}
-              className="absolute inset-0 w-full h-full pointer-events-none"
+              className="absolute inset-0 w-full h-full pointer-events-none z-0"
               title="PDF Background"
             />
+            
             {/* Text Elements */}
             {textElements.map((textEl) => (
               <div
                 key={textEl.id}
-                className={`absolute cursor-move border-2 ${
+                className={`absolute cursor-move border-2 z-10 ${
                   selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
                 } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-80'} hover:border-gray-400`}
                 style={{
@@ -364,15 +378,10 @@ export default function PDFEditor() {
                 
                 {/* Resize Handles */}
                 {selectedElement === textEl.id && (
-                  <>
-                    <div
-                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        setIsResizing(true);
-                      }}
-                    />
-                  </>
+                  <div
+                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize z-20"
+                    onMouseDown={(e) => handleResizeMouseDown(e, textEl.id, 'text')}
+                  />
                 )}
               </div>
             ))}
@@ -381,7 +390,7 @@ export default function PDFEditor() {
             {imageElements.map((imgEl) => (
               <div
                 key={imgEl.id}
-                className={`absolute cursor-move border-2 ${
+                className={`absolute cursor-move border-2 z-10 ${
                   selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
                 } hover:border-gray-400`}
                 style={{
@@ -403,16 +412,13 @@ export default function PDFEditor() {
                 {selectedElement === imgEl.id && (
                   <>
                     <div
-                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        setIsResizing(true);
-                      }}
+                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize z-20"
+                      onMouseDown={(e) => handleResizeMouseDown(e, imgEl.id, 'image')}
                     />
                     <Button 
                       size="sm" 
                       variant="destructive"
-                      className="absolute -top-8 -right-2"
+                      className="absolute -top-8 -right-2 z-20"
                       onClick={() => setImageElements(prev => prev.filter(i => i.id !== imgEl.id))}
                     >
                       ×
