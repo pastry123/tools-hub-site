@@ -1,10 +1,7 @@
 import { useState, useRef } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
-import { Document, Page, pdfjs } from 'react-pdf';
-
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+import { Input } from "@/components/ui/input";
 
 interface TextAnnotation {
   id: string;
@@ -27,13 +24,14 @@ interface ImageAnnotation {
 
 export default function PDFEditor() {
   const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [numPages, setNumPages] = useState(0);
   const [textAnnotations, setTextAnnotations] = useState<TextAnnotation[]>([]);
   const [imageAnnotations, setImageAnnotations] = useState<ImageAnnotation[]>([]);
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
   const [isAddingText, setIsAddingText] = useState(false);
+  const [newTextValue, setNewTextValue] = useState("Edit me");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -50,11 +48,18 @@ export default function PDFEditor() {
       });
       
       setPdfDoc(loadedPdf);
-      setPdfFile(file);
+      setNumPages(loadedPdf.getPageCount());
+      
+      // Create blob URL for PDF display
+      const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      
+      // Reset state
       setTextAnnotations([]);
       setImageAnnotations([]);
       setSelectedAnnotation(null);
-      setPageNumber(1);
+      setCurrentPage(1);
       
     } catch (error) {
       console.error('Error loading PDF:', error);
@@ -62,33 +67,20 @@ export default function PDFEditor() {
     }
   }
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-  }
-
   const addTextAnnotation = () => {
-    setIsAddingText(true);
-  };
-
-  const handlePageClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAddingText) return;
-    
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    if (!pdfDoc) return;
     
     const newAnnotation: TextAnnotation = {
       id: `text-${Date.now()}`,
-      text: "Click to edit",
-      x: x - 100, // Center the text
-      y: y - 15,
+      text: newTextValue,
+      x: 100,
+      y: 100,
       fontSize: 16,
-      page: pageNumber,
+      page: currentPage,
     };
     
     setTextAnnotations(prev => [...prev, newAnnotation]);
     setSelectedAnnotation(newAnnotation.id);
-    setIsAddingText(false);
   };
 
   const addImageAnnotation = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,11 +93,11 @@ export default function PDFEditor() {
       const newAnnotation: ImageAnnotation = {
         id: `image-${Date.now()}`,
         src,
-        x: 50,
-        y: 50,
+        x: 150,
+        y: 150,
         width: 200,
         height: 150,
-        page: pageNumber,
+        page: currentPage,
       };
       setImageAnnotations(prev => [...prev, newAnnotation]);
       setSelectedAnnotation(newAnnotation.id);
@@ -119,19 +111,19 @@ export default function PDFEditor() {
     ));
   };
 
+  const updateAnnotationPosition = (id: string, x: number, y: number) => {
+    setTextAnnotations(prev => prev.map(ann => 
+      ann.id === id ? { ...ann, x, y } : ann
+    ));
+    setImageAnnotations(prev => prev.map(ann => 
+      ann.id === id ? { ...ann, x, y } : ann
+    ));
+  };
+
   const deleteAnnotation = (id: string) => {
     setTextAnnotations(prev => prev.filter(ann => ann.id !== id));
     setImageAnnotations(prev => prev.filter(ann => ann.id !== id));
     setSelectedAnnotation(null);
-  };
-
-  const moveAnnotation = (id: string, deltaX: number, deltaY: number) => {
-    setTextAnnotations(prev => prev.map(ann => 
-      ann.id === id ? { ...ann, x: ann.x + deltaX, y: ann.y + deltaY } : ann
-    ));
-    setImageAnnotations(prev => prev.map(ann => 
-      ann.id === id ? { ...ann, x: ann.x + deltaX, y: ann.y + deltaY } : ann
-    ));
   };
 
   const savePdfWithAnnotations = async () => {
@@ -151,7 +143,7 @@ export default function PDFEditor() {
           const font = await pdfCopy.embedFont(StandardFonts.Helvetica);
           copiedPage.drawText(annotation.text, {
             x: annotation.x,
-            y: copiedPage.getHeight() - annotation.y - 20,
+            y: copiedPage.getHeight() - annotation.y - 50,
             size: annotation.fontSize,
             font,
             color: rgb(0, 0, 0),
@@ -162,7 +154,6 @@ export default function PDFEditor() {
         const pageImageAnnotations = imageAnnotations.filter(ann => ann.page === i + 1);
         for (const annotation of pageImageAnnotations) {
           try {
-            // Convert data URL to bytes
             const response = await fetch(annotation.src);
             const imageBytes = await response.arrayBuffer();
             
@@ -200,8 +191,14 @@ export default function PDFEditor() {
     }
   };
 
-  const currentPageTextAnnotations = textAnnotations.filter(ann => ann.page === pageNumber);
-  const currentPageImageAnnotations = imageAnnotations.filter(ann => ann.page === pageNumber);
+  const goToPage = (pageNum: number) => {
+    if (pageNum >= 1 && pageNum <= numPages) {
+      setCurrentPage(pageNum);
+    }
+  };
+
+  const currentPageTextAnnotations = textAnnotations.filter(ann => ann.page === currentPage);
+  const currentPageImageAnnotations = imageAnnotations.filter(ann => ann.page === currentPage);
 
   return (
     <div className="p-6 space-y-4">
@@ -210,9 +207,9 @@ export default function PDFEditor() {
       <div className="flex items-center gap-4">
         <Button 
           onClick={() => fileInputRef.current?.click()}
-          variant={pdfFile ? "outline" : "default"}
+          variant={pdfUrl ? "outline" : "default"}
         >
-          {pdfFile ? "Change PDF" : "Upload PDF"}
+          {pdfUrl ? "Change PDF" : "Upload PDF"}
         </Button>
         <input 
           type="file" 
@@ -221,17 +218,21 @@ export default function PDFEditor() {
           ref={fileInputRef} 
           className="hidden"
         />
-        {pdfFile && <span className="text-sm text-green-600">✓ PDF loaded</span>}
+        {pdfUrl && <span className="text-sm text-green-600">✓ PDF loaded</span>}
       </div>
       
-      {pdfFile && (
+      {pdfUrl && (
         <>
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              onClick={addTextAnnotation}
-              variant={isAddingText ? "default" : "outline"}
-            >
-              {isAddingText ? "Click on PDF to add text" : "Add Text"}
+          <div className="flex flex-wrap gap-2 items-center">
+            <Input
+              type="text"
+              value={newTextValue}
+              onChange={(e) => setNewTextValue(e.target.value)}
+              placeholder="Text to add"
+              className="w-40"
+            />
+            <Button onClick={addTextAnnotation}>
+              Add Text
             </Button>
             <Button onClick={() => imageInputRef.current?.click()}>
               Add Image
@@ -251,18 +252,18 @@ export default function PDFEditor() {
           {numPages > 1 && (
             <div className="flex items-center gap-2">
               <Button 
-                onClick={() => setPageNumber(pageNumber - 1)}
-                disabled={pageNumber <= 1}
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage <= 1}
                 size="sm"
               >
                 Previous
               </Button>
               <span className="text-sm">
-                Page {pageNumber} of {numPages}
+                Page {currentPage} of {numPages}
               </span>
               <Button 
-                onClick={() => setPageNumber(pageNumber + 1)}
-                disabled={pageNumber >= numPages}
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage >= numPages}
                 size="sm"
               >
                 Next
@@ -272,80 +273,72 @@ export default function PDFEditor() {
 
           <div className="border border-gray-300 rounded">
             <h3 className="p-2 bg-gray-100 font-medium text-sm">
-              PDF Editor - Click to add text, drag to move elements
+              PDF Editor - Add annotations and edit directly
             </h3>
-            <div 
-              className="relative bg-white p-4 flex justify-center"
-              style={{ minHeight: '600px' }}
-              onClick={handlePageClick}
-            >
-              <div className="relative">
-                <Document
-                  file={pdfFile}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  className="shadow-lg"
-                >
-                  <Page 
-                    pageNumber={pageNumber}
-                    scale={1.2}
-                    className="border"
-                  />
-                </Document>
+            <div className="relative bg-white p-4">
+              
+              {/* PDF Viewer with iframe - stable approach */}
+              <div className="relative mx-auto" style={{ width: '800px', height: '600px' }}>
+                <iframe
+                  src={`${pdfUrl}#page=${currentPage}&zoom=100`}
+                  className="w-full h-full border shadow-lg"
+                  title="PDF Viewer"
+                />
                 
                 {/* Text Annotations Overlay */}
                 {currentPageTextAnnotations.map((annotation) => (
                   <div
                     key={annotation.id}
                     className={`absolute cursor-move border-2 ${
-                      selectedAnnotation === annotation.id ? 'border-blue-500 bg-blue-50' : 'border-transparent bg-white bg-opacity-80'
-                    } hover:border-gray-400 hover:bg-gray-50`}
+                      selectedAnnotation === annotation.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white bg-opacity-90'
+                    } hover:border-blue-400 hover:bg-blue-50 rounded px-2 py-1`}
                     style={{
                       left: annotation.x,
                       top: annotation.y,
                       fontSize: annotation.fontSize,
-                      padding: '4px 8px',
                       minWidth: '100px',
-                      minHeight: '30px',
+                      zIndex: 10,
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedAnnotation(annotation.id);
                     }}
                     onMouseDown={(e) => {
-                      if (selectedAnnotation === annotation.id) {
-                        e.preventDefault();
-                        const startX = e.clientX;
-                        const startY = e.clientY;
-                        
-                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                          const deltaX = moveEvent.clientX - startX;
-                          const deltaY = moveEvent.clientY - startY;
-                          moveAnnotation(annotation.id, deltaX, deltaY);
-                        };
-                        
-                        const handleMouseUp = () => {
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
-                        };
-                        
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                      }
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startLeft = annotation.x;
+                      const startTop = annotation.y;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const deltaX = moveEvent.clientX - startX;
+                        const deltaY = moveEvent.clientY - startY;
+                        updateAnnotationPosition(annotation.id, startLeft + deltaX, startTop + deltaY);
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
                     }}
                   >
-                    <input
+                    <Input
                       type="text"
                       value={annotation.text}
                       onChange={(e) => updateTextAnnotation(annotation.id, e.target.value)}
-                      className="w-full bg-transparent border-none outline-none"
+                      className="border-none bg-transparent p-0 h-auto focus:ring-0"
                       onClick={(e) => e.stopPropagation()}
+                      style={{ fontSize: annotation.fontSize }}
                     />
                     
                     {selectedAnnotation === annotation.id && (
                       <Button
                         size="sm"
                         variant="destructive"
-                        className="absolute -top-8 -right-2 w-6 h-6 p-0"
+                        className="absolute -top-8 -right-2 w-6 h-6 p-0 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteAnnotation(annotation.id);
@@ -362,17 +355,39 @@ export default function PDFEditor() {
                   <div
                     key={annotation.id}
                     className={`absolute cursor-move border-2 ${
-                      selectedAnnotation === annotation.id ? 'border-blue-500' : 'border-transparent'
-                    } hover:border-gray-400`}
+                      selectedAnnotation === annotation.id ? 'border-blue-500' : 'border-gray-300'
+                    } hover:border-blue-400 rounded overflow-hidden`}
                     style={{
                       left: annotation.x,
                       top: annotation.y,
                       width: annotation.width,
                       height: annotation.height,
+                      zIndex: 10,
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedAnnotation(annotation.id);
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startLeft = annotation.x;
+                      const startTop = annotation.y;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const deltaX = moveEvent.clientX - startX;
+                        const deltaY = moveEvent.clientY - startY;
+                        updateAnnotationPosition(annotation.id, startLeft + deltaX, startTop + deltaY);
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
                     }}
                   >
                     <img
@@ -386,7 +401,7 @@ export default function PDFEditor() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        className="absolute -top-8 -right-2 w-6 h-6 p-0"
+                        className="absolute -top-8 -right-2 w-6 h-6 p-0 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteAnnotation(annotation.id);
@@ -401,23 +416,60 @@ export default function PDFEditor() {
             </div>
           </div>
 
-          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-            <p><strong>React PDF Editor:</strong></p>
-            <p>• Click "Add Text" then click on the PDF to place text</p>
-            <p>• Edit text directly in the input fields</p>
-            <p>• Drag elements to move them around</p>
-            <p>• Add images that overlay on the PDF</p>
-            <p>• Download saves all annotations to the PDF permanently</p>
+          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded space-y-2">
+            <p><strong>PDF Editor with Direct Annotations:</strong></p>
+            <p>• Type text in the input field and click "Add Text" to place it on the PDF</p>
+            <p>• Edit text directly in the annotation boxes</p>
+            <p>• Drag annotations to move them around</p>
+            <p>• Add images that overlay on the PDF content</p>
+            <p>• Use page navigation for multi-page documents</p>
+            <p>• Download saves all annotations permanently to the PDF file</p>
           </div>
+          
+          {/* Annotation List */}
+          {(textAnnotations.length > 0 || imageAnnotations.length > 0) && (
+            <div className="bg-gray-50 p-3 rounded">
+              <h4 className="font-medium mb-2">Current Annotations:</h4>
+              <div className="space-y-1 text-sm">
+                {textAnnotations.map(ann => (
+                  <div key={ann.id} className="flex items-center gap-2">
+                    <span className="text-blue-600">Text on page {ann.page}:</span>
+                    <span className="truncate">{ann.text}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteAnnotation(ann.id)}
+                      className="h-6 w-6 p-0"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                {imageAnnotations.map(ann => (
+                  <div key={ann.id} className="flex items-center gap-2">
+                    <span className="text-green-600">Image on page {ann.page}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteAnnotation(ann.id)}
+                      className="h-6 w-6 p-0"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
       
-      {!pdfFile && (
+      {!pdfUrl && (
         <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
           <div className="space-y-4">
             <div className="text-6xl text-gray-400">📄</div>
             <h3 className="text-xl font-medium text-gray-700">No PDF loaded</h3>
-            <p className="text-gray-500">Upload a PDF to start editing</p>
+            <p className="text-gray-500">Upload a PDF to start editing with annotations</p>
             <Button 
               onClick={() => fileInputRef.current?.click()}
               size="lg"
