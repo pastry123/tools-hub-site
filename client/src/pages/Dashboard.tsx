@@ -78,7 +78,7 @@ export default function Dashboard() {
 
       {/* Quick Access */}
       <div className="mb-12">
-        <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-6">{t("dashboard.quickAccess")}</h3>
+        <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-6">Quick Access</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {popularTools.slice(0, 4).map(({ tool, category }) => (
             <Link key={tool.id} href={`/tool/${tool.id}`}>
@@ -98,7 +98,7 @@ export default function Dashboard() {
 
       {/* Tool Categories Grid */}
       <div className="mb-12">
-        <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-6">{t("dashboard.allCategories")}</h3>
+        <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-6">All Categories</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {toolCategories.map((category) => (
             <Link key={category.id} href={category.id === 'barcodes' ? '/barcodes' : `/category/${category.id}`}>
@@ -107,11 +107,11 @@ export default function Dashboard() {
                   <div className={`w-12 h-12 bg-${category.color}-100 dark:bg-${category.color}-900 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors`}>
                     <i className={`fas ${category.icon} text-${category.color}-500 group-hover:text-white`}></i>
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">{t(`category.${category.id}.title`)}</h3>
-                  <p className="text-slate-600 dark:text-gray-300 text-sm mb-4">{t(`category.${category.id}.description`)}</p>
+                  <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">{category.title}</h3>
+                  <p className="text-slate-600 dark:text-gray-300 text-sm mb-4">{category.description}</p>
                   <div className="flex items-center justify-between">
                     <Badge variant="secondary" className="text-xs">
-                      {category.tools.length} {t("common.tools")}
+                      {category.tools.length} tools
                     </Badge>
                     <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
                   </div>

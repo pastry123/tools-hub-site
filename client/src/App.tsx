@@ -24,6 +24,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/favorites" component={FavoritesPage} />
         <Route path="/recent" component={RecentPage} />
+        <Route path="/barcodes" component={CategoryDetailPage} />
         <Route path="/category/:categoryId" component={CategoryDetailPage} />
         <Route path="/tool/:toolId" component={ToolPage} />
         <Route path="/tools/barcode-qr/scanner" component={BarcodeScannerPage} />

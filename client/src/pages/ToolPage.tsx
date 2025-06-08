@@ -116,20 +116,14 @@ export default function ToolPage() {
     switch (tool.id) {
       case 'barcode-scanner':
         return <BarcodeScanner />;
-      case 'pdf-merger':
+      case 'pdf-merge':
         return <PDFMerger />;
-      case 'pdf-splitter':
+      case 'pdf-split':
         return <PDFSplitter />;
-      case 'pdf-compressor':
+      case 'pdf-compress':
         return <PDFCompressor />;
-      case 'pdf-to-word':
-      case 'word-to-pdf':
-      case 'pdf-to-excel':
-      case 'excel-to-pdf':
-      case 'pdf-to-images':
-      case 'images-to-pdf':
       case 'pdf-to-text':
-      case 'pdf-to-html':
+      case 'images-to-pdf':
         return <PDFConverter />;
       case 'pdf-watermark':
         return <PDFWatermark />;
@@ -144,16 +138,16 @@ export default function ToolPage() {
         return <ImageCompressor />;
       case 'background-remover':
         return <BackgroundRemover />;
+      case 'image-resize':
+        return <ImageResizer />;
+      case 'image-format-converter':
+        return <ImageConverter />;
+      case 'image-crop':
+        return <ImageCropper />;
       case 'word-counter':
         return <WordCounter />;
       case 'unit-converter':
         return <UnitConverter />;
-      case 'image-resizer':
-        return <ImageResizer />;
-      case 'image-converter':
-        return <ImageConverter />;
-      case 'image-cropper':
-        return <ImageCropper />;
       case 'image-to-text':
         return <ImageToText />;
       case 'favicon-generator':
