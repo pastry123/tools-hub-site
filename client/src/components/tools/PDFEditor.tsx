@@ -1,47 +1,36 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import { Button } from "@/components/ui/button";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-interface TextField {
-  id: number;
-  x: number;
-  y: number;
-  text: string;
-  color: string;
-  page: number;
-}
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 export default function PDFEditor() {
-  const [file, setFile] = useState<File | null>(null);
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageIndex, setPageIndex] = useState<number>(0);
-  const [fields, setFields] = useState<TextField[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [textColor, setTextColor] = useState<string>("#000000");
-  const [transparentField, setTransparentField] = useState<boolean>(false);
+  const [file, setFile] = useState(null);
+  const [numPages, setNumPages] = useState(null);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [fields, setFields] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [textColor, setTextColor] = useState("#000000");
+  const [transparentField, setTransparentField] = useState(false);
+  const containerRef = useRef(null);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pageWidth = 800;
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+  function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setPageIndex(0);
-    }
+  function handleFileChange(e) {
+    setFile(e.target.files[0]);
+    setPageIndex(0);
+    setFields([]); // reset fields
   }
 
   function addDraggableText() {
     const id = Date.now();
-    setFields([
-      ...fields,
+    setFields(prev => [
+      ...prev,
       {
         id,
         x: 100,
@@ -49,43 +38,53 @@ export default function PDFEditor() {
         text: "Edit me",
         color: textColor,
         page: pageIndex,
+        width: 150,
+        height: 30,
       },
     ]);
   }
 
-  function updateField(id: number, updates: Partial<TextField>) {
+  function updateField(id, updates) {
     setFields(fields.map(f => (f.id === id ? { ...f, ...updates } : f)));
   }
 
   function deleteSelected() {
-    setFields(fields.filter(f => f.id !== selectedId));
-    setSelectedId(null);
+    if (selectedId != null) {
+      setFields(fields.filter(f => f.id !== selectedId));
+      setSelectedId(null);
+    }
   }
 
   const nextPage = () => {
-    if (numPages && pageIndex < numPages - 1) setPageIndex(pageIndex + 1);
+    if (pageIndex < numPages - 1) setPageIndex(pageIndex + 1);
   };
 
   const prevPage = () => {
     if (pageIndex > 0) setPageIndex(pageIndex - 1);
   };
 
-  function startDrag(e: React.MouseEvent, id: number) {
+  function startDrag(e, id) {
+    e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
     const target = fields.find(f => f.id === id);
-    if (!target) return;
-    
-    setSelectedId(id);
-    const onMouseMove = (moveEvent: MouseEvent) => {
+    const origX = target.x;
+    const origY = target.y;
+
+    const onMouseMove = (moveEvent) => {
       const dx = moveEvent.clientX - startX;
       const dy = moveEvent.clientY - startY;
-      updateField(id, { x: target.x + dx, y: target.y + dy });
+      updateField(id, {
+        x: Math.max(0, Math.min(origX + dx, pageWidth - target.width)),
+        y: Math.max(0, origY + dy),
+      });
     };
+
     const onMouseUp = () => {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
     };
+
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
   }
@@ -93,12 +92,22 @@ export default function PDFEditor() {
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">ToolHub PDF Canvas Editor</h1>
+
       <input type="file" accept="application/pdf" onChange={handleFileChange} />
 
       {file && (
-        <div className="relative border h-[600px]">
-          <Document file={file} onLoadSuccess={onDocumentLoadSuccess} className="h-full w-full">
-            <Page pageNumber={pageIndex + 1} width={800} renderTextLayer={true} renderAnnotationLayer={true} />
+        <div className="relative border mx-auto" ref={containerRef} style={{ width: pageWidth }}>
+          <Document
+            file={file}
+            onLoadSuccess={onDocumentLoadSuccess}
+            className="w-full"
+          >
+            <Page
+              pageNumber={pageIndex + 1}
+              width={pageWidth}
+              renderTextLayer={true}
+              renderAnnotationLayer={true}
+            />
           </Document>
 
           <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -108,22 +117,26 @@ export default function PDFEditor() {
                 <textarea
                   key={field.id}
                   value={field.text}
-                  onChange={(e) => updateField(field.id, { text: e.target.value })}
+                  onChange={e => updateField(field.id, { text: e.target.value })}
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                    e.preventDefault();
+                    setSelectedId(field.id);
                     startDrag(e, field.id);
                   }}
                   style={{
                     position: "absolute",
                     top: field.y,
                     left: field.x,
+                    width: field.width,
+                    height: field.height,
                     background: transparentField ? "transparent" : "white",
                     color: field.color,
-                    border: "1px solid #999",
+                    border: selectedId === field.id ? "2px solid blue" : "1px solid #999",
                     resize: "both",
                     pointerEvents: "auto",
-                    padding: "2px",
+                    padding: "4px",
+                    overflow: "hidden",
+                    zIndex: 10,
                   }}
                 />
               ))}
@@ -151,6 +164,7 @@ export default function PDFEditor() {
         />
         Transparent Background
       </label>
+
       <label className="block pt-2">
         <span className="mr-2">Text Color:</span>
         <input
