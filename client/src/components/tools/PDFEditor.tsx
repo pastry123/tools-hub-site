@@ -1,28 +1,41 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import { Button } from "@/components/ui/button";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+
+interface TextField {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  page: number;
+}
 
 export default function PDFEditor() {
-  const [file, setFile] = useState(null);
-  const [numPages, setNumPages] = useState(null);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [fields, setFields] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [textColor, setTextColor] = useState("#000000");
-  const [transparentField, setTransparentField] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageIndex, setPageIndex] = useState<number>(0);
+  const [fields, setFields] = useState<TextField[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [textColor, setTextColor] = useState<string>("#000000");
+  const [transparentField, setTransparentField] = useState<boolean>(false);
 
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  function onDocumentLoadSuccess({ numPages }) {
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
   }
 
-  function handleFileChange(e) {
-    setFile(e.target.files[0]);
-    setPageIndex(0);
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPageIndex(0);
+    }
   }
 
   function addDraggableText() {
@@ -40,7 +53,7 @@ export default function PDFEditor() {
     ]);
   }
 
-  function updateField(id, updates) {
+  function updateField(id: number, updates: Partial<TextField>) {
     setFields(fields.map(f => (f.id === id ? { ...f, ...updates } : f)));
   }
 
@@ -50,19 +63,21 @@ export default function PDFEditor() {
   }
 
   const nextPage = () => {
-    if (pageIndex < numPages - 1) setPageIndex(pageIndex + 1);
+    if (numPages && pageIndex < numPages - 1) setPageIndex(pageIndex + 1);
   };
 
   const prevPage = () => {
     if (pageIndex > 0) setPageIndex(pageIndex - 1);
   };
 
-  function startDrag(e, id) {
+  function startDrag(e: React.MouseEvent, id: number) {
     const startX = e.clientX;
     const startY = e.clientY;
     const target = fields.find(f => f.id === id);
+    if (!target) return;
+    
     setSelectedId(id);
-    const onMouseMove = (moveEvent) => {
+    const onMouseMove = (moveEvent: MouseEvent) => {
       const dx = moveEvent.clientX - startX;
       const dy = moveEvent.clientY - startY;
       updateField(id, { x: target.x + dx, y: target.y + dy });
@@ -93,8 +108,8 @@ export default function PDFEditor() {
                 <textarea
                   key={field.id}
                   value={field.text}
-                  onChange={e => updateField(field.id, { text: e.target.value })}
-                  onMouseDown={e => {
+                  onChange={(e) => updateField(field.id, { text: e.target.value })}
+                  onMouseDown={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     startDrag(e, field.id);
