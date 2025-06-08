@@ -16,6 +16,8 @@ interface ScanResult {
     errorCorrectionLevel?: string;
     version?: string;
     mask?: string;
+    region?: string;
+    note?: string;
     segments?: Array<{
       mode: string;
       data: string;
@@ -23,10 +25,16 @@ interface ScanResult {
   };
 }
 
+interface MultipleScanResponse {
+  results: ScanResult[];
+  count: number;
+  message: string;
+}
+
 export default function BarcodeScanner() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [scanResults, setScanResults] = useState<ScanResult[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const { toast } = useToast();
 
@@ -34,7 +42,7 @@ export default function BarcodeScanner() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && selectedFile.type.startsWith('image/')) {
       setFile(selectedFile);
-      setScanResult(null);
+      setScanResults([]);
       
       // Create preview URL
       const url = URL.createObjectURL(selectedFile);
@@ -64,7 +72,7 @@ export default function BarcodeScanner() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/barcode/scan', {
+      const response = await fetch('/api/barcode/scan-all', {
         method: 'POST',
         body: formData
       });
@@ -73,12 +81,12 @@ export default function BarcodeScanner() {
         throw new Error('Failed to scan barcode');
       }
 
-      const data = await response.json();
-      setScanResult(data.result);
+      const data: MultipleScanResponse = await response.json();
+      setScanResults(data.results);
 
       toast({
         title: "Success",
-        description: `${data.result.type} detected successfully`
+        description: data.message
       });
     } catch (error) {
       toast({
@@ -91,14 +99,12 @@ export default function BarcodeScanner() {
     }
   };
 
-  const copyToClipboard = () => {
-    if (scanResult) {
-      navigator.clipboard.writeText(scanResult.value);
-      toast({
-        title: "Copied",
-        description: "Barcode value copied to clipboard"
-      });
-    }
+  const copyToClipboard = (value: string) => {
+    navigator.clipboard.writeText(value);
+    toast({
+      title: "Copied",
+      description: "Barcode value copied to clipboard"
+    });
   };
 
   const getTypeColor = (type: string) => {
@@ -182,73 +188,91 @@ export default function BarcodeScanner() {
             {isScanning ? 'Scanning Barcode...' : 'Scan Barcode/QR Code'}
           </Button>
 
-          {scanResult && (
+          {scanResults.length > 0 && (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-medium text-green-800 dark:text-green-200">
-                    Scan Successful!
-                  </h3>
-                  <Badge className={getTypeColor(scanResult.format)}>
-                    {formatBarcodeType(scanResult.format)}
-                  </Badge>
-                </div>
+                <h3 className="font-medium text-green-800 dark:text-green-200 mb-4">
+                  Scan Successful! Found {scanResults.length} barcode{scanResults.length > 1 ? 's' : ''}
+                </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <Label className="text-sm font-medium">Type</Label>
-                    <p className="text-sm">{scanResult.type}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Format</Label>
-                    <p className="text-sm">{formatBarcodeType(scanResult.format)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Confidence</Label>
-                    <p className="text-sm">{(scanResult.confidence * 100).toFixed(1)}%</p>
-                  </div>
-                  {scanResult.metadata?.version && (
-                    <div>
-                      <Label className="text-sm font-medium">Version</Label>
-                      <p className="text-sm">{scanResult.metadata.version}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium">Decoded Value</Label>
-                    <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy
-                    </Button>
-                  </div>
-                  <Textarea
-                    value={scanResult.value}
-                    readOnly
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                {scanResult.metadata?.segments && (
-                  <div className="mt-4">
-                    <Label className="text-sm font-medium">Data Segments</Label>
-                    <div className="mt-2 space-y-2">
-                      {scanResult.metadata.segments.map((segment, index) => (
-                        <div key={index} className="p-2 bg-white dark:bg-gray-800 rounded border">
-                          <div className="flex justify-between items-center">
-                            <Badge variant="outline">{segment.mode}</Badge>
-                            <span className="text-xs text-gray-500">
-                              {segment.data.length} chars
-                            </span>
-                          </div>
-                          <p className="text-sm mt-1 font-mono break-all">{segment.data}</p>
+                <div className="space-y-6">
+                  {scanResults.map((result, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                          Barcode #{index + 1}
+                        </h4>
+                        <Badge className={getTypeColor(result.format)}>
+                          {formatBarcodeType(result.format)}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <Label className="text-sm font-medium">Type</Label>
+                          <p className="text-sm">{result.type}</p>
                         </div>
-                      ))}
+                        <div>
+                          <Label className="text-sm font-medium">Format</Label>
+                          <p className="text-sm">{formatBarcodeType(result.format)}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Confidence</Label>
+                          <p className="text-sm">{(result.confidence * 100).toFixed(1)}%</p>
+                        </div>
+                        {result.metadata?.region && (
+                          <div>
+                            <Label className="text-sm font-medium">Region</Label>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {result.metadata.region}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">Decoded Value</Label>
+                          <Button variant="outline" size="sm" onClick={() => copyToClipboard(result.value)}>
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy
+                          </Button>
+                        </div>
+                        <Textarea
+                          value={result.value}
+                          readOnly
+                          rows={3}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      {result.metadata?.note && (
+                        <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm text-blue-700 dark:text-blue-300">
+                          <strong>Note:</strong> {result.metadata.note}
+                        </div>
+                      )}
+
+                      {result.metadata?.segments && (
+                        <div className="mt-4">
+                          <Label className="text-sm font-medium">Data Segments</Label>
+                          <div className="mt-2 space-y-2">
+                            {result.metadata.segments.map((segment: any, segIndex: number) => (
+                              <div key={segIndex} className="p-2 bg-gray-50 dark:bg-gray-700 rounded border">
+                                <div className="flex justify-between items-center">
+                                  <Badge variant="outline">{segment.mode}</Badge>
+                                  <span className="text-xs text-gray-500">
+                                    {segment.data.length} chars
+                                  </span>
+                                </div>
+                                <p className="text-sm mt-1 font-mono break-all">{segment.data}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
           )}
