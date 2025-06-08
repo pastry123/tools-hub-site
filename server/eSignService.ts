@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import * as pdfParse from 'pdf-parse';
 import fs from 'fs';
 import path from 'path';
 
@@ -215,22 +216,30 @@ export class ESignService {
 
   async generatePDFPreview(pdfBuffer: Buffer): Promise<{ success: boolean; pages?: string[]; error?: string }> {
     try {
-      // Use pdf-lib to extract page information and create enhanced previews
+      // Extract text content and structure from PDF
+      const pdfData = await pdfParse(pdfBuffer);
       const pdfDoc = await PDFDocument.load(pdfBuffer);
       const pageCount = pdfDoc.getPageCount();
+      
+      // Analyze text content for intelligent layout
+      const textAnalysis = this.analyzeTextContent(pdfData.text, pageCount);
       const pages: string[] = [];
       
       for (let i = 0; i < pageCount; i++) {
         const page = pdfDoc.getPage(i);
         const { width, height } = page.getSize();
         
-        // Create enhanced preview with realistic document structure
-        const enhancedPage = this.generateEnhancedPage(i + 1, width, height);
-        pages.push(enhancedPage);
+        // Get content for this specific page
+        const pageContent = textAnalysis.pages[i] || { lines: [], emptyAreas: [] };
+        
+        // Create realistic preview with actual content structure
+        const contentPage = this.generateContentBasedPage(i + 1, width, height, pageContent);
+        pages.push(contentPage);
       }
       
       return { success: true, pages };
     } catch (error) {
+      console.error('PDF preview generation failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate preview'
@@ -454,6 +463,170 @@ export class ESignService {
     } catch (error) {
       throw new Error(`Failed to add page numbers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  private analyzeTextContent(text: string, pageCount: number) {
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    const linesPerPage = Math.ceil(lines.length / pageCount);
+    
+    const pages = [];
+    for (let i = 0; i < pageCount; i++) {
+      const startIndex = i * linesPerPage;
+      const endIndex = Math.min((i + 1) * linesPerPage, lines.length);
+      const pageLines = lines.slice(startIndex, endIndex);
+      
+      // Analyze empty areas for signature placement
+      const emptyAreas = this.findEmptyAreas(pageLines);
+      
+      pages.push({
+        lines: pageLines,
+        emptyAreas,
+        hasContent: pageLines.length > 0
+      });
+    }
+    
+    return { pages, totalLines: lines.length };
+  }
+
+  private findEmptyAreas(lines: string[]) {
+    const emptyAreas = [];
+    let currentEmptyStart = -1;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isEmpty = line.trim().length < 10; // Consider short lines as potential empty areas
+      
+      if (isEmpty && currentEmptyStart === -1) {
+        currentEmptyStart = i;
+      } else if (!isEmpty && currentEmptyStart !== -1) {
+        // Found end of empty area
+        if (i - currentEmptyStart >= 2) { // At least 2 lines of space
+          emptyAreas.push({
+            start: currentEmptyStart,
+            end: i - 1,
+            height: (i - currentEmptyStart) * 20 // Approximate line height
+          });
+        }
+        currentEmptyStart = -1;
+      }
+    }
+    
+    // Check for empty area at the end
+    if (currentEmptyStart !== -1 && lines.length - currentEmptyStart >= 2) {
+      emptyAreas.push({
+        start: currentEmptyStart,
+        end: lines.length - 1,
+        height: (lines.length - currentEmptyStart) * 20
+      });
+    }
+    
+    return emptyAreas;
+  }
+
+  private generateContentBasedPage(pageNumber: number, pdfWidth: number, pdfHeight: number, pageContent: any): string {
+    const scaleFactor = Math.min(600 / pdfWidth, 800 / pdfHeight);
+    const width = pdfWidth * scaleFactor;
+    const height = pdfHeight * scaleFactor;
+    
+    // Generate text lines based on actual content
+    let textElements = '';
+    let yPosition = 80;
+    const lineHeight = 16;
+    const maxWidth = width - 120;
+    
+    if (pageContent.lines && pageContent.lines.length > 0) {
+      pageContent.lines.forEach((line: string, index: number) => {
+        if (yPosition > height - 100) return; // Stop if near bottom
+        
+        const textLength = Math.min(line.length, 80);
+        const textWidth = Math.min(textLength * 6, maxWidth);
+        const fontSize = line.length > 50 ? 10 : 12;
+        
+        textElements += `
+          <rect x="60" y="${yPosition}" width="${textWidth}" height="${fontSize}" fill="${line.trim().length > 0 ? '#2d3748' : '#e2e8f0'}"/>
+        `;
+        
+        yPosition += lineHeight;
+      });
+    } else {
+      // Fallback content structure
+      for (let i = 0; i < 15; i++) {
+        const lineWidth = Math.random() * maxWidth * 0.6 + maxWidth * 0.3;
+        textElements += `
+          <rect x="60" y="${yPosition}" width="${lineWidth}" height="12" fill="#cbd5e0"/>
+        `;
+        yPosition += lineHeight;
+      }
+    }
+    
+    // Highlight suggested signature areas
+    let signatureAreas = '';
+    if (pageContent.emptyAreas && pageContent.emptyAreas.length > 0) {
+      pageContent.emptyAreas.forEach((area: any, index: number) => {
+        const areaY = 80 + (area.start * lineHeight);
+        const areaHeight = Math.min(area.height, 80);
+        
+        signatureAreas += `
+          <rect x="60" y="${areaY}" width="200" height="${areaHeight}" 
+                fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="8,4" opacity="0.6"/>
+          <text x="160" y="${areaY + areaHeight/2}" text-anchor="middle" 
+                font-family="Arial" font-size="10" fill="#10b981">
+            Suggested signature area
+          </text>
+        `;
+      });
+    } else {
+      // Default signature area at bottom
+      signatureAreas = `
+        <rect x="60" y="${height - 150}" width="200" height="80" 
+              fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="8,4" opacity="0.6"/>
+        <text x="160" y="${height - 110}" text-anchor="middle" 
+              font-family="Arial" font-size="10" fill="#10b981">
+          Suggested signature area
+        </text>
+      `;
+    }
+    
+    const svg = `
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="docShadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="1" dy="1" stdDeviation="1" flood-color="#00000015"/>
+          </filter>
+        </defs>
+        
+        <!-- Document background -->
+        <rect width="100%" height="100%" fill="white" stroke="#d1d5db" stroke-width="1" filter="url(#docShadow)"/>
+        
+        <!-- Document margins -->
+        <rect x="40" y="40" width="${width - 80}" height="${height - 80}" 
+              fill="none" stroke="#f3f4f6" stroke-width="1" stroke-dasharray="2,2"/>
+        
+        <!-- Page header -->
+        <rect x="60" y="50" width="${width - 120}" height="25" fill="#f8fafc" stroke="#e5e7eb"/>
+        <text x="${width / 2}" y="67" text-anchor="middle" 
+              font-family="Arial" font-size="12" fill="#374151" font-weight="bold">
+          ${pageContent.hasContent ? 'Document Content' : 'Document Page'} ${pageNumber}
+        </text>
+        
+        <!-- Actual content representation -->
+        <g>
+          ${textElements}
+        </g>
+        
+        <!-- Suggested signature areas -->
+        ${signatureAreas}
+        
+        <!-- Page footer -->
+        <text x="${width / 2}" y="${height - 15}" text-anchor="middle" 
+              font-family="Arial" font-size="9" fill="#9ca3af">
+          Page ${pageNumber} • ${Math.round(pdfWidth)}×${Math.round(pdfHeight)}pt • 
+          ${pageContent.lines ? pageContent.lines.length : 0} content lines
+        </text>
+      </svg>
+    `;
+    
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 }
 
