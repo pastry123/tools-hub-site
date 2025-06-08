@@ -203,6 +203,56 @@ export default function AdvancedESign() {
     setSignaturePositions(signaturePositions.filter(pos => pos.id !== id));
   };
 
+  const exportSignedPDF = async () => {
+    if (!pdfFile || !currentSignature || signaturePositions.length === 0) {
+      toast({
+        title: "Error",
+        description: "Missing PDF file, signature, or signature positions",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('pdf', pdfFile);
+      formData.append('signature', currentSignature);
+      formData.append('fields', JSON.stringify(signaturePositions));
+
+      const response = await fetch('/api/pdf/sign', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process signed PDF');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `signed_${pdfFile.name}`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: `Signed PDF exported with ${signaturePositions.length} signatures`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to export signed PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
@@ -874,9 +924,22 @@ export default function AdvancedESign() {
                 </div>
               ))}
               <div className="pt-3 border-t">
-                <Button className="w-full" disabled={!currentSignature}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Export Signed PDF ({signaturePositions.length} signatures)
+                <Button 
+                  className="w-full" 
+                  disabled={!currentSignature || signaturePositions.length === 0 || isProcessing}
+                  onClick={exportSignedPDF}
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Export Signed PDF ({signaturePositions.length} signatures)
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
