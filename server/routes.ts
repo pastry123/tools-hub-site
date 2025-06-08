@@ -13,6 +13,7 @@ import { barcodeService } from "./barcodeService";
 import { currencyService } from "./currencyService";
 import { analyticsService } from "./analyticsService";
 import { eSignService } from "./eSignService";
+import { developerAdvancedService } from "./developerAdvancedService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -977,6 +978,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Multiple barcode scan error:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to scan barcodes' });
+    }
+  });
+
+  // DNS Lookup
+  app.post('/api/dns/lookup', async (req, res) => {
+    try {
+      const { domain } = req.body;
+      if (!domain) {
+        return res.status(400).json({ error: 'Domain is required' });
+      }
+
+      const result = await developerAdvancedService.performDNSLookup(domain);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'DNS lookup failed' });
+    }
+  });
+
+  // Website Screenshot
+  app.post('/api/screenshot', async (req, res) => {
+    try {
+      const { url, format, quality, width, height, fullPage } = req.body;
+      if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      const screenshotBuffer = await developerAdvancedService.captureWebsiteScreenshot({
+        url,
+        format: format || 'png',
+        quality: quality || 90,
+        width: width || 1920,
+        height: height || 1080,
+        fullPage: fullPage !== false
+      });
+
+      res.setHeader('Content-Type', `image/${format || 'png'}`);
+      res.send(screenshotBuffer);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Screenshot capture failed' });
+    }
+  });
+
+  // Website Status Check
+  app.post('/api/website/status', async (req, res) => {
+    try {
+      const { url } = req.body;
+      if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      const result = await developerAdvancedService.testWebsiteStatus(url);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Website status check failed' });
     }
   });
 
