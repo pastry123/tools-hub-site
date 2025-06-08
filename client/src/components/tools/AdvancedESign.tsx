@@ -7,10 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Document, Page, pdfjs } from 'react-pdf';
-
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+import { Document, Page } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 interface SignatureField {
   id: string;
@@ -30,6 +29,13 @@ interface Signer {
   email: string;
   role: string;
   status: 'pending' | 'signed' | 'viewed';
+}
+
+// Configure PDF.js worker
+import { pdfjs } from 'react-pdf';
+
+if (typeof window !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 }
 
 export default function AdvancedESign() {
@@ -241,6 +247,7 @@ export default function AdvancedESign() {
 
     setPdfFile(file);
     setCurrentPage(0);
+    setIsProcessing(true);
     
     toast({
       title: "Success",
@@ -742,15 +749,46 @@ export default function AdvancedESign() {
                   <div className="relative w-full h-96">
                     <Document
                       file={pdfFile}
-                      onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                      onLoadSuccess={({ numPages }) => {
+                        setNumPages(numPages);
+                        setIsProcessing(false);
+                      }}
+                      onLoadError={(error) => {
+                        console.error('PDF load error:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to load PDF. Please try a different file.",
+                          variant: "destructive",
+                        });
+                        setIsProcessing(false);
+                      }}
+                      loading={
+                        <div className="flex items-center justify-center h-96 bg-gray-100">
+                          <div className="text-center">
+                            <FileText className="w-8 h-8 mx-auto mb-2 animate-pulse" />
+                            <p className="text-sm">Loading PDF...</p>
+                          </div>
+                        </div>
+                      }
                       className="flex justify-center"
                     >
                       <div className="relative">
                         <Page
                           pageNumber={currentPage + 1}
-                          width={pageWidth}
+                          width={Math.min(pageWidth, 600)}
                           className="shadow-lg"
                           onLoadSuccess={(page) => setPageWidth(page.width)}
+                          onRenderError={(error) => {
+                            console.error('Page render error:', error);
+                          }}
+                          loading={
+                            <div className="flex items-center justify-center h-96 bg-gray-50">
+                              <div className="text-center">
+                                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                <p className="text-xs">Rendering page...</p>
+                              </div>
+                            </div>
+                          }
                         />
                         {/* Clickable overlay for signature field positioning */}
                         <div 
