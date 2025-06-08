@@ -253,25 +253,42 @@ export default function PDFEditor() {
       
       {/* File Upload */}
       <div className="flex items-center gap-4">
-        <input type="file" accept="application/pdf" onChange={loadPdf} ref={fileInputRef} />
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => fileInputRef.current?.click()}
+            variant={url ? "outline" : "default"}
+          >
+            {url ? "Change PDF" : "Upload PDF"}
+          </Button>
+          <input 
+            type="file" 
+            accept="application/pdf" 
+            onChange={loadPdf} 
+            ref={fileInputRef} 
+            className="hidden"
+          />
+        </div>
+        {url && <span className="text-sm text-green-600">✓ PDF loaded</span>}
       </div>
       
       {/* Tool Controls */}
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={addTextElement}>Add Text</Button>
-        <label className="cursor-pointer">
-          <Button asChild>
-            <span>Add Image</span>
-          </Button>
-          <input
-            type="file"
-            accept="image/png, image/jpeg"
-            className="hidden"
-            onChange={addImageElement}
-          />
-        </label>
-        <Button onClick={downloadPdf} variant="outline">Download PDF</Button>
-      </div>
+      {url && (
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={addTextElement}>Add Text</Button>
+          <label className="cursor-pointer">
+            <Button asChild>
+              <span>Add Image</span>
+            </Button>
+            <input
+              type="file"
+              accept="image/png, image/jpeg"
+              className="hidden"
+              onChange={addImageElement}
+            />
+          </label>
+          <Button onClick={downloadPdf} variant="outline">Download PDF</Button>
+        </div>
+      )}
 
       {/* Selected Element Controls */}
       {selectedElement && selectedElement.startsWith('text-') && (
@@ -302,8 +319,13 @@ export default function PDFEditor() {
             className="relative w-full h-[600px] border border-gray-300 overflow-hidden bg-white"
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
-            style={{ backgroundImage: `url(${url})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
           >
+            {/* PDF iframe as background */}
+            <iframe
+              src={url}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              title="PDF Background"
+            />
             {/* Text Elements */}
             {textElements.map((textEl) => (
               <div
@@ -413,8 +435,19 @@ export default function PDFEditor() {
       )}
       
       {!url && (
-        <div className="text-center py-12 text-gray-500">
-          Upload a PDF to start editing
+        <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+          <div className="space-y-4">
+            <div className="text-6xl text-gray-400">📄</div>
+            <h3 className="text-xl font-medium text-gray-700">No PDF loaded</h3>
+            <p className="text-gray-500">Click "Upload PDF" above to start editing</p>
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              size="lg"
+              className="mt-4"
+            >
+              Choose PDF File
+            </Button>
+          </div>
         </div>
       )}
     </div>
