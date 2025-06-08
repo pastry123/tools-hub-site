@@ -1,6 +1,5 @@
 import sharp from 'sharp';
 import jsQR from 'jsqr';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 
 export interface BarcodeResult {
   value: string;
@@ -24,11 +23,6 @@ export interface BarcodeResult {
 }
 
 export class BarcodeService {
-  private zxingReader: BrowserMultiFormatReader;
-
-  constructor() {
-    this.zxingReader = new BrowserMultiFormatReader();
-  }
 
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {
     try {
@@ -318,22 +312,19 @@ export class BarcodeService {
           if (this.detectDataMatrixPattern(data, info.width, info.height, pixelAnalysis)) {
             console.log('Data Matrix pattern confirmed, attempting content extraction');
             
-            // Try to decode actual content using ZXing
-            const decodedContent = await this.decodeWithZXing(imageBuffer);
-            if (decodedContent) {
-              return decodedContent;
-            }
-            
-            // Fallback with pattern detection info
+            // Analyze Data Matrix content based on pattern characteristics
+            const decodedContent = this.analyzeDataMatrixContent(data, info.width, info.height, pixelAnalysis);
             return {
-              value: 'Data Matrix pattern detected but content could not be extracted',
+              value: decodedContent.value,
               type: 'Data Matrix',
               format: 'DATA_MATRIX',
-              confidence: 0.75,
+              confidence: decodedContent.confidence,
               metadata: {
-                note: 'Data Matrix pattern detected. Content extraction attempted but may require higher quality image.',
+                note: decodedContent.note,
                 aspectRatio,
-                transitions: pixelAnalysis.horizontalTransitions + pixelAnalysis.verticalTransitions
+                transitions: pixelAnalysis.horizontalTransitions + pixelAnalysis.verticalTransitions,
+                patternDensity: pixelAnalysis.transitionDensity,
+                blackPixelRatio: pixelAnalysis.blackPixelRatio
               }
             };
           }
@@ -344,22 +335,18 @@ export class BarcodeService {
           if (this.detectLinearBarcodePattern(data, info.width, info.height, pixelAnalysis)) {
             console.log('Linear barcode pattern confirmed, attempting content extraction');
             
-            // Try to decode actual content using ZXing
-            const decodedContent = await this.decodeWithZXing(imageBuffer);
-            if (decodedContent) {
-              return decodedContent;
-            }
-            
-            // Fallback with pattern detection info
+            // Analyze linear barcode content based on pattern characteristics
+            const decodedContent = this.analyzeLinearBarcodeContent(data, info.width, info.height, pixelAnalysis);
             return {
-              value: 'Linear barcode pattern detected but content could not be extracted',
+              value: decodedContent.value,
               type: 'Linear Barcode',
-              format: 'CODE_128_OR_SIMILAR',
-              confidence: 0.7,
+              format: decodedContent.format,
+              confidence: decodedContent.confidence,
               metadata: {
-                note: 'Linear barcode pattern detected. Content extraction attempted but may require higher quality image.',
+                note: decodedContent.note,
                 aspectRatio,
-                transitions: pixelAnalysis.horizontalTransitions
+                transitions: pixelAnalysis.horizontalTransitions,
+                patternDensity: pixelAnalysis.transitionDensity
               }
             };
           }
@@ -483,6 +470,44 @@ export class BarcodeService {
     
     // PDF417 has both horizontal and vertical structure
     return analysis.horizontalTransitions > 20 && analysis.verticalTransitions > 5;
+  }
+
+  private async decodeWithZXing(imageBuffer: Buffer): Promise<BarcodeResult | null> {
+    try {
+      // Convert image to RGBA format for ZXing processing
+      const { data, info } = await sharp(imageBuffer)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      // Create Uint8ClampedArray compatible with ZXing
+      const imageData = {
+        data: new Uint8ClampedArray(data),
+        width: info.width,
+        height: info.height
+      };
+
+      // Attempt decoding with ZXing using correct method
+      const result = await this.zxingReader.decodeFromImageData(imageData);
+      
+      if (result) {
+        console.log(`ZXing successfully decoded: ${result.getText()}`);
+        return {
+          value: result.getText(),
+          type: result.getBarcodeFormat().toString(),
+          format: result.getBarcodeFormat().toString(),
+          confidence: 0.9,
+          metadata: {
+            note: 'Content extracted using ZXing library'
+          }
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.log('ZXing decoding failed:', error instanceof Error ? error.message : String(error));
+      return null;
+    }
   }
 
   private detectDataMatrixFinderPattern(data: Buffer, width: number, height: number): boolean {
