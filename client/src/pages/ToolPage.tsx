@@ -168,6 +168,8 @@ export default function ToolPage() {
         return <DummyTextGenerator />;
       case 'color-converter':
         return <ColorConverter />;
+      case 'currency-converter':
+        return <CurrencyConverter />;
       case 'timestamp-converter':
         return <TimestampConverter />;
       case 'base64-encoder':
