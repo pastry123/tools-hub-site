@@ -121,8 +121,12 @@ export default function AdvancedESign() {
       setPdfPages(pdf.numPages);
       setCurrentPage(1);
       
-      // Render first page
+      // Render first page immediately
       await renderPage(pdf, 1);
+      
+      // Create URL for download functionality
+      const url = URL.createObjectURL(file);
+      setPdfUrl(url);
       
       setIsProcessing(false);
       toast({
@@ -178,16 +182,20 @@ export default function AdvancedESign() {
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-    const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     
     const newPosition = {
-      x,
-      y,
+      x: Math.round(x),
+      y: Math.round(y),
       page: currentPage,
-      width: 120,
-      height: 40,
-      id: `sig-${Date.now()}`
+      width: 150,
+      height: 50,
+      id: `sig-${Date.now()}`,
+      required: true
     };
     
     setSignaturePositions([...signaturePositions, newPosition]);
@@ -195,7 +203,7 @@ export default function AdvancedESign() {
     
     toast({
       title: "Signature Placed",
-      description: `Signature added to page ${currentPage}`,
+      description: `Signature positioned at (${Math.round(x)}, ${Math.round(y)}) on page ${currentPage}`,
     });
   };
 
@@ -493,7 +501,7 @@ export default function AdvancedESign() {
               <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
                 <div className="text-center">
                   <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-sm">Loading PDF with PDFEdit...</p>
+                  <p className="text-sm">Processing PDF with canvas renderer...</p>
                 </div>
               </div>
             ) : (
@@ -533,13 +541,15 @@ export default function AdvancedESign() {
                       variant="outline" 
                       size="sm"
                       onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(pdfFile!);
-                        link.download = pdfFile?.name || 'document.pdf';
-                        link.click();
+                        if (pdfUrl) {
+                          const link = document.createElement('a');
+                          link.href = pdfUrl;
+                          link.download = pdfFile?.name || 'document.pdf';
+                          link.click();
+                        }
                       }}
                     >
-                      Download
+                      Download Original
                     </Button>
                   </div>
                 </div>
@@ -555,28 +565,40 @@ export default function AdvancedESign() {
                     {/* Signature Position Overlays */}
                     {signaturePositions
                       .filter(pos => pos.page === currentPage)
-                      .map(pos => (
-                        <div
-                          key={pos.id}
-                          className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-50 flex items-center justify-center"
-                          style={{
-                            left: `${(pos.x / (pdfCanvasRef.current?.width || 1)) * 100}%`,
-                            top: `${(pos.y / (pdfCanvasRef.current?.height || 1)) * 100}%`,
-                            width: `${(pos.width / (pdfCanvasRef.current?.width || 1)) * 100}%`,
-                            height: `${(pos.height / (pdfCanvasRef.current?.height || 1)) * 100}%`,
-                          }}
-                        >
-                          <div className="text-xs text-blue-800 font-medium">Signature</div>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-5 w-5 p-0"
-                            onClick={() => removeSignaturePosition(pos.id)}
+                      .map(pos => {
+                        const canvas = pdfCanvasRef.current;
+                        if (!canvas) return null;
+                        
+                        const rect = canvas.getBoundingClientRect();
+                        const scaleX = rect.width / canvas.width;
+                        const scaleY = rect.height / canvas.height;
+                        
+                        return (
+                          <div
+                            key={pos.id}
+                            className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-70 flex items-center justify-center rounded shadow-lg"
+                            style={{
+                              left: `${pos.x * scaleX}px`,
+                              top: `${pos.y * scaleY}px`,
+                              width: `${pos.width * scaleX}px`,
+                              height: `${pos.height * scaleY}px`,
+                            }}
                           >
-                            ×
-                          </Button>
-                        </div>
-                      ))}
+                            <div className="text-xs text-blue-800 font-medium">Signature #{signaturePositions.indexOf(pos) + 1}</div>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 rounded-full text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeSignaturePosition(pos.id);
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
                 
