@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
+import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check, MapPin, Plus, X, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Signer {
@@ -842,6 +842,48 @@ export default function AdvancedESign() {
         </Card>
       </div>
 
+      {/* Signature Placement Summary */}
+      {signaturePositions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Signature Placement Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {signaturePositions.map((pos, index) => (
+                <div key={pos.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">#{index + 1}</Badge>
+                    <div>
+                      <p className="font-medium">Page {pos.page}</p>
+                      <p className="text-sm text-gray-500">
+                        Position: ({Math.round(pos.x)}, {Math.round(pos.y)})
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeSignaturePosition(pos.id)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="pt-3 border-t">
+                <Button className="w-full" disabled={!currentSignature}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Export Signed PDF ({signaturePositions.length} signatures)
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Signature Preview */}
       {currentSignature && (
         <Card>
@@ -858,6 +900,14 @@ export default function AdvancedESign() {
                 alt="Generated signature" 
                 className="max-h-32"
               />
+            </div>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-800">
+                <MapPin className="w-4 h-4" />
+                <span className="font-medium">
+                  {isPlacingSignature ? 'Click on PDF to place signature' : 'Ready to place on document'}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
