@@ -7,6 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface SignatureField {
   id: string;
@@ -40,6 +44,8 @@ export default function AdvancedESign() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPages, setPdfPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [pdfDocument, setPdfDocument] = useState<any>(null);
+  const [canvasRefs, setCanvasRefs] = useState<HTMLCanvasElement[]>([]);
   const [signatureFields, setSignatureFields] = useState<SignatureField[]>([]);
   const [signers, setSigners] = useState<Signer[]>([]);
   const [documentTitle, setDocumentTitle] = useState("");
@@ -237,29 +243,51 @@ export default function AdvancedESign() {
     setIsProcessing(true);
 
     try {
-      const formData = new FormData();
-      formData.append('pdf', file);
-
-      const response = await fetch('/api/pdf/preview', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPdfPages(data.pages);
-        setCurrentPage(0);
-        toast({
-          title: "Success",
-          description: "PDF loaded successfully!",
-        });
-      } else {
-        throw new Error('Failed to load PDF');
+      // Load PDF using PDF.js directly for real content rendering
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      
+      setPdfDocument(pdf);
+      
+      // Render all pages to get real document images
+      const pages = [];
+      const canvases = [];
+      
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.5 });
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d')!;
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+        };
+        
+        await page.render(renderContext).promise;
+        
+        const imageData = canvas.toDataURL('image/png');
+        pages.push(imageData);
+        canvases.push(canvas);
       }
+      
+      setPdfPages(pages);
+      setCanvasRefs(canvases);
+      setCurrentPage(0);
+      
+      toast({
+        title: "Success",
+        description: "PDF loaded with real content rendering!",
+      });
     } catch (error) {
+      console.error('Error loading PDF:', error);
       toast({
         title: "Error",
-        description: "Failed to load PDF preview",
+        description: "Failed to load PDF. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -436,28 +464,59 @@ export default function AdvancedESign() {
 
     setIsProcessing(true);
     try {
-      const formData = new FormData();
-      formData.append('pdf', pdfFile);
-      formData.append('signature', currentSignature);
-      formData.append('fields', JSON.stringify(signatureFields));
-
-      const response = await fetch('/api/pdf/preview-with-signatures', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPreviewPages(data.pages);
-        setPreviewPage(0);
-        toast({
-          title: "Success",
-          description: "Preview with signatures generated successfully!",
-        });
-      } else {
-        throw new Error('Failed to generate preview with signatures');
+      // Generate preview using the same PDF.js approach but with signatures overlaid
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      
+      const previewPagesWithSigs = [];
+      
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.5 });
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d')!;
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        // Render the original PDF page
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+        };
+        
+        await page.render(renderContext).promise;
+        
+        // Overlay signatures for fields on this page
+        const pageFields = signatureFields.filter(field => field.page === pageNum - 1);
+        
+        for (const field of pageFields) {
+          if (currentSignature) {
+            const img = new Image();
+            await new Promise((resolve) => {
+              img.onload = resolve;
+              img.src = currentSignature;
+            });
+            
+            // Draw signature at field position with proper scaling
+            context.drawImage(img, field.x, field.y, field.width, field.height);
+          }
+        }
+        
+        const imageData = canvas.toDataURL('image/png');
+        previewPagesWithSigs.push(imageData);
       }
+      
+      setPreviewPages(previewPagesWithSigs);
+      setPreviewPage(0);
+      
+      toast({
+        title: "Success",
+        description: "Preview with signatures generated successfully!",
+      });
     } catch (error) {
+      console.error('Error generating preview with signatures:', error);
       toast({
         title: "Error",
         description: "Failed to generate preview with signatures",
