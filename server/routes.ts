@@ -1352,10 +1352,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF ANALYSIS AND EDITING ENDPOINTS
-
-  // Analyze PDF structure for editing
-  app.post('/api/pdf/analyze', uploadPDF.single('pdf'), async (req, res) => {
+  // DNS Lookup
+  app.post('/api/dns/lookup', async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No PDF file provided' });
