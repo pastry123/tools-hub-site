@@ -142,6 +142,30 @@ export const toolCategories: ToolCategory[] = [
         name: 'Favicon Generator',
         description: 'Generate favicons from images',
         icon: 'fa-star'
+      },
+      {
+        id: 'image-compressor',
+        name: 'Image Compressor',
+        description: 'Compress images to reduce file size',
+        icon: 'fa-compress'
+      },
+      {
+        id: 'color-palette-generator',
+        name: 'Color Palette Generator',
+        description: 'Extract color palettes from images',
+        icon: 'fa-palette'
+      },
+      {
+        id: 'image-watermark',
+        name: 'Image Watermark',
+        description: 'Add watermarks to images',
+        icon: 'fa-tint'
+      },
+      {
+        id: 'image-to-text',
+        name: 'Image to Text',
+        description: 'Extract text from images (OCR)',
+        icon: 'fa-file-text'
       }
     ]
   },

@@ -23,7 +23,9 @@ import ImageConverter from "@/components/tools/ImageConverter";
 import ImageCropper from "@/components/tools/ImageCropper";
 import FaviconGenerator from "@/components/tools/FaviconGenerator";
 import ColorPaletteExtractor from "@/components/tools/ColorPaletteExtractor";
+import ColorPaletteGenerator from "@/components/tools/ColorPaletteGenerator";
 import AddWatermark from "@/components/tools/AddWatermark";
+import ImageWatermark from "@/components/tools/ImageWatermark";
 import CaseConverter from "@/components/tools/CaseConverter";
 import LoremGenerator from "@/components/tools/LoremGenerator";
 import TextReverser from "@/components/tools/TextReverser";
@@ -143,6 +145,12 @@ export default function ToolPage() {
         return <TextDiffTool />;
       case 'image-compressor':
         return <ImageCompressor />;
+      case 'color-palette-generator':
+        return <ColorPaletteGenerator />;
+      case 'image-watermark':
+        return <ImageWatermark />;
+      case 'image-to-text':
+        return <ImageToText />;
       case 'background-remover':
         return <BackgroundRemover />;
       case 'image-resize':
