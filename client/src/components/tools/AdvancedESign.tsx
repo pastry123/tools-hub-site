@@ -221,6 +221,14 @@ export default function AdvancedESign() {
       return;
     }
 
+    console.log('Exporting signed PDF with data:', {
+      pdfFileName: pdfFile.name,
+      signatureLength: currentSignature.length,
+      signatureType: currentSignature.substring(0, 30),
+      signaturePositions: signaturePositions,
+      totalPositions: signaturePositions.length
+    });
+
     setIsProcessing(true);
 
     try {
@@ -229,16 +237,24 @@ export default function AdvancedESign() {
       formData.append('signature', currentSignature);
       formData.append('fields', JSON.stringify(signaturePositions));
 
+      console.log('Sending form data to /api/pdf/sign');
+
       const response = await fetch('/api/pdf/sign', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Response status:', response.status, response.statusText);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
         throw new Error('Failed to process signed PDF');
       }
 
       const blob = await response.blob();
+      console.log('Received blob size:', blob.size, 'bytes');
+      
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -251,6 +267,7 @@ export default function AdvancedESign() {
         description: `Signed PDF exported with ${signaturePositions.length} signatures`,
       });
     } catch (error) {
+      console.error('Export error:', error);
       toast({
         title: "Error",
         description: "Failed to export signed PDF",

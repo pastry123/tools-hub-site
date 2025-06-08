@@ -168,44 +168,95 @@ export class ESignService {
       
       // Convert signature from base64 to image if needed
       let signatureImage;
+      console.log('Processing signature data:', signature.substring(0, 50) + '...');
+      
       if (signature.startsWith('data:image')) {
         const base64Data = signature.split(',')[1];
         const imageBytes = Buffer.from(base64Data, 'base64');
         
-        if (signature.includes('png')) {
-          signatureImage = await pdfDoc.embedPng(imageBytes);
-        } else {
-          signatureImage = await pdfDoc.embedJpg(imageBytes);
+        try {
+          if (signature.includes('png') || signature.includes('PNG')) {
+            signatureImage = await pdfDoc.embedPng(imageBytes);
+            console.log('Successfully embedded PNG signature');
+          } else if (signature.includes('jpg') || signature.includes('jpeg') || signature.includes('JPEG')) {
+            signatureImage = await pdfDoc.embedJpg(imageBytes);
+            console.log('Successfully embedded JPG signature');
+          } else {
+            // Default to PNG for canvas data URLs
+            signatureImage = await pdfDoc.embedPng(imageBytes);
+            console.log('Successfully embedded signature as PNG (default)');
+          }
+        } catch (imageError) {
+          console.error('Failed to embed signature image:', imageError);
+          signatureImage = null;
         }
+      } else {
+        console.log('Signature is not a data URL, using text fallback');
       }
       
       for (const field of fields) {
-        if (field.page < pages.length) {
-          const page = pages[field.page];
+        // Fix page indexing (frontend sends 1-based, convert to 0-based)
+        const pageIndex = (field.page || 1) - 1;
+        
+        if (pageIndex >= 0 && pageIndex < pages.length) {
+          const page = pages[pageIndex];
           const { width: pageWidth, height: pageHeight } = page.getSize();
           
-          // Convert coordinates (assuming web coordinates to PDF coordinates)
-          const pdfX = field.x;
-          const pdfY = pageHeight - field.y - field.height;
+          // Convert canvas coordinates to PDF coordinates
+          // Canvas uses top-left origin, PDF uses bottom-left origin
+          const pdfX = Math.max(0, Math.min(field.x, pageWidth - field.width));
+          const pdfY = Math.max(0, Math.min(pageHeight - field.y - field.height, pageHeight - field.height));
+          
+          console.log(`Adding signature to page ${field.page} at (${pdfX}, ${pdfY}) size ${field.width}x${field.height}`);
           
           if (signatureImage) {
+            // Successfully embedded image signature
             page.drawImage(signatureImage, {
               x: pdfX,
               y: pdfY,
               width: field.width,
               height: field.height,
             });
+            console.log(`Image signature placed at (${pdfX}, ${pdfY})`);
           } else {
-            // Fallback to text signature
+            // Always place a visible signature, even if image failed
             const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-            page.drawText('Digitally Signed', {
+            
+            // Draw signature background
+            page.drawRectangle({
               x: pdfX,
-              y: pdfY + field.height / 2,
-              size: 12,
-              font: helveticaFont,
-              color: rgb(0, 0, 0),
+              y: pdfY,
+              width: field.width,
+              height: field.height,
+              color: rgb(0.95, 0.95, 0.95),
+              borderColor: rgb(0.5, 0.5, 0.5),
+              borderWidth: 1,
             });
+            
+            // Add signature text
+            const fontSize = Math.min(14, field.height / 4, field.width / 8);
+            page.drawText('Digital Signature', {
+              x: pdfX + 5,
+              y: pdfY + field.height - fontSize - 5,
+              size: fontSize,
+              font: helveticaFont,
+              color: rgb(0.2, 0.2, 0.2),
+            });
+            
+            // Add timestamp
+            const timestamp = new Date().toLocaleDateString();
+            page.drawText(`Signed: ${timestamp}`, {
+              x: pdfX + 5,
+              y: pdfY + 5,
+              size: Math.max(8, fontSize - 2),
+              font: helveticaFont,
+              color: rgb(0.4, 0.4, 0.4),
+            });
+            
+            console.log(`Text signature placed at (${pdfX}, ${pdfY})`);
           }
+        } else {
+          console.warn(`Invalid page index: ${pageIndex} (total pages: ${pages.length})`);
         }
       }
       
