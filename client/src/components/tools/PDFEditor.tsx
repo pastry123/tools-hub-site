@@ -316,12 +316,123 @@ export default function PDFEditor() {
       {url && (
         <div className="border border-gray-300 rounded">
           <h3 className="p-2 bg-gray-100 font-medium text-sm">Direct PDF Editor - Full Interaction</h3>
-          <iframe
+          <div 
             ref={canvasRef}
-            src={url}
-            className="w-full h-[700px]"
-            title="Interactive PDF Editor"
-          />
+            className="relative"
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          >
+            <iframe
+              src={url}
+              className="w-full h-[700px] relative z-0"
+              title="Interactive PDF Editor"
+            />
+            
+            {/* Direct overlay elements - minimal interference */}
+            {textElements.map((textEl) => (
+              <div
+                key={textEl.id}
+                className={`absolute cursor-move border-2 ${
+                  selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
+                } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-90'} hover:border-gray-400`}
+                style={{
+                  left: textEl.x,
+                  top: textEl.y + 32, // Account for header
+                  width: textEl.width,
+                  height: textEl.height,
+                  fontSize: textEl.fontSize,
+                  padding: '4px',
+                  zIndex: 10,
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleMouseDown(e, textEl.id, 'text');
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  handleTextDoubleClick(textEl.id);
+                }}
+              >
+                {textEl.isEditing ? (
+                  <input
+                    type="text"
+                    value={textEl.text}
+                    onChange={(e) => handleTextChange(textEl.id, e.target.value)}
+                    onBlur={() => handleTextBlur(textEl.id)}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === 'Enter') {
+                        handleTextBlur(textEl.id);
+                      }
+                    }}
+                    className="w-full h-full bg-transparent border-none outline-none"
+                    autoFocus
+                  />
+                ) : (
+                  <span className="select-none">{textEl.text}</span>
+                )}
+                
+                {selectedElement === textEl.id && (
+                  <div
+                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeMouseDown(e, textEl.id, 'text');
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+
+            {imageElements.map((imgEl) => (
+              <div
+                key={imgEl.id}
+                className={`absolute cursor-move border-2 ${
+                  selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
+                } hover:border-gray-400`}
+                style={{
+                  left: imgEl.x,
+                  top: imgEl.y + 32, // Account for header
+                  width: imgEl.width,
+                  height: imgEl.height,
+                  zIndex: 10,
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleMouseDown(e, imgEl.id, 'image');
+                }}
+              >
+                <img
+                  src={imgEl.src}
+                  alt="Uploaded"
+                  className="w-full h-full object-contain"
+                  draggable={false}
+                />
+                
+                {selectedElement === imgEl.id && (
+                  <>
+                    <div
+                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleResizeMouseDown(e, imgEl.id, 'image');
+                      }}
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      className="absolute -top-8 -right-2"
+                      onClick={() => setImageElements(prev => prev.filter(i => i.id !== imgEl.id))}
+                    >
+                      ×
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
