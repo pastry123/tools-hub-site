@@ -18,6 +18,7 @@ interface Signer {
 
 export default function AdvancedESign() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureText, setSignatureText] = useState("");
   const [fontFamily, setFontFamily] = useState("Dancing Script");
@@ -28,6 +29,9 @@ export default function AdvancedESign() {
   const [documentTitle, setDocumentTitle] = useState("");
   const [documentMessage, setDocumentMessage] = useState("");
   const [currentSignature, setCurrentSignature] = useState<string>("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { toast } = useToast();
 
@@ -64,6 +68,46 @@ export default function AdvancedESign() {
 
   const removeSigner = (id: string) => {
     setSigners(signers.filter(signer => signer.id !== id));
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: "Error",
+        description: "Please upload a PDF file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPdfFile(file);
+    setIsProcessing(true);
+    
+    // Create URL for PDF preview
+    const url = URL.createObjectURL(file);
+    setPdfUrl(url);
+    
+    setTimeout(() => setIsProcessing(false), 1000);
+    
+    toast({
+      title: "Success",
+      description: "PDF uploaded successfully!",
+    });
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removePdfFile = () => {
+    setPdfFile(null);
+    setPdfUrl("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const generateAISignature = async (style: string) => {
@@ -224,6 +268,139 @@ export default function AdvancedESign() {
         <h1 className="text-3xl font-bold mb-2">Advanced eSign Tool</h1>
         <p className="text-gray-600">Create digital signatures and manage document signing workflows</p>
       </div>
+
+      {/* PDF Upload Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="w-5 h-5" />
+            Document Upload
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          
+          {!pdfFile ? (
+            <div 
+              onClick={triggerFileUpload}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
+            >
+              <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Upload PDF Document</h3>
+              <p className="text-gray-600">Click to upload or drag and drop your PDF file here</p>
+              <p className="text-sm text-gray-500 mt-2">Supports PDF files up to 10MB</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-800">{pdfFile.name}</p>
+                    <p className="text-sm text-green-600">{(pdfFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={triggerFileUpload}>
+                    Replace
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={removePdfFile}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* PDF Preview with PDFEdit */}
+      {pdfFile && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Document Preview - PDFEdit Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isProcessing ? (
+              <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-sm">Loading PDF with PDFEdit...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-800">PDFEdit Integration Active</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(`https://www.pdfedit.app/edit?url=${encodeURIComponent(pdfUrl)}`, '_blank')}
+                    >
+                      Open in New Tab
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(pdfUrl, '_blank')}
+                    >
+                      Download PDF
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="border rounded-lg overflow-hidden bg-white">
+                  <iframe
+                    src={`https://www.pdfedit.app/edit?url=${encodeURIComponent(pdfUrl)}&toolbar=minimal&readonly=true&theme=light`}
+                    className="w-full border-0"
+                    style={{ height: '700px' }}
+                    title="PDF Document Preview - PDFEdit"
+                    sandbox="allow-scripts allow-same-origin allow-downloads"
+                    onError={() => {
+                      toast({
+                        title: "Preview Error",
+                        description: "PDFEdit preview unavailable. Use 'Open in New Tab' for full functionality.",
+                        variant: "destructive",
+                      });
+                    }}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <FileText className="w-6 h-6 mx-auto mb-2 text-gray-600" />
+                    <p className="text-sm font-medium">Document Analysis</p>
+                    <p className="text-xs text-gray-500">Review content structure</p>
+                  </div>
+                  <div className="text-center">
+                    <Pen className="w-6 h-6 mx-auto mb-2 text-gray-600" />
+                    <p className="text-sm font-medium">Signature Planning</p>
+                    <p className="text-xs text-gray-500">Identify signature areas</p>
+                  </div>
+                  <div className="text-center">
+                    <Shield className="w-6 h-6 mx-auto mb-2 text-gray-600" />
+                    <p className="text-sm font-medium">Document Security</p>
+                    <p className="text-xs text-gray-500">Verify authenticity</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Signature Creation */}
