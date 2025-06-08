@@ -46,6 +46,10 @@ export default function AdvancedESign() {
   const [documentMessage, setDocumentMessage] = useState("");
   const [currentSignature, setCurrentSignature] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [selectedField, setSelectedField] = useState<string | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
   const { toast } = useToast();
 
   const signatureFonts = [
@@ -282,6 +286,27 @@ export default function AdvancedESign() {
     setSigners(signers.filter(signer => signer.id !== id));
   };
 
+  const handlePdfClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!pdfFile || isDragging || isResizing) return;
+    
+    const rect = pdfViewRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const newField: SignatureField = {
+      id: Date.now().toString(),
+      x: x - 100, // Center the field on click
+      y: y - 40,
+      width: 200,
+      height: 80,
+      page: currentPage,
+      required: true
+    };
+    setSignatureFields([...signatureFields, newField]);
+  };
+
   const addSignatureField = () => {
     if (!pdfFile) {
       toast({
@@ -302,6 +327,98 @@ export default function AdvancedESign() {
       required: true
     };
     setSignatureFields([...signatureFields, newField]);
+  };
+
+  const removeSignatureField = (fieldId: string) => {
+    setSignatureFields(signatureFields.filter(field => field.id !== fieldId));
+  };
+
+  const handleFieldMouseDown = (e: React.MouseEvent, fieldId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDragging(true);
+    setSelectedField(fieldId);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY
+    });
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDragging) return;
+      
+      const deltaX = moveEvent.clientX - dragStart.x;
+      const deltaY = moveEvent.clientY - dragStart.y;
+      
+      setSignatureFields(prev => prev.map(field => 
+        field.id === fieldId 
+          ? { 
+              ...field, 
+              x: Math.max(0, field.x + deltaX),
+              y: Math.max(0, field.y + deltaY)
+            }
+          : field
+      ));
+      
+      setDragStart({
+        x: moveEvent.clientX,
+        y: moveEvent.clientY
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setSelectedField(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent, fieldId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsResizing(true);
+    setSelectedField(fieldId);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    const field = signatureFields.find(f => f.id === fieldId);
+    if (!field) return;
+    
+    const startWidth = field.width;
+    const startHeight = field.height;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      setSignatureFields(prev => prev.map(f => 
+        f.id === fieldId 
+          ? { 
+              ...f, 
+              width: Math.max(50, startWidth + deltaX),
+              height: Math.max(30, startHeight + deltaY)
+            }
+          : f
+      ));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      setSelectedField(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const sendForSigning = async () => {
@@ -581,15 +698,55 @@ export default function AdvancedESign() {
                 </Button>
               </div>
               
-              <div ref={pdfViewRef} className="relative border bg-gray-50 min-h-96 overflow-auto">
+              <div 
+                ref={pdfViewRef} 
+                className="relative border bg-gray-50 min-h-96 overflow-auto"
+                onClick={handlePdfClick}
+              >
                 {pdfPages[currentPage] && (
                   <img
                     src={pdfPages[currentPage]}
                     alt={`Page ${currentPage + 1}`}
                     className="max-w-full h-auto"
+                    draggable={false}
                   />
                 )}
-                {/* Signature field overlays would go here */}
+                
+                {/* Signature field overlays */}
+                {signatureFields
+                  .filter(field => field.page === currentPage)
+                  .map((field) => (
+                    <div
+                      key={field.id}
+                      className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-50 cursor-move resize"
+                      style={{
+                        left: field.x,
+                        top: field.y,
+                        width: field.width,
+                        height: field.height,
+                      }}
+                      onMouseDown={(e) => handleFieldMouseDown(e, field.id)}
+                      onDoubleClick={() => removeSignatureField(field.id)}
+                    >
+                      <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                        Signature {field.required && '*'}
+                      </div>
+                      <div className="w-full h-full flex items-center justify-center text-blue-600 text-sm">
+                        {field.signerName || 'Click to sign'}
+                      </div>
+                      
+                      {/* Resize handles */}
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 cursor-se-resize"
+                           onMouseDown={(e) => handleResizeMouseDown(e, field.id)}></div>
+                    </div>
+                  ))}
+              </div>
+              
+              <div className="mt-4 text-sm text-gray-600">
+                <p>• Click on the document to add signature fields</p>
+                <p>• Drag signature fields to reposition them</p>
+                <p>• Double-click a field to remove it</p>
+                <p>• Drag the corner to resize fields</p>
               </div>
             </div>
           )}
