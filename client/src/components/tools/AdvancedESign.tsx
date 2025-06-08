@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-// Using canvas-based PDF rendering for better compatibility
+// PDFEdit API integration for advanced PDF editing
 
 interface SignatureField {
   id: string;
@@ -29,13 +29,52 @@ interface Signer {
   status: 'pending' | 'signed' | 'viewed';
 }
 
-// PDF utility functions
+// PDF.js integration for reliable PDF rendering
+let pdfjsLib: any = null;
+
+const loadPDFJS = async () => {
+  if (!pdfjsLib) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    document.head.appendChild(script);
+    
+    return new Promise<void>((resolve) => {
+      script.onload = () => {
+        pdfjsLib = (window as any).pdfjsLib;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve();
+      };
+    });
+  }
+};
+
+const renderPDFPage = async (file: File, pageNumber: number, canvas: HTMLCanvasElement): Promise<void> => {
+  await loadPDFJS();
+  
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(pageNumber);
+  
+  const viewport = page.getViewport({ scale: 1.5 });
+  const context = canvas.getContext('2d')!;
+  
+  canvas.height = viewport.height;
+  canvas.width = viewport.width;
+  
+  const renderContext = {
+    canvasContext: context,
+    viewport: viewport,
+  };
+  
+  await page.render(renderContext).promise;
+};
+
 const getPDFPageCount = async (file: File): Promise<number> => {
   try {
+    await loadPDFJS();
     const arrayBuffer = await file.arrayBuffer();
-    const text = new TextDecoder().decode(arrayBuffer);
-    const matches = text.match(/\/Type\s*\/Page\b/g);
-    return matches ? matches.length : 1;
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    return pdf.numPages;
   } catch {
     return 1;
   }
@@ -44,6 +83,7 @@ const getPDFPageCount = async (file: File): Promise<number> => {
 export default function AdvancedESign() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pdfViewRef = useRef<HTMLDivElement>(null);
+  const pdfCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureText, setSignatureText] = useState("");
   const [fontFamily, setFontFamily] = useState("Dancing Script");
@@ -68,6 +108,26 @@ export default function AdvancedESign() {
   const [previewPages, setPreviewPages] = useState<string[]>([]);
   const [previewPage, setPreviewPage] = useState(0);
   const { toast } = useToast();
+
+  // Render PDF page when file or page changes
+  useEffect(() => {
+    if (pdfFile && pdfCanvasRef.current) {
+      setIsProcessing(true);
+      renderPDFPage(pdfFile, currentPage + 1, pdfCanvasRef.current)
+        .then(() => {
+          setIsProcessing(false);
+        })
+        .catch((error) => {
+          console.error('PDF render error:', error);
+          setIsProcessing(false);
+          toast({
+            title: "Error",
+            description: "Failed to render PDF page",
+            variant: "destructive",
+          });
+        });
+    }
+  }, [pdfFile, currentPage, toast]);
 
   const signatureFonts = [
     "Dancing Script", "Great Vibes", "Allura", "Alex Brush", "Satisfy",
@@ -291,18 +351,24 @@ export default function AdvancedESign() {
     // Don't add field if clicking on an existing field
     if ((e.target as HTMLElement).closest('.signature-field')) return;
     
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (!rect) return;
+    // Get canvas coordinates for accurate positioning
+    const canvas = pdfCanvasRef.current;
+    if (!canvas) return;
     
+    const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
+    // Scale coordinates to match actual canvas dimensions
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
     const newField: SignatureField = {
       id: Date.now().toString(),
-      x: Math.max(0, x - 100), // Center the field on click
-      y: Math.max(0, y - 40),
-      width: 200,
-      height: 80,
+      x: Math.max(0, (x - 100) * scaleX), // Center and scale
+      y: Math.max(0, (y - 40) * scaleY),
+      width: 200 * scaleX,
+      height: 80 * scaleY,
       page: currentPage,
       required: true
     };
@@ -755,46 +821,29 @@ export default function AdvancedESign() {
                 onClick={handlePdfClick}
               >
                 {pdfFile ? (
-                  <div className="relative w-full h-96">
-                    {/* PDF Object Viewer with multiple fallbacks */}
-                    <object
-                      data={URL.createObjectURL(pdfFile) + "#toolbar=0&navpanes=0&scrollbar=0&page=" + (currentPage + 1)}
-                      type="application/pdf"
-                      width="100%"
-                      height="100%"
-                      className="border-0"
-                    >
-                      <embed
-                        src={URL.createObjectURL(pdfFile) + "#toolbar=0&navpanes=0&scrollbar=0&page=" + (currentPage + 1)}
-                        type="application/pdf"
-                        width="100%"
-                        height="100%"
-                        className="border-0"
-                      />
-                      {/* Enhanced fallback for browsers without PDF support */}
-                      <div className="flex items-center justify-center h-96 bg-gray-100 border-2 border-dashed border-gray-300">
-                        <div className="text-center p-8">
-                          <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Viewer Not Available</h3>
-                          <p className="text-sm text-gray-600 mb-4">Your browser doesn't support embedded PDF viewing.</p>
-                          <p className="text-xs text-gray-500">For best results, use Chrome, Firefox, or Safari.</p>
-                          <a 
-                            href={URL.createObjectURL(pdfFile)} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-block mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                          >
-                            Open PDF in New Tab
-                          </a>
+                  <div className="relative w-full h-96 overflow-auto">
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center h-96 bg-gray-100">
+                        <div className="text-center">
+                          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                          <p className="text-sm">Rendering PDF...</p>
                         </div>
                       </div>
-                    </object>
-                    {/* Clickable overlay for signature field positioning */}
-                    <div 
-                      className="absolute inset-0 bg-transparent cursor-crosshair" 
-                      style={{ zIndex: 10 }}
-                      onMouseDown={handlePdfClick}
-                    ></div>
+                    ) : (
+                      <div className="relative">
+                        <canvas
+                          ref={pdfCanvasRef}
+                          className="max-w-full shadow-lg border"
+                          style={{ display: 'block', margin: '0 auto' }}
+                        />
+                        {/* Clickable overlay for signature field positioning */}
+                        <div 
+                          className="absolute inset-0 bg-transparent cursor-crosshair" 
+                          style={{ zIndex: 10 }}
+                          onMouseDown={handlePdfClick}
+                        ></div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-96 text-gray-500">
