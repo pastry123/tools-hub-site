@@ -432,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image to Text (OCR)
-  app.post('/api/image/ocr', upload.single('image'), async (req, res) => {
+  app.post('/api/image/ocr', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -447,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favicon Generator
-  app.post('/api/image/favicon', upload.single('image'), async (req, res) => {
+  app.post('/api/image/favicon', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Color Palette Extractor
-  app.post('/api/image/palette', upload.single('image'), async (req, res) => {
+  app.post('/api/image/palette', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -496,7 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add Watermark
-  app.post('/api/image/watermark', upload.single('image'), async (req, res) => {
+  app.post('/api/image/watermark', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
