@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
+import * as pdfjsLib from 'pdfjs-dist';
 
-interface TextElement {
+interface TextAnnotation {
   id: string;
   text: string;
   x: number;
@@ -11,366 +12,414 @@ interface TextElement {
   height: number;
   fontSize: number;
   isEditing: boolean;
-  isTransparent: boolean;
-  page: number;
 }
 
-interface ImageElement {
+interface ImageAnnotation {
   id: string;
   src: string;
   x: number;
   y: number;
   width: number;
   height: number;
-  page: number;
 }
 
 export default function PDFEditor() {
   const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
-  const [textElements, setTextElements] = useState<TextElement[]>([]);
-  const [imageElements, setImageElements] = useState<ImageElement[]>([]);
-  const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
+  const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [numPages, setNumPages] = useState(0);
+  const [scale, setScale] = useState(1.2);
+  const [textAnnotations, setTextAnnotations] = useState<TextAnnotation[]>([]);
+  const [imageAnnotations, setImageAnnotations] = useState<ImageAnnotation[]>([]);
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
+  const [isAddingText, setIsAddingText] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Initialize PDF.js worker
+  useEffect(() => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  }, []);
 
   async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    setPdfBytes(bytes);
 
-    const loadedPdf = await PDFDocument.load(arrayBuffer, {
-      updateMetadata: true,
-      ignoreEncryption: true,
-    });
-
-    setPdfDoc(loadedPdf);
-    const blob = new Blob([arrayBuffer], { type: "application/pdf" });
-    setUrl(URL.createObjectURL(blob));
-    
-    setTextElements([]);
-    setImageElements([]);
-    setSelectedElement(null);
-  }
-
-  const addTextElement = async () => {
-    if (!pdfDoc) return;
-    
     try {
-      const form = pdfDoc.getForm();
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
-      
-      const fieldName = `text-field-${Date.now()}`;
-      const textField = form.createTextField(fieldName);
-      textField.setText("Click to edit");
-      
-      textField.addToPage(firstPage, {
-        x: 100,
-        y: firstPage.getHeight() - 150,
-        width: 200,
-        height: 30,
-        textColor: rgb(0, 0, 0),
-        backgroundColor: rgb(1, 1, 1),
-        borderColor: rgb(0.5, 0.5, 0.5),
-        borderWidth: 1,
+      // Load with pdf-lib for editing capabilities
+      const loadedPdf = await PDFDocument.load(arrayBuffer, {
+        updateMetadata: true,
+        ignoreEncryption: true,
       });
+      setPdfDoc(loadedPdf);
 
-      form.updateFieldAppearances();
+      // Load with PDF.js for rendering
+      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+      setNumPages(pdf.numPages);
+      setCurrentPage(1);
       
-      // Update the PDF and refresh the display
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      setUrl(URL.createObjectURL(blob));
+      // Render first page
+      renderPage(pdf, 1);
+      
+      // Clear annotations
+      setTextAnnotations([]);
+      setImageAnnotations([]);
+      setSelectedAnnotation(null);
       
     } catch (error) {
-      console.error('Error adding text field:', error);
+      console.error('Error loading PDF:', error);
     }
+  }
+
+  const renderPage = async (pdf: any, pageNum: number) => {
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+    
+    await page.render(renderContext).promise;
   };
 
-  const addImageElement = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const addTextAnnotation = () => {
+    setIsAddingText(true);
+    const newAnnotation: TextAnnotation = {
+      id: `text-${Date.now()}`,
+      text: "Click to edit",
+      x: 100,
+      y: 100,
+      width: 200,
+      height: 30,
+      fontSize: 16,
+      isEditing: false,
+    };
+    setTextAnnotations(prev => [...prev, newAnnotation]);
+    setSelectedAnnotation(newAnnotation.id);
+    setIsAddingText(false);
+  };
+
+  const addImageAnnotation = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !files[0] || !pdfDoc) return;
+    if (!files || !files[0]) return;
+    
     const file = files[0];
+    const reader = new FileReader();
     
-    try {
-      const imageBytes = await file.arrayBuffer();
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
-      const { width, height } = firstPage.getSize();
-
-      let img;
-      if (file.type === "image/jpeg") {
-        img = await pdfDoc.embedJpg(imageBytes);
-      } else {
-        img = await pdfDoc.embedPng(imageBytes);
-      }
-
-      const imgDims = img.scale(0.3);
-
-      firstPage.drawImage(img, {
-        x: width / 2 - imgDims.width / 2,
-        y: height / 2 - imgDims.height / 2,
-        width: imgDims.width,
-        height: imgDims.height,
-      });
-
-      // Update the PDF and refresh the display
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      setUrl(URL.createObjectURL(blob));
-      
-    } catch (error) {
-      console.error('Error adding image:', error);
-    }
-  };
-
-  const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string, type: 'text' | 'image') => {
-    e.preventDefault();
-    setSelectedElement(elementId);
-    setIsDragging(true);
-    
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    const element = type === 'text' ? 
-      textElements.find(t => t.id === elementId) : 
-      imageElements.find(i => i.id === elementId);
-    
-    if (element) {
-      setDragOffset({
-        x: e.clientX - rect.left - element.x,
-        y: e.clientY - rect.top - element.y
-      });
-    }
-  }, [textElements, imageElements]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !selectedElement || !canvasRef.current) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    const newX = e.clientX - rect.left - dragOffset.x;
-    const newY = e.clientY - rect.top - dragOffset.y;
-    
-    if (selectedElement.startsWith('text-')) {
-      setTextElements(prev => prev.map(element => 
-        element.id === selectedElement ? 
-          { ...element, x: Math.max(0, newX), y: Math.max(0, newY) } : 
-          element
-      ));
-    } else if (selectedElement.startsWith('image-')) {
-      setImageElements(prev => prev.map(element => 
-        element.id === selectedElement ? 
-          { ...element, x: Math.max(0, newX), y: Math.max(0, newY) } : 
-          element
-      ));
-    }
-  }, [isDragging, selectedElement, dragOffset]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleTextDoubleClick = (elementId: string) => {
-    setTextElements(prev => prev.map(element => 
-      element.id === elementId ? 
-        { ...element, isEditing: true } : 
-        { ...element, isEditing: false }
-    ));
-  };
-
-  const handleTextChange = (elementId: string, newText: string) => {
-    setTextElements(prev => prev.map(element => 
-      element.id === elementId ? 
-        { ...element, text: newText } : 
-        element
-    ));
-  };
-
-  const handleTextBlur = (elementId: string) => {
-    setTextElements(prev => prev.map(element => 
-      element.id === elementId ? 
-        { ...element, isEditing: false } : 
-        element
-    ));
-  };
-
-  const toggleTransparency = (elementId: string) => {
-    setTextElements(prev => prev.map(element => 
-      element.id === elementId ? 
-        { ...element, isTransparent: !element.isTransparent } : 
-        element
-    ));
-  };
-
-  const handleResizeMouseDown = (e: React.MouseEvent, elementId: string, type: 'text' | 'image') => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsResizing(true);
-    setSelectedElement(elementId);
-    
-    const startX = e.clientX;
-    const startY = e.clientY;
-    
-    const element = type === 'text' ? 
-      textElements.find(t => t.id === elementId) : 
-      imageElements.find(i => i.id === elementId);
-    
-    if (!element) return;
-    
-    const startWidth = element.width;
-    const startHeight = element.height;
-    
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-      
-      const newWidth = Math.max(50, startWidth + deltaX);
-      const newHeight = Math.max(type === 'text' ? 20 : 50, startHeight + deltaY);
-      
-      if (type === 'text') {
-        setTextElements(prev => prev.map(el => 
-          el.id === elementId ? { ...el, width: newWidth, height: newHeight } : el
-        ));
-      } else {
-        setImageElements(prev => prev.map(el => 
-          el.id === elementId ? { ...el, width: newWidth, height: newHeight } : el
-        ));
-      }
+    reader.onload = (event) => {
+      const src = event.target?.result as string;
+      const newAnnotation: ImageAnnotation = {
+        id: `image-${Date.now()}`,
+        src,
+        x: 150,
+        y: 150,
+        width: 200,
+        height: 150,
+      };
+      setImageAnnotations(prev => [...prev, newAnnotation]);
+      setSelectedAnnotation(newAnnotation.id);
     };
     
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    reader.readAsDataURL(file);
   };
 
-  async function downloadPdf() {
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isAddingText) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const newAnnotation: TextAnnotation = {
+      id: `text-${Date.now()}`,
+      text: "Edit me",
+      x,
+      y,
+      width: 200,
+      height: 30,
+      fontSize: 16,
+      isEditing: true,
+    };
+    
+    setTextAnnotations(prev => [...prev, newAnnotation]);
+    setSelectedAnnotation(newAnnotation.id);
+    setIsAddingText(false);
+  };
+
+  const updateTextAnnotation = (id: string, text: string) => {
+    setTextAnnotations(prev => prev.map(ann => 
+      ann.id === id ? { ...ann, text } : ann
+    ));
+  };
+
+  const toggleTextEdit = (id: string) => {
+    setTextAnnotations(prev => prev.map(ann => 
+      ann.id === id ? { ...ann, isEditing: !ann.isEditing } : ann
+    ));
+  };
+
+  const deleteAnnotation = (id: string) => {
+    setTextAnnotations(prev => prev.filter(ann => ann.id !== id));
+    setImageAnnotations(prev => prev.filter(ann => ann.id !== id));
+    setSelectedAnnotation(null);
+  };
+
+  const moveAnnotation = (id: string, deltaX: number, deltaY: number) => {
+    setTextAnnotations(prev => prev.map(ann => 
+      ann.id === id ? { ...ann, x: ann.x + deltaX, y: ann.y + deltaY } : ann
+    ));
+    setImageAnnotations(prev => prev.map(ann => 
+      ann.id === id ? { ...ann, x: ann.x + deltaX, y: ann.y + deltaY } : ann
+    ));
+  };
+
+  const savePdfWithAnnotations = async () => {
     if (!pdfDoc) return;
     
-    const pdfCopy = await PDFDocument.create();
-    const pages = pdfDoc.getPages();
-    
-    for (let i = 0; i < pages.length; i++) {
-      const [copiedPage] = await pdfCopy.copyPages(pdfDoc, [i]);
-      pdfCopy.addPage(copiedPage);
+    try {
+      const pdfCopy = await PDFDocument.create();
+      const pages = pdfDoc.getPages();
       
-      textElements.filter(el => el.page === i).forEach(async (textEl) => {
-        const font = await pdfCopy.embedFont(StandardFonts.Helvetica);
-        copiedPage.drawText(textEl.text, {
-          x: textEl.x,
-          y: copiedPage.getHeight() - textEl.y - textEl.height,
-          size: textEl.fontSize,
-          font,
-          color: rgb(0, 0, 0),
+      for (let i = 0; i < pages.length; i++) {
+        const [copiedPage] = await pdfCopy.copyPages(pdfDoc, [i]);
+        pdfCopy.addPage(copiedPage);
+        
+        // Add text annotations
+        textAnnotations.forEach(async (annotation) => {
+          const font = await pdfCopy.embedFont(StandardFonts.Helvetica);
+          copiedPage.drawText(annotation.text, {
+            x: annotation.x,
+            y: copiedPage.getHeight() - annotation.y - annotation.height,
+            size: annotation.fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
         });
-      });
+      }
+      
+      const pdfBytes = await pdfCopy.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "edited.pdf";
+      a.click();
+      
+    } catch (error) {
+      console.error('Error saving PDF:', error);
     }
+  };
+
+  const changePage = async (pageNum: number) => {
+    if (!pdfBytes || pageNum < 1 || pageNum > numPages) return;
     
-    const pdfBytes = await pdfCopy.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "edited.pdf";
-    a.click();
-  }
+    setCurrentPage(pageNum);
+    const pdf = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+    renderPage(pdf, pageNum);
+  };
 
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Interactive PDF Editor</h1>
+      <h1 className="text-2xl font-bold">PDF Editor with Canvas</h1>
       
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={() => fileInputRef.current?.click()}
-            variant={url ? "outline" : "default"}
-          >
-            {url ? "Change PDF" : "Upload PDF"}
-          </Button>
-          <input 
-            type="file" 
-            accept="application/pdf" 
-            onChange={loadPdf} 
-            ref={fileInputRef} 
-            className="hidden"
-          />
-        </div>
-        {url && <span className="text-sm text-green-600">✓ PDF loaded</span>}
+        <Button 
+          onClick={() => fileInputRef.current?.click()}
+          variant={pdfBytes ? "outline" : "default"}
+        >
+          {pdfBytes ? "Change PDF" : "Upload PDF"}
+        </Button>
+        <input 
+          type="file" 
+          accept="application/pdf" 
+          onChange={loadPdf} 
+          ref={fileInputRef} 
+          className="hidden"
+        />
+        {pdfBytes && <span className="text-sm text-green-600">✓ PDF loaded</span>}
       </div>
       
-      {url && (
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={addTextElement}>Add Text</Button>
-          <label className="cursor-pointer">
-            <Button asChild>
-              <span>Add Image</span>
+      {pdfBytes && (
+        <>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={addTextAnnotation}>Add Text</Button>
+            <label className="cursor-pointer">
+              <Button asChild>
+                <span>Add Image</span>
+              </Button>
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                className="hidden"
+                onChange={addImageAnnotation}
+              />
+            </label>
+            <Button onClick={savePdfWithAnnotations} variant="outline">
+              Download PDF
             </Button>
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              className="hidden"
-              onChange={addImageElement}
-            />
-          </label>
-          <Button onClick={downloadPdf} variant="outline">Download PDF</Button>
-        </div>
-      )}
+          </div>
 
-      {selectedElement && selectedElement.startsWith('text-') && (
-        <div className="flex gap-2 p-2 bg-gray-100 rounded">
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={() => toggleTransparency(selectedElement)}
-          >
-            {textElements.find(t => t.id === selectedElement)?.isTransparent ? 'Make Solid' : 'Make Transparent'}
-          </Button>
-          <Button 
-            size="sm" 
-            variant="destructive"
-            onClick={() => setTextElements(prev => prev.filter(t => t.id !== selectedElement))}
-          >
-            Delete
-          </Button>
-        </div>
-      )}
+          {numPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => changePage(currentPage - 1)}
+                disabled={currentPage <= 1}
+                size="sm"
+              >
+                Previous
+              </Button>
+              <span className="text-sm">
+                Page {currentPage} of {numPages}
+              </span>
+              <Button 
+                onClick={() => changePage(currentPage + 1)}
+                disabled={currentPage >= numPages}
+                size="sm"
+              >
+                Next
+              </Button>
+            </div>
+          )}
 
-      {url && (
-        <div className="border border-gray-300 rounded">
-          <h3 className="p-2 bg-gray-100 font-medium text-sm">PDF Editor - Direct Document Editing</h3>
-          <iframe
-            src={url}
-            className="w-full h-[700px]"
-            title="PDF Editor"
-            key={url} // Force iframe refresh when URL changes
-          />
-        </div>
-      )}
+          <div className="border border-gray-300 rounded">
+            <h3 className="p-2 bg-gray-100 font-medium text-sm">
+              Canvas PDF Editor - Direct Editing
+            </h3>
+            <div 
+              ref={containerRef}
+              className="relative p-4 bg-gray-50"
+              style={{ maxHeight: '80vh', overflow: 'auto' }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="border shadow-lg mx-auto block"
+                onClick={handleCanvasClick}
+                style={{ cursor: isAddingText ? 'crosshair' : 'default' }}
+              />
+              
+              {/* Text Annotations Overlay */}
+              {textAnnotations.map((annotation) => (
+                <div
+                  key={annotation.id}
+                  className={`absolute border-2 ${
+                    selectedAnnotation === annotation.id ? 'border-blue-500' : 'border-transparent'
+                  } bg-white bg-opacity-90 hover:border-gray-400`}
+                  style={{
+                    left: annotation.x + 16, // Account for container padding
+                    top: annotation.y + 56,  // Account for header + padding
+                    width: annotation.width,
+                    height: annotation.height,
+                    fontSize: annotation.fontSize,
+                    padding: '4px',
+                    cursor: 'move'
+                  }}
+                  onClick={() => setSelectedAnnotation(annotation.id)}
+                  onDoubleClick={() => toggleTextEdit(annotation.id)}
+                >
+                  {annotation.isEditing ? (
+                    <input
+                      type="text"
+                      value={annotation.text}
+                      onChange={(e) => updateTextAnnotation(annotation.id, e.target.value)}
+                      onBlur={() => toggleTextEdit(annotation.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          toggleTextEdit(annotation.id);
+                        }
+                      }}
+                      className="w-full h-full bg-transparent border-none outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="select-none">{annotation.text}</span>
+                  )}
+                  
+                  {selectedAnnotation === annotation.id && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute -top-8 -right-2"
+                      onClick={() => deleteAnnotation(annotation.id)}
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
+              ))}
 
-      {url && (
-        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-          <p><strong>Real PDF Document Editing:</strong></p>
-          <p>• Text fields are added directly to the PDF document</p>
-          <p>• Images are embedded permanently into the PDF</p>
-          <p>• All edits modify the actual PDF file</p>
-          <p>• You can interact with form fields directly in the PDF viewer</p>
-          <p>• Download saves the edited PDF with all modifications</p>
-        </div>
+              {/* Image Annotations Overlay */}
+              {imageAnnotations.map((annotation) => (
+                <div
+                  key={annotation.id}
+                  className={`absolute border-2 ${
+                    selectedAnnotation === annotation.id ? 'border-blue-500' : 'border-transparent'
+                  } hover:border-gray-400`}
+                  style={{
+                    left: annotation.x + 16,
+                    top: annotation.y + 56,
+                    width: annotation.width,
+                    height: annotation.height,
+                    cursor: 'move'
+                  }}
+                  onClick={() => setSelectedAnnotation(annotation.id)}
+                >
+                  <img
+                    src={annotation.src}
+                    alt="Annotation"
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                  />
+                  
+                  {selectedAnnotation === annotation.id && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute -top-8 -right-2"
+                      onClick={() => deleteAnnotation(annotation.id)}
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+            <p><strong>Canvas-based PDF Editor:</strong></p>
+            <p>• Click "Add Text" then click on the PDF to place text</p>
+            <p>• Double-click text to edit in real-time</p>
+            <p>• Add images that overlay on the PDF</p>
+            <p>• All annotations are saved when downloading</p>
+            <p>• Navigate between pages with Previous/Next</p>
+          </div>
+        </>
       )}
       
-      {!url && (
+      {!pdfBytes && (
         <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
           <div className="space-y-4">
             <div className="text-6xl text-gray-400">📄</div>
             <h3 className="text-xl font-medium text-gray-700">No PDF loaded</h3>
-            <p className="text-gray-500">Click "Upload PDF" above to start editing</p>
+            <p className="text-gray-500">Upload a PDF to start editing with canvas</p>
             <Button 
               onClick={() => fileInputRef.current?.click()}
               size="lg"
