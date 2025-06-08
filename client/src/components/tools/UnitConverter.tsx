@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, ArrowRightLeft } from "lucide-react";
+import { Calculator, ArrowRightLeft, RefreshCw, Clock } from "lucide-react";
 
 interface ConversionUnit {
   name: string;
@@ -27,6 +27,27 @@ const conversions = {
       { name: "Foot", value: 0.3048, symbol: "ft" },
       { name: "Yard", value: 0.9144, symbol: "yd" },
       { name: "Mile", value: 1609.344, symbol: "mi" }
+    ]
+  },
+  currency: {
+    name: "Currency",
+    baseUnit: "USD",
+    units: [
+      { name: "US Dollar", value: 1, symbol: "USD" },
+      { name: "Euro", value: 1, symbol: "EUR" },
+      { name: "British Pound", value: 1, symbol: "GBP" },
+      { name: "Japanese Yen", value: 1, symbol: "JPY" },
+      { name: "Canadian Dollar", value: 1, symbol: "CAD" },
+      { name: "Australian Dollar", value: 1, symbol: "AUD" },
+      { name: "Swiss Franc", value: 1, symbol: "CHF" },
+      { name: "Chinese Yuan", value: 1, symbol: "CNY" },
+      { name: "Indian Rupee", value: 1, symbol: "INR" },
+      { name: "Brazilian Real", value: 1, symbol: "BRL" },
+      { name: "Russian Ruble", value: 1, symbol: "RUB" },
+      { name: "South Korean Won", value: 1, symbol: "KRW" },
+      { name: "Mexican Peso", value: 1, symbol: "MXN" },
+      { name: "Singapore Dollar", value: 1, symbol: "SGD" },
+      { name: "New Zealand Dollar", value: 1, symbol: "NZD" }
     ]
   },
   weight: {
@@ -73,7 +94,47 @@ export default function UnitConverter() {
   const [fromUnit, setFromUnit] = useState("");
   const [toUnit, setToUnit] = useState("");
   const [result, setResult] = useState("");
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
+  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [isLoadingRates, setIsLoadingRates] = useState(false);
   const { toast } = useToast();
+
+  // Fetch exchange rates on component mount and when currency tab is selected
+  const fetchExchangeRates = async () => {
+    setIsLoadingRates(true);
+    try {
+      const response = await fetch('/api/currency/rates');
+      if (!response.ok) {
+        throw new Error('Failed to fetch exchange rates');
+      }
+      const data = await response.json();
+      setExchangeRates(data.rates);
+      setLastUpdated(data.lastUpdated);
+      
+      // Update currency units with live rates
+      const currencyCategory = conversions.currency;
+      currencyCategory.units.forEach(unit => {
+        if (data.rates[unit.symbol]) {
+          unit.value = data.rates[unit.symbol];
+        }
+      });
+    } catch (error) {
+      toast({
+        title: "Exchange Rate Error",
+        description: "Failed to fetch live exchange rates. Using cached rates.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingRates(false);
+    }
+  };
+
+  // Load exchange rates when currency tab is selected
+  React.useEffect(() => {
+    if (activeTab === 'currency') {
+      fetchExchangeRates();
+    }
+  }, [activeTab]);
 
   const convertValue = () => {
     if (!inputValue || !fromUnit || !toUnit) {
@@ -105,6 +166,14 @@ export default function UnitConverter() {
 
     if (activeTab === "temperature") {
       convertedValue = convertTemperature(value, fromUnit, toUnit);
+    } else if (activeTab === "currency") {
+      // Currency conversion using live exchange rates
+      const fromRate = exchangeRates[fromUnitData.symbol] || fromUnitData.value;
+      const toRate = exchangeRates[toUnitData.symbol] || toUnitData.value;
+      
+      // Convert to USD first, then to target currency
+      const usdValue = value / fromRate;
+      convertedValue = usdValue * toRate;
     } else {
       // Convert to base unit first, then to target unit
       const baseValue = value * fromUnitData.value;
@@ -159,7 +228,8 @@ export default function UnitConverter() {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="currency">Currency</TabsTrigger>
           <TabsTrigger value="length">Length</TabsTrigger>
           <TabsTrigger value="weight">Weight</TabsTrigger>
           <TabsTrigger value="temperature">Temperature</TabsTrigger>
