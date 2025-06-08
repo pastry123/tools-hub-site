@@ -25,39 +25,73 @@ export interface BarcodeResult {
 export class BarcodeService {
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {
     try {
-      // Convert image to RGBA format for jsQR
-      const { data, info } = await sharp(imageBuffer)
-        .ensureAlpha()
-        .raw()
-        .toBuffer({ resolveWithObject: true });
+      // Get image metadata first
+      const metadata = await sharp(imageBuffer).metadata();
+      console.log(`Processing image: ${metadata.width}x${metadata.height}, format: ${metadata.format}`);
 
-      // Try QR code detection with jsQR
-      const qrResult = jsQR(new Uint8ClampedArray(data), info.width, info.height);
-      
-      if (qrResult) {
-        return {
-          value: qrResult.data,
-          type: 'QR Code',
-          format: 'QR_CODE',
-          confidence: 0.95,
-          metadata: {
-            version: qrResult.version?.toString(),
-            segments: [{
-              mode: 'BYTE',
-              data: qrResult.data
-            }]
-          }
-        };
+      // Try multiple preprocessing approaches for better detection
+      const preprocessingOptions = [
+        // Original image
+        { operations: [] as any[] },
+        // Enhanced contrast
+        { operations: [{ normalize: true }, { sharpen: true }] as any[] },
+        // Grayscale with higher contrast
+        { operations: [{ greyscale: true }, { normalize: true }, { linear: [1.2, -(128 * 0.2)] }] as any[] },
+        // Resized for better detection
+        { operations: [{ resize: { width: Math.min(800, metadata.width || 800) } }] as any[] }
+      ];
+
+      for (const { operations } of preprocessingOptions) {
+        let sharpInstance = sharp(imageBuffer);
+        
+        // Apply preprocessing operations
+        for (const op of operations) {
+          if ('normalize' in op) sharpInstance = sharpInstance.normalize();
+          if ('sharpen' in op) sharpInstance = sharpInstance.sharpen();
+          if ('greyscale' in op) sharpInstance = sharpInstance.greyscale();
+          if ('linear' in op && op.linear) sharpInstance = sharpInstance.linear(op.linear[0], op.linear[1]);
+          if ('resize' in op && op.resize) sharpInstance = sharpInstance.resize(op.resize);
+        }
+
+        // Convert to RGBA for jsQR
+        const { data, info } = await sharpInstance
+          .ensureAlpha()
+          .raw()
+          .toBuffer({ resolveWithObject: true });
+
+        console.log(`Trying preprocessing variant: ${info.width}x${info.height}, channels: ${info.channels}`);
+
+        // Try QR code detection
+        const qrResult = jsQR(new Uint8ClampedArray(data), info.width, info.height);
+        
+        if (qrResult) {
+          console.log('QR code detected successfully:', qrResult.data);
+          return {
+            value: qrResult.data,
+            type: 'QR Code',
+            format: 'QR_CODE',
+            confidence: 0.95,
+            metadata: {
+              version: qrResult.version?.toString(),
+              segments: [{
+                mode: 'BYTE',
+                data: qrResult.data
+              }]
+            }
+          };
+        }
       }
 
-      // For linear barcodes, detect patterns but note limitations
+      // Try linear barcode pattern detection
       const patternResult = await this.detectBarcodePattern(imageBuffer);
       if (patternResult) {
         return patternResult;
       }
 
-      throw new Error('No barcode or QR code detected in the image');
+      console.log('No barcode or QR code detected after all preprocessing attempts');
+      throw new Error('No barcode or QR code detected in the image. Please ensure the image contains a clear, well-lit barcode or QR code.');
     } catch (error) {
+      console.error('Barcode scanning error:', error);
       throw new Error(`Failed to scan barcode: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
