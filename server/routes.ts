@@ -22,6 +22,21 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and PDF files are allowed'));
+    }
+  }
+});
+
+// Separate upload config for images only
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
@@ -51,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const removeBgService = new RemoveBgService(process.env.REMOVEBG_API_KEY || '');
 
   // Background removal endpoint
-  app.post('/api/remove-background', upload.single('image'), async (req, res) => {
+  app.post('/api/remove-background', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -333,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // IMAGE TOOLS ENDPOINTS
 
   // Image Resizer
-  app.post('/api/image/resize', upload.single('image'), async (req, res) => {
+  app.post('/api/image/resize', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -360,7 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image Converter
-  app.post('/api/image/convert', upload.single('image'), async (req, res) => {
+  app.post('/api/image/convert', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -386,7 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image Cropper
-  app.post('/api/image/crop', upload.single('image'), async (req, res) => {
+  app.post('/api/image/crop', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -943,7 +958,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // BARCODE SCANNING ENDPOINTS
 
   // Barcode/QR Code Scanner
-  app.post('/api/barcode/scan', upload.single('image'), async (req, res) => {
+  app.post('/api/barcode/scan', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
@@ -958,7 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Multiple Barcode Scanner
-  app.post('/api/barcode/scan-all', upload.single('image'), async (req, res) => {
+  app.post('/api/barcode/scan-all', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });
