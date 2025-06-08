@@ -44,6 +44,7 @@ export class BarcodeService {
       BarcodeFormat.DATA_MATRIX,
       BarcodeFormat.CODE_128,
       BarcodeFormat.CODE_39,
+      BarcodeFormat.CODE_93,
       BarcodeFormat.PDF_417,
       BarcodeFormat.EAN_13,
       BarcodeFormat.EAN_8,
@@ -51,6 +52,29 @@ export class BarcodeService {
       BarcodeFormat.UPC_E
     ]);
     this.zxingReader.setHints(hints);
+  }
+
+  async scanAllBarcodes(imageBuffer: Buffer): Promise<BarcodeResult[]> {
+    try {
+      console.log('Scanning for multiple barcodes in image...');
+      const results = await this.scanMultipleBarcodes(imageBuffer);
+      
+      if (results.length > 0) {
+        console.log(`Found ${results.length} unique barcode(s)`);
+        return results;
+      }
+
+      // Fallback to pattern detection for unsupported formats
+      const patternResult = await this.detectAnyBarcodeType(imageBuffer);
+      if (patternResult) {
+        return [patternResult];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Multiple barcode scanning error:', error);
+      return [];
+    }
   }
 
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {

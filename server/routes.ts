@@ -953,6 +953,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multiple Barcode Scanner
+  app.post('/api/barcode/scan-all', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const results = await barcodeService.scanAllBarcodes(req.file.buffer);
+      
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'No barcodes detected in the image' });
+      }
+
+      res.json({ 
+        results,
+        count: results.length,
+        message: `Found ${results.length} barcode${results.length > 1 ? 's' : ''}`
+      });
+    } catch (error) {
+      console.error('Multiple barcode scan error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to scan barcodes' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
