@@ -1,42 +1,20 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PDFDocument, rgb } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 
-interface TextField {
-  id: number;
-  x: number;
-  y: number;
-  text: string;
-  width: number;
-  height: number;
-  page: number;
-}
-
-interface ImageField {
-  id: number;
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  type: string;
-  page: number;
-}
-
 export default function PDFEditor() {
-  const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [url, setUrl] = useState(null);
   const [pageIndex, setPageIndex] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef(null);
+  const overlayRef = useRef(null);
   const [transparentField, setTransparentField] = useState(false);
-  const [fields, setFields] = useState<TextField[]>([]);
-  const [images, setImages] = useState<ImageField[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [fields, setFields] = useState([]);
+  const [images, setImages] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
 
-  async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function loadPdf(e) {
+    const file = e.target.files[0];
     const arrayBuffer = await file.arrayBuffer();
     const loadedPdf = await PDFDocument.load(arrayBuffer, {
       updateMetadata: true,
@@ -53,21 +31,21 @@ export default function PDFEditor() {
     setFields([...fields, { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30, page: pageIndex }]);
   }
 
-  function updateField(id: number, updates: Partial<TextField>) {
+  function updateField(id, updates) {
     setFields(fields.map(f => f.id === id ? { ...f, ...updates } : f));
   }
 
   function deleteSelected() {
     setFields(fields.filter(f => f.id !== selectedId));
-    setImages(images.filter(img => img.id !== selectedId));
+    setImages(images.filter((_, i) => i !== selectedId));
     setSelectedId(null);
   }
 
-  function startDrag(e: React.MouseEvent<HTMLTextAreaElement>, id: number) {
+  function startDrag(e, id) {
     setSelectedId(id);
     const offsetX = e.nativeEvent.offsetX;
     const offsetY = e.nativeEvent.offsetY;
-    const onMove = (moveEvent: MouseEvent) => {
+    const onMove = moveEvent => {
       updateField(id, {
         x: moveEvent.clientX - offsetX,
         y: moveEvent.clientY - offsetY,
@@ -116,22 +94,22 @@ export default function PDFEditor() {
     setFields([]);
   }
 
-  function addImageOverlay(file: File) {
+  function addImageOverlay(file) {
     const url = URL.createObjectURL(file);
     const id = Date.now();
     setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 150, type: file.type, page: pageIndex }]);
   }
 
-  function updateImage(id: number, updates: Partial<ImageField>) {
+  function updateImage(id, updates) {
     const updated = images.map(img => img.id === id ? { ...img, ...updates } : img);
     setImages(updated);
   }
 
-  function startImageDrag(e: React.MouseEvent<HTMLImageElement>, id: number) {
+  function startImageDrag(e, id) {
     setSelectedId(id);
     const offsetX = e.nativeEvent.offsetX;
     const offsetY = e.nativeEvent.offsetY;
-    const onMove = (moveEvent: MouseEvent) => {
+    const onMove = moveEvent => {
       updateImage(id, {
         x: moveEvent.clientX - offsetX,
         y: moveEvent.clientY - offsetY,
@@ -227,7 +205,7 @@ export default function PDFEditor() {
             type="file"
             accept="image/png, image/jpeg"
             className="hidden"
-            onChange={e => e.target.files?.[0] && addImageOverlay(e.target.files[0])}
+            onChange={e => addImageOverlay(e.target.files[0])}
           />
         </label>
         <Button onClick={downloadPdf}>Download PDF</Button>
