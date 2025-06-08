@@ -1300,61 +1300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Advanced PDF Editor endpoint
-  app.post('/api/pdf/advanced-edit', upload.single('pdf'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'PDF file is required' });
-      }
 
-      const edits = JSON.parse(req.body.edits || '{}');
-      
-      // Import pdf-lib for PDF manipulation
-      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
-      
-      // Load the original PDF
-      const pdfDoc = await PDFDocument.load(req.file.buffer);
-      const pages = pdfDoc.getPages();
-      
-      // Add text elements to appropriate pages
-      for (const textEl of edits.textElements || []) {
-        try {
-          const pageIndex = textEl.page - 1;
-          if (pageIndex >= 0 && pageIndex < pages.length) {
-            const page = pages[pageIndex];
-            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-            
-            // Convert hex color to RGB
-            const hexColor = textEl.color || '#000000';
-            const r = parseInt(hexColor.slice(1, 3), 16) / 255;
-            const g = parseInt(hexColor.slice(3, 5), 16) / 255;
-            const b = parseInt(hexColor.slice(5, 7), 16) / 255;
-            
-            page.drawText(textEl.text, {
-              x: textEl.x,
-              y: page.getHeight() - textEl.y - 20, // Adjust for text baseline
-              size: textEl.fontSize || 16,
-              font: font,
-              color: rgb(r, g, b)
-            });
-          }
-        } catch (error) {
-          console.warn('Failed to add text element:', error);
-        }
-      }
-      
-      // Generate the modified PDF
-      const pdfBytes = await pdfDoc.save();
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename="edited-document.pdf"');
-      res.send(Buffer.from(pdfBytes));
-      
-    } catch (error) {
-      console.error('PDF editing error:', error);
-      res.status(500).json({ error: 'Failed to process PDF edits' });
-    }
-  });
 
   // RFID/NFC SIMULATION ENDPOINTS
 
