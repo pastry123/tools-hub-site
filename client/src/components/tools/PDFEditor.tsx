@@ -35,6 +35,7 @@ interface TextElement {
   alignment: 'left' | 'center' | 'right';
   page: number;
   rotation: number;
+  isOriginal?: boolean; // Flag for original PDF content
 }
 
 interface ImageElement {
@@ -731,7 +732,11 @@ export default function PDFEditor() {
                         <div
                           key={textEl.id}
                           className={`absolute cursor-move border-2 select-none ${
-                            selectedElement === textEl.id ? 'border-blue-500 bg-blue-50 bg-opacity-20' : 'border-transparent hover:border-gray-300'
+                            selectedElement === textEl.id 
+                              ? 'border-blue-500 bg-blue-50 bg-opacity-20' 
+                              : textEl.isOriginal 
+                                ? 'border-green-300 hover:border-green-400 bg-green-50 bg-opacity-10' 
+                                : 'border-transparent hover:border-gray-300'
                           }`}
                           style={{
                             left: textEl.x,
@@ -879,7 +884,14 @@ export default function PDFEditor() {
             {selectedElement && getSelectedTextElement() && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Text Properties</CardTitle>
+                  <CardTitle className="text-base flex items-center justify-between">
+                    Text Properties
+                    {getSelectedTextElement()?.isOriginal && (
+                      <Badge variant="secondary" className="text-xs">
+                        Original PDF
+                      </Badge>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>

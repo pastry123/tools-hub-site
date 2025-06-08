@@ -1361,117 +1361,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No PDF file provided' });
       }
 
-      // Get PDF info first
+      // Get PDF info and extract actual text content
       const pdfInfo = await pdfService.getPDFInfo(req.file.buffer);
+      const pdfText = await pdfService.pdfToText(req.file.buffer);
       
-      // Create enhanced document previews with editing guidance
-      const pageBackgrounds: string[] = Array.from({ length: pdfInfo.pages }, (_, i) => 
-        `data:image/svg+xml;base64,${Buffer.from(`
-          <svg width="595" height="842" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f3f4f6" stroke-width="0.5"/>
-              </pattern>
-            </defs>
-            
-            <!-- Document background -->
-            <rect width="100%" height="100%" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
-            <rect width="100%" height="100%" fill="url(#grid)" opacity="0.3"/>
-            
-            <!-- Header bar -->
-            <rect x="0" y="0" width="595" height="40" fill="linear-gradient(to bottom, #f8fafc, #f1f5f9)"/>
-            <line x1="0" y1="40" x2="595" y2="40" stroke="#e2e8f0" stroke-width="1"/>
-            
-            <!-- Document info -->
-            <text x="30" y="25" font-family="Arial" font-size="14" fill="#1e293b" font-weight="bold">
-              ${pdfInfo.title || 'PDF Document'} - Page ${i + 1}/${pdfInfo.pages}
-            </text>
-            
-            <!-- Content area with realistic document structure -->
-            <rect x="50" y="80" width="495" height="20" fill="#1f2937" opacity="0.8"/>
-            <text x="60" y="95" font-family="Arial" font-size="16" fill="#ffffff" font-weight="bold">Document Title</text>
-            
-            <!-- Paragraph blocks -->
-            <rect x="50" y="120" width="480" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="140" width="420" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="160" width="450" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="180" width="380" height="12" fill="#374151" opacity="0.6"/>
-            
-            <rect x="50" y="220" width="460" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="240" width="320" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="260" width="410" height="12" fill="#374151" opacity="0.6"/>
-            
-            <!-- Image placeholder -->
-            <rect x="350" y="300" width="180" height="120" fill="#f1f5f9" stroke="#d1d5db" stroke-width="1"/>
-            <text x="440" y="360" font-family="Arial" font-size="12" fill="#6b7280" text-anchor="middle">Image</text>
-            
-            <!-- More content -->
-            <rect x="50" y="300" width="280" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="320" width="240" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="340" width="290" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="360" width="200" height="12" fill="#374151" opacity="0.6"/>
-            
-            <rect x="50" y="450" width="400" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="470" width="380" height="12" fill="#374151" opacity="0.6"/>
-            <rect x="50" y="490" width="350" height="12" fill="#374151" opacity="0.6"/>
-            
-            <!-- Editing instructions overlay -->
-            <rect x="0" y="750" width="595" height="92" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,3"/>
-            <text x="297" y="770" font-family="Arial" font-size="12" fill="#3b82f6" text-anchor="middle" font-weight="bold">
-              ✓ Original PDF content preserved underneath
-            </text>
-            <text x="297" y="790" font-family="Arial" font-size="11" fill="#1e40af" text-anchor="middle">
-              Click "Add Text" to insert editable text • Upload images • Drag to reposition
-            </text>
-            <text x="297" y="810" font-family="Arial" font-size="11" fill="#1e40af" text-anchor="middle">
-              Use properties panel to customize fonts, colors, and sizes
-            </text>
-            <text x="297" y="830" font-family="Arial" font-size="10" fill="#6366f1" text-anchor="middle">
-              Export applies your edits as overlays to the original document
-            </text>
-            
-            <!-- Footer -->
-            <text x="297" y="820" font-family="Arial" font-size="9" fill="#64748b" text-anchor="middle">
-              Page ${i + 1} of ${pdfInfo.pages}
-            </text>
-          </svg>
-        `).toString('base64')}`
-      );
+      // Split text content by pages (rough estimation)
+      const textPerPage = Math.ceil(pdfText.length / pdfInfo.pages);
+      const pageTexts = Array.from({ length: pdfInfo.pages }, (_, i) => {
+        const startIdx = i * textPerPage;
+        const endIdx = Math.min((i + 1) * textPerPage, pdfText.length);
+        return pdfText.substring(startIdx, endIdx);
+      });
       
-      // Generate pages structure for editing with backgrounds
-      const pages = Array.from({ length: pdfInfo.pages }, (_, i) => ({
-        id: `page-${i + 1}`,
-        number: i + 1,
-        width: 595,
-        height: 842,
-        background: pageBackgrounds[i],
-        textElements: i === 0 ? [
-          {
-            id: 'text-sample-1',
-            content: 'Sample Text - Click to Edit',
-            x: 100,
+      // Create pages with extracted text as editable elements
+      const pages = Array.from({ length: pdfInfo.pages }, (_, i) => {
+        const pageText = pageTexts[i];
+        const textElements = [];
+        
+        if (pageText.trim()) {
+          // Split text into paragraphs and create editable text elements
+          const paragraphs = pageText.split('\n\n').filter(p => p.trim());
+          let y = 60;
+          
+          paragraphs.forEach((paragraph, idx) => {
+            if (idx < 10 && y < 700) { // Limit to prevent overflow
+              const lines = paragraph.trim().split('\n');
+              const content = lines.join(' ').substring(0, 200); // Limit content length
+              
+              if (content.length > 10) {
+                textElements.push({
+                  id: `extracted-text-${i}-${idx}`,
+                  content: content,
+                  x: 50,
+                  y: y,
+                  width: 495,
+                  height: Math.max(20, Math.ceil(content.length / 60) * 16),
+                  fontSize: 12,
+                  fontFamily: 'Arial',
+                  color: '#1f2937',
+                  bold: false,
+                  italic: false,
+                  underline: false,
+                  alignment: 'left',
+                  page: i + 1,
+                  rotation: 0,
+                  isOriginal: true // Mark as original PDF content
+                });
+                
+                y += Math.max(30, Math.ceil(content.length / 60) * 20);
+              }
+            }
+          });
+        }
+        
+        // If no text extracted, add a placeholder
+        if (textElements.length === 0) {
+          textElements.push({
+            id: `placeholder-text-${i}`,
+            content: `Page ${i + 1} content - Click to edit this text or add new elements`,
+            x: 50,
             y: 100,
-            width: 300,
+            width: 495,
             height: 30,
-            fontSize: 16,
+            fontSize: 14,
             fontFamily: 'Arial',
-            color: '#000000',
+            color: '#6b7280',
             bold: false,
             italic: false,
             underline: false,
             alignment: 'left',
-            page: 1,
-            rotation: 0
-          }
-        ] : [],
-        imageElements: []
-      }));
+            page: i + 1,
+            rotation: 0,
+            isOriginal: false
+          });
+        }
+        
+        return {
+          id: `page-${i + 1}`,
+          number: i + 1,
+          width: 595,
+          height: 842,
+          background: `data:image/svg+xml;base64,${Buffer.from(`
+            <svg width="595" height="842" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100%" height="100%" fill="#ffffff"/>
+              <rect x="0" y="0" width="595" height="30" fill="#f8fafc"/>
+              <text x="30" y="20" font-family="Arial" font-size="12" fill="#64748b">
+                ${pdfInfo.title || 'PDF Document'} - Page ${i + 1}
+              </text>
+              <line x1="0" y1="30" x2="595" y2="30" stroke="#e2e8f0"/>
+            </svg>
+          `).toString('base64')}`,
+          textElements,
+          imageElements: []
+        };
+      });
 
       res.json({
         success: true,
         pages,
         info: pdfInfo,
-        message: 'PDF structure analyzed successfully'
+        extractedText: pdfText.substring(0, 500) + '...', // Preview of extracted content
+        message: 'PDF content extracted and ready for editing'
       });
     } catch (error) {
       console.error('PDF analysis error:', error);
