@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import jsQR from 'jsqr';
+import { BinaryBitmap, HybridBinarizer, MultiFormatReader } from '@zxing/library';
 
 export interface BarcodeResult {
   value: string;
@@ -23,6 +24,11 @@ export interface BarcodeResult {
 }
 
 export class BarcodeService {
+  private zxingReader: MultiFormatReader;
+
+  constructor() {
+    this.zxingReader = new MultiFormatReader();
+  }
 
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {
     try {
@@ -142,7 +148,13 @@ export class BarcodeService {
         }
       }
 
-      // Comprehensive barcode type detection
+      // First try ZXing for accurate content extraction
+      const zxingResult = await this.decodeWithZXing(imageBuffer);
+      if (zxingResult) {
+        return zxingResult;
+      }
+
+      // Fallback to pattern detection for unsupported formats
       const barcodeTypeResult = await this.detectAnyBarcodeType(imageBuffer);
       if (barcodeTypeResult) {
         return barcodeTypeResult;
@@ -474,21 +486,32 @@ export class BarcodeService {
 
   private async decodeWithZXing(imageBuffer: Buffer): Promise<BarcodeResult | null> {
     try {
-      // Convert image to RGBA format for ZXing processing
+      // Convert image to luminance source format for ZXing
       const { data, info } = await sharp(imageBuffer)
-        .ensureAlpha()
+        .greyscale()
         .raw()
         .toBuffer({ resolveWithObject: true });
 
-      // Create Uint8ClampedArray compatible with ZXing
-      const imageData = {
-        data: new Uint8ClampedArray(data),
-        width: info.width,
-        height: info.height
+      // Create luminance source
+      const luminanceSource = {
+        getRow: (y: number, row?: Uint8ClampedArray) => {
+          const start = y * info.width;
+          const end = start + info.width;
+          return new Uint8ClampedArray(data.slice(start, end));
+        },
+        getMatrix: () => new Uint8ClampedArray(data),
+        getWidth: () => info.width,
+        getHeight: () => info.height,
+        isCropSupported: () => false,
+        isRotateSupported: () => false
       };
 
-      // Attempt decoding with ZXing using correct method
-      const result = await this.zxingReader.decodeFromImageData(imageData);
+      // Create binary bitmap
+      const binarizer = new HybridBinarizer(luminanceSource);
+      const bitmap = new BinaryBitmap(binarizer);
+
+      // Attempt to decode
+      const result = this.zxingReader.decode(bitmap);
       
       if (result) {
         console.log(`ZXing successfully decoded: ${result.getText()}`);
@@ -496,18 +519,166 @@ export class BarcodeService {
           value: result.getText(),
           type: result.getBarcodeFormat().toString(),
           format: result.getBarcodeFormat().toString(),
-          confidence: 0.9,
+          confidence: 0.95,
           metadata: {
-            note: 'Content extracted using ZXing library'
+            note: 'Content successfully extracted using ZXing decoder'
           }
         };
       }
-      
+
       return null;
     } catch (error) {
-      console.log('ZXing decoding failed:', error instanceof Error ? error.message : String(error));
+      console.log('ZXing decoding attempt failed, trying enhanced preprocessing...');
+      
+      // Try with enhanced preprocessing for difficult barcodes
+      return await this.decodeWithEnhancedPreprocessing(imageBuffer);
+    }
+  }
+
+  private async decodeWithEnhancedPreprocessing(imageBuffer: Buffer): Promise<BarcodeResult | null> {
+    try {
+      // Try multiple preprocessing strategies
+      const strategies = [
+        // High contrast
+        { threshold: 128, blur: 0, sharpen: 1 },
+        // Medium contrast with slight blur
+        { threshold: 100, blur: 0.5, sharpen: 2 },
+        // Low contrast with more aggressive sharpening
+        { threshold: 150, blur: 0, sharpen: 3 },
+        // Adaptive approach
+        { threshold: 80, blur: 0.3, sharpen: 1.5 }
+      ];
+
+      for (const strategy of strategies) {
+        try {
+          let processor = sharp(imageBuffer)
+            .greyscale()
+            .normalise();
+
+          if (strategy.blur > 0) {
+            processor = processor.blur(strategy.blur);
+          }
+
+          if (strategy.sharpen > 0) {
+            processor = processor.sharpen(strategy.sharpen);
+          }
+
+          const { data, info } = await processor
+            .threshold(strategy.threshold)
+            .raw()
+            .toBuffer({ resolveWithObject: true });
+
+          const luminanceSource = {
+            getRow: (y: number, row?: Uint8ClampedArray) => {
+              const start = y * info.width;
+              const end = start + info.width;
+              return new Uint8ClampedArray(data.slice(start, end));
+            },
+            getMatrix: () => new Uint8ClampedArray(data),
+            getWidth: () => info.width,
+            getHeight: () => info.height,
+            isCropSupported: () => false,
+            isRotateSupported: () => false
+          };
+
+          const binarizer = new HybridBinarizer(luminanceSource);
+          const bitmap = new BinaryBitmap(binarizer);
+          const result = this.zxingReader.decode(bitmap);
+
+          if (result) {
+            console.log(`Enhanced preprocessing successful: ${result.getText()}`);
+            return {
+              value: result.getText(),
+              type: result.getBarcodeFormat().toString(),
+              format: result.getBarcodeFormat().toString(),
+              confidence: 0.9,
+              metadata: {
+                note: `Content extracted using enhanced preprocessing (threshold: ${strategy.threshold})`
+              }
+            };
+          }
+        } catch (strategyError) {
+          continue;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.log('Enhanced preprocessing failed:', error instanceof Error ? error.message : String(error));
       return null;
     }
+  }
+
+  private analyzeDataMatrixContent(data: Buffer, width: number, height: number, analysis: any): {
+    value: string;
+    confidence: number;
+    note: string;
+  } {
+    // Analyze Data Matrix pattern characteristics to determine content type
+    const { blackPixelRatio, transitionDensity, horizontalTransitions, verticalTransitions } = analysis;
+    
+    // High density patterns typically contain more data
+    if (blackPixelRatio > 55 && transitionDensity > 0.12) {
+      return {
+        value: `Data Matrix Code detected (${width}x${height}) - High density pattern suggests alphanumeric data encoding`,
+        confidence: 0.85,
+        note: 'Data Matrix pattern analysis indicates structured data encoding. Professional barcode libraries required for content extraction.'
+      };
+    }
+    
+    // Medium density patterns
+    if (blackPixelRatio > 40 && transitionDensity > 0.08) {
+      return {
+        value: `Data Matrix Code detected (${width}x${height}) - Medium density pattern suggests numeric data encoding`,
+        confidence: 0.80,
+        note: 'Data Matrix pattern analysis indicates numeric data encoding. Professional barcode libraries required for content extraction.'
+      };
+    }
+    
+    // Lower density patterns
+    return {
+      value: `Data Matrix Code detected (${width}x${height}) - Pattern analysis indicates basic data encoding`,
+      confidence: 0.75,
+      note: 'Data Matrix pattern detected. Professional barcode libraries like ZXing required for accurate content extraction.'
+    };
+  }
+
+  private analyzeLinearBarcodeContent(data: Buffer, width: number, height: number, analysis: any): {
+    value: string;
+    format: string;
+    confidence: number;
+    note: string;
+  } {
+    // Analyze linear barcode pattern characteristics
+    const { horizontalTransitions, aspectRatio } = analysis;
+    
+    // Code 128 characteristics (high transition count)
+    if (horizontalTransitions > 80) {
+      return {
+        value: `Linear Barcode detected (${width}x${height}) - High transition count suggests Code 128 encoding`,
+        format: 'CODE_128',
+        confidence: 0.85,
+        note: 'Code 128 pattern analysis indicates alphanumeric data encoding. Professional barcode libraries required for content extraction.'
+      };
+    }
+    
+    // Code 39 characteristics (medium transition count)
+    if (horizontalTransitions > 40 && aspectRatio > 3.0) {
+      return {
+        value: `Linear Barcode detected (${width}x${height}) - Pattern suggests Code 39 encoding`,
+        format: 'CODE_39',
+        confidence: 0.80,
+        note: 'Code 39 pattern analysis indicates alphanumeric data encoding. Professional barcode libraries required for content extraction.'
+      };
+    }
+    
+    // Generic linear barcode
+    return {
+      value: `Linear Barcode detected (${width}x${height}) - Standard linear barcode pattern`,
+      format: 'LINEAR_BARCODE',
+      confidence: 0.75,
+      note: 'Linear barcode pattern detected. Professional barcode libraries required for accurate content extraction.'
+    };
   }
 
   private detectDataMatrixFinderPattern(data: Buffer, width: number, height: number): boolean {
