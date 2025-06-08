@@ -10,7 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import CategoryPage from "@/pages/CategoryPage";
 import CategoryDetailPage from "@/pages/CategoryDetailPage";
 import ToolPage from "@/pages/ToolPage";
-
+import BarcodeScannerPage from "@/pages/BarcodeScannerPage";
 import FavoritesPage from "@/pages/FavoritesPage";
 import RecentPage from "@/pages/RecentPage";
 import NotFound from "@/pages/not-found";
@@ -25,7 +25,7 @@ function Router() {
         <Route path="/recent" component={RecentPage} />
         <Route path="/category/:categoryId" component={CategoryDetailPage} />
         <Route path="/tool/:toolId" component={ToolPage} />
-        <Route path="/tools/barcode-qr/scanner" component={() => <ToolPage />} />
+        <Route path="/tools/barcode-qr/scanner" component={BarcodeScannerPage} />
         <Route component={NotFound} />
       </Switch>
     </>
