@@ -29,52 +29,18 @@ interface Signer {
   status: 'pending' | 'signed' | 'viewed';
 }
 
-// PDF.js integration for reliable PDF rendering
-let pdfjsLib: any = null;
-
-const loadPDFJS = async () => {
-  if (!pdfjsLib) {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    document.head.appendChild(script);
-    
-    return new Promise<void>((resolve) => {
-      script.onload = () => {
-        pdfjsLib = (window as any).pdfjsLib;
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        resolve();
-      };
-    });
-  }
-};
-
-const renderPDFPage = async (file: File, pageNumber: number, canvas: HTMLCanvasElement): Promise<void> => {
-  await loadPDFJS();
-  
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const page = await pdf.getPage(pageNumber);
-  
-  const viewport = page.getViewport({ scale: 1.5 });
-  const context = canvas.getContext('2d')!;
-  
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
-  
-  const renderContext = {
-    canvasContext: context,
-    viewport: viewport,
-  };
-  
-  await page.render(renderContext).promise;
+// PDF rendering using iframe with proper fallbacks
+const renderPDFInIframe = (file: File, iframe: HTMLIFrameElement, page: number = 1): void => {
+  const url = URL.createObjectURL(file);
+  iframe.src = url + `#toolbar=0&navpanes=0&scrollbar=0&page=${page}`;
 };
 
 const getPDFPageCount = async (file: File): Promise<number> => {
   try {
-    await loadPDFJS();
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    return pdf.numPages;
+    const text = new TextDecoder().decode(arrayBuffer);
+    const pageMatches = text.match(/\/Type\s*\/Page(?!\w)/g);
+    return pageMatches ? pageMatches.length : 1;
   } catch {
     return 1;
   }
@@ -83,7 +49,7 @@ const getPDFPageCount = async (file: File): Promise<number> => {
 export default function AdvancedESign() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pdfViewRef = useRef<HTMLDivElement>(null);
-  const pdfCanvasRef = useRef<HTMLCanvasElement>(null);
+  const pdfIframeRef = useRef<HTMLIFrameElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureText, setSignatureText] = useState("");
   const [fontFamily, setFontFamily] = useState("Dancing Script");
@@ -109,25 +75,14 @@ export default function AdvancedESign() {
   const [previewPage, setPreviewPage] = useState(0);
   const { toast } = useToast();
 
-  // Render PDF page when file or page changes
+  // Render PDF when file or page changes
   useEffect(() => {
-    if (pdfFile && pdfCanvasRef.current) {
+    if (pdfFile && pdfIframeRef.current) {
       setIsProcessing(true);
-      renderPDFPage(pdfFile, currentPage + 1, pdfCanvasRef.current)
-        .then(() => {
-          setIsProcessing(false);
-        })
-        .catch((error) => {
-          console.error('PDF render error:', error);
-          setIsProcessing(false);
-          toast({
-            title: "Error",
-            description: "Failed to render PDF page",
-            variant: "destructive",
-          });
-        });
+      renderPDFInIframe(pdfFile, pdfIframeRef.current, currentPage + 1);
+      setTimeout(() => setIsProcessing(false), 1000); // Allow time for iframe to load
     }
-  }, [pdfFile, currentPage, toast]);
+  }, [pdfFile, currentPage]);
 
   const signatureFonts = [
     "Dancing Script", "Great Vibes", "Allura", "Alex Brush", "Satisfy",
@@ -351,24 +306,20 @@ export default function AdvancedESign() {
     // Don't add field if clicking on an existing field
     if ((e.target as HTMLElement).closest('.signature-field')) return;
     
-    // Get canvas coordinates for accurate positioning
-    const canvas = pdfCanvasRef.current;
-    if (!canvas) return;
+    // Get iframe coordinates for accurate positioning
+    const iframe = pdfIframeRef.current;
+    if (!iframe) return;
     
-    const rect = canvas.getBoundingClientRect();
+    const rect = iframe.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Scale coordinates to match actual canvas dimensions
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
     const newField: SignatureField = {
       id: Date.now().toString(),
-      x: Math.max(0, (x - 100) * scaleX), // Center and scale
-      y: Math.max(0, (y - 40) * scaleY),
-      width: 200 * scaleX,
-      height: 80 * scaleY,
+      x: Math.max(0, x - 100), // Center the field
+      y: Math.max(0, y - 40),
+      width: 200,
+      height: 80,
       page: currentPage,
       required: true
     };
@@ -830,11 +781,12 @@ export default function AdvancedESign() {
                         </div>
                       </div>
                     ) : (
-                      <div className="relative">
-                        <canvas
-                          ref={pdfCanvasRef}
-                          className="max-w-full shadow-lg border"
-                          style={{ display: 'block', margin: '0 auto' }}
+                      <div className="relative w-full h-full">
+                        <iframe
+                          ref={pdfIframeRef}
+                          className="w-full h-96 border shadow-lg"
+                          title="PDF Viewer"
+                          style={{ minHeight: '600px' }}
                         />
                         {/* Signature fields overlay */}
                         {signatureFields
@@ -844,10 +796,10 @@ export default function AdvancedESign() {
                               key={field.id}
                               className={`signature-field absolute border-2 border-blue-500 bg-blue-50 bg-opacity-50 cursor-move ${selectedField === field.id ? 'border-blue-700 shadow-lg' : ''}`}
                               style={{
-                                left: field.x / (pdfCanvasRef.current?.width || 1) * 100 + '%',
-                                top: field.y / (pdfCanvasRef.current?.height || 1) * 100 + '%',
-                                width: field.width / (pdfCanvasRef.current?.width || 1) * 100 + '%',
-                                height: field.height / (pdfCanvasRef.current?.height || 1) * 100 + '%',
+                                left: field.x + 'px',
+                                top: field.y + 'px',
+                                width: field.width + 'px',
+                                height: field.height + 'px',
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
