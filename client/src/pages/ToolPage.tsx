@@ -61,7 +61,7 @@ import BarcodeScanner from "@/components/tools/BarcodeScanner";
 import InvoiceGenerator from "@/components/tools/InvoiceGenerator";
 import SignatureGenerator from "@/components/tools/SignatureGenerator";
 import AdvancedESign from "@/components/tools/AdvancedESign";
-import PDFEditor from "@/components/tools/PDFEditor";
+import PDFEditorNew from "@/components/tools/PDFEditorNew";
 import APIAccess from "@/components/tools/APIAccess";
 import MobileAppPlan from "@/components/tools/MobileAppPlan";
 import RFIDReader from "@/components/tools/RFIDReader";
@@ -256,7 +256,7 @@ export default function ToolPage() {
       case 'pdf-esign':
         return <AdvancedESign />;
       case 'pdf-editor':
-        return <PDFEditor />;
+        return <PDFEditorNew />;
       case 'timezone-converter':
         return <TimezoneConverter />;
       case 'video-to-gif':
