@@ -51,11 +51,11 @@ export const toolCategories: ToolCategory[] = [
     icon: "fa-image",
     color: "purple",
     tools: [
-      { id: "image-compressor", name: "Image Compressor", description: "Reduce image file size while maintaining quality", icon: "fa-compress-arrows-alt", popular: true },
+      { id: "image-compressor", name: "Image Compressor", description: "Reduce image file size while maintaining quality", icon: "fa-compress-arrows-alt" },
       { id: "image-resizer", name: "Image Resizer", description: "Change image dimensions and aspect ratio", icon: "fa-expand-arrows-alt" },
       { id: "image-converter", name: "Image Converter", description: "Convert between JPG, PNG, WEBP, GIF formats", icon: "fa-exchange-alt" },
       { id: "image-cropper", name: "Image Cropper", description: "Cut out specific portions of images", icon: "fa-crop" },
-      { id: "background-remover", name: "Background Remover", description: "Automatically remove image backgrounds", icon: "fa-eraser" },
+      { id: "background-remover", name: "Background Remover", description: "Automatically remove image backgrounds", icon: "fa-eraser", popular: true },
       { id: "image-to-text", name: "Image to Text (OCR)", description: "Extract text content from images", icon: "fa-font" },
       { id: "favicon-generator", name: "Favicon Generator", description: "Create favicon.ico files from images", icon: "fa-star" },
       { id: "color-palette", name: "Color Palette Extractor", description: "Extract color schemes from images", icon: "fa-palette" },
