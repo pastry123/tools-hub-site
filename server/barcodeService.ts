@@ -147,10 +147,10 @@ export class BarcodeService {
         return patternResult;
       }
 
-      // Special handling for Data Matrix codes - they require different processing
-      const dataMatrixResult = await this.tryDataMatrixDetection(imageBuffer);
-      if (dataMatrixResult) {
-        return dataMatrixResult;
+      // Comprehensive barcode type detection
+      const barcodeTypeResult = await this.detectAnyBarcodeType(imageBuffer);
+      if (barcodeTypeResult) {
+        return barcodeTypeResult;
       }
 
       console.log('No barcode or QR code detected after all preprocessing attempts');
@@ -168,27 +168,43 @@ export class BarcodeService {
 
       const aspectRatio = metadata.width / metadata.height;
 
-      // Only analyze images with linear barcode characteristics
-      if (aspectRatio < 1.8) return null;
+      // Check for different barcode types with comprehensive pattern analysis
+      const barcodeTypes = [
+        { name: 'Linear Barcode', minAspectRatio: 2.0, maxAspectRatio: 10.0 },
+        { name: 'Data Matrix', minAspectRatio: 0.8, maxAspectRatio: 1.2 },
+        { name: 'Code 128', minAspectRatio: 3.0, maxAspectRatio: 8.0 },
+        { name: 'PDF417', minAspectRatio: 2.5, maxAspectRatio: 6.0 }
+      ];
 
-      // Convert to binary for pattern analysis
-      const { data, info } = await sharp(imageBuffer)
-        .greyscale()
-        .threshold(128)
-        .raw()
-        .toBuffer({ resolveWithObject: true });
+      // Convert to binary for pattern analysis with multiple thresholds
+      const thresholds = [100, 128, 150, 180];
+      
+      for (const threshold of thresholds) {
+        const { data, info } = await sharp(imageBuffer)
+          .greyscale()
+          .threshold(threshold)
+          .raw()
+          .toBuffer({ resolveWithObject: true });
 
-      // Analyze scan lines for barcode patterns
-      const transitions = this.findMaxTransitions(data, info.width, info.height);
-
-      // Linear barcodes require 20+ transitions across the width
-      if (transitions >= 20) {
-        throw new Error('Linear barcode pattern detected but content extraction requires specialized decoding libraries (ZXing, QuaggaJS) or commercial APIs. Please use a dedicated barcode scanning service for accurate content reading.');
+        // Analyze patterns for each barcode type
+        for (const barcodeType of barcodeTypes) {
+          if (aspectRatio >= barcodeType.minAspectRatio && aspectRatio <= barcodeType.maxAspectRatio) {
+            const transitions = this.findMaxTransitions(data, info.width, info.height);
+            const verticalTransitions = this.findVerticalTransitions(data, info.width, info.height);
+            
+            // Enhanced pattern detection
+            if (this.validateBarcodePattern(data, info.width, info.height, barcodeType.name, transitions, verticalTransitions)) {
+              console.log(`${barcodeType.name} pattern detected with ${transitions} horizontal transitions`);
+              
+              throw new Error(`${barcodeType.name} detected but content extraction requires specialized decoding libraries. This scanner currently supports QR code content reading only.`);
+            }
+          }
+        }
       }
 
       return null;
     } catch (error) {
-      if (error instanceof Error && error.message.includes('Linear barcode pattern detected')) {
+      if (error instanceof Error && error.message.includes('detected but content extraction')) {
         throw error;
       }
       return null;
@@ -218,6 +234,58 @@ export class BarcodeService {
     }
 
     return maxTransitions;
+  }
+
+  private findVerticalTransitions(data: Buffer, width: number, height: number): number {
+    let maxTransitions = 0;
+
+    // Sample vertical lines across the middle section
+    for (let x = Math.floor(width * 0.3); x <= Math.floor(width * 0.7); x += Math.floor(width * 0.1)) {
+      let transitions = 0;
+      let lastPixel = -1;
+
+      for (let y = 0; y < height; y++) {
+        const pixelIndex = y * width + x;
+        if (pixelIndex < data.length) {
+          const pixel = data[pixelIndex] > 0 ? 1 : 0;
+          if (lastPixel !== -1 && pixel !== lastPixel) {
+            transitions++;
+          }
+          lastPixel = pixel;
+        }
+      }
+
+      maxTransitions = Math.max(maxTransitions, transitions);
+    }
+
+    return maxTransitions;
+  }
+
+  private validateBarcodePattern(data: Buffer, width: number, height: number, type: string, horizontalTransitions: number, verticalTransitions: number): boolean {
+    const aspectRatio = width / height;
+    
+    switch (type) {
+      case 'Linear Barcode':
+        // Linear barcodes have many horizontal transitions, few vertical
+        return horizontalTransitions >= 15 && horizontalTransitions > verticalTransitions * 2;
+        
+      case 'Code 128':
+        // Code 128 has specific characteristics
+        return horizontalTransitions >= 20 && horizontalTransitions <= 100 && aspectRatio >= 3;
+        
+      case 'Data Matrix':
+        // Data Matrix has roughly equal transitions in both directions
+        return horizontalTransitions >= 10 && verticalTransitions >= 10 && 
+               Math.abs(horizontalTransitions - verticalTransitions) < horizontalTransitions * 0.5;
+        
+      case 'PDF417':
+        // PDF417 has multiple rows of patterns
+        return horizontalTransitions >= 25 && verticalTransitions >= 5 && 
+               horizontalTransitions > verticalTransitions && aspectRatio >= 2.5;
+        
+      default:
+        return false;
+    }
   }
 
   private async tryDataMatrixDetection(imageBuffer: Buffer): Promise<BarcodeResult | null> {
@@ -262,58 +330,89 @@ export class BarcodeService {
   }
 
   private detectDataMatrixFinderPattern(data: Buffer, width: number, height: number): boolean {
-    // Data Matrix codes have an L-shaped finder pattern on two adjacent sides
-    // Check for solid borders on left and bottom edges
+    // Enhanced Data Matrix detection for dense patterns
     
-    let leftBorderSolid = true;
-    let bottomBorderSolid = true;
+    // Check for high density of black/white transitions (characteristic of Data Matrix)
+    const totalPixels = width * height;
+    let blackPixels = 0;
+    let whitePixels = 0;
     
-    // Check left border (should be mostly black)
-    for (let y = 0; y < height; y++) {
-      const pixelIndex = y * width;
-      if (pixelIndex < data.length && data[pixelIndex] > 128) {
-        leftBorderSolid = false;
+    for (let i = 0; i < Math.min(data.length, totalPixels); i++) {
+      if (data[i] < 128) {
+        blackPixels++;
+      } else {
+        whitePixels++;
+      }
+    }
+    
+    const blackWhiteRatio = blackPixels / whitePixels;
+    
+    // Data Matrix typically has 40-60% black pixels
+    if (blackWhiteRatio < 0.3 || blackWhiteRatio > 2.0) {
+      return false;
+    }
+    
+    // Check for finder pattern borders with more flexibility
+    let borderPatternFound = false;
+    
+    // Sample multiple threshold levels for border detection
+    for (let threshold = 100; threshold <= 180; threshold += 40) {
+      let leftBorderConsistent = 0;
+      let bottomBorderConsistent = 0;
+      let totalBorderPixels = height + width;
+      
+      // Check left border consistency
+      for (let y = 0; y < height; y++) {
+        const pixelIndex = y * width;
+        if (pixelIndex < data.length) {
+          const isBlack = data[pixelIndex] < threshold;
+          if (isBlack) leftBorderConsistent++;
+        }
+      }
+      
+      // Check bottom border consistency
+      for (let x = 0; x < width; x++) {
+        const pixelIndex = (height - 1) * width + x;
+        if (pixelIndex < data.length) {
+          const isBlack = data[pixelIndex] < threshold;
+          if (isBlack) bottomBorderConsistent++;
+        }
+      }
+      
+      // Data Matrix should have consistent borders (at least 70% of border pixels follow pattern)
+      if ((leftBorderConsistent / height) > 0.7 || (bottomBorderConsistent / width) > 0.7) {
+        borderPatternFound = true;
         break;
       }
     }
     
-    // Check bottom border (should be mostly black)
-    for (let x = 0; x < width; x++) {
-      const pixelIndex = (height - 1) * width + x;
-      if (pixelIndex < data.length && data[pixelIndex] > 128) {
-        bottomBorderSolid = false;
-        break;
+    // Additional check: high frequency patterns in center area
+    const centerStartX = Math.floor(width * 0.2);
+    const centerEndX = Math.floor(width * 0.8);
+    const centerStartY = Math.floor(height * 0.2);
+    const centerEndY = Math.floor(height * 0.8);
+    
+    let centerTransitions = 0;
+    
+    // Count transitions in center area (both horizontal and vertical)
+    for (let y = centerStartY; y < centerEndY; y++) {
+      for (let x = centerStartX; x < centerEndX - 1; x++) {
+        const currentIndex = y * width + x;
+        const nextIndex = y * width + (x + 1);
+        
+        if (currentIndex < data.length && nextIndex < data.length) {
+          if (Math.abs(data[currentIndex] - data[nextIndex]) > 100) {
+            centerTransitions++;
+          }
+        }
       }
     }
     
-    // Data Matrix also has alternating pattern on opposite borders
-    let topBorderAlternating = true;
-    let rightBorderAlternating = true;
+    const centerArea = (centerEndX - centerStartX) * (centerEndY - centerStartY);
+    const transitionDensity = centerTransitions / centerArea;
     
-    // Check alternating pattern on top border
-    for (let x = 0; x < width - 1; x += 2) {
-      const evenPixel = data[x] || 0;
-      const oddPixel = data[x + 1] || 0;
-      if (Math.abs(evenPixel - oddPixel) < 100) {
-        topBorderAlternating = false;
-        break;
-      }
-    }
-    
-    // Check alternating pattern on right border
-    for (let y = 0; y < height - 1; y += 2) {
-      const evenIndex = y * width + (width - 1);
-      const oddIndex = (y + 1) * width + (width - 1);
-      const evenPixel = evenIndex < data.length ? data[evenIndex] : 0;
-      const oddPixel = oddIndex < data.length ? data[oddIndex] : 0;
-      if (Math.abs(evenPixel - oddPixel) < 100) {
-        rightBorderAlternating = false;
-        break;
-      }
-    }
-    
-    // Data Matrix pattern requires L-shaped solid border and alternating opposite borders
-    return leftBorderSolid && bottomBorderSolid && (topBorderAlternating || rightBorderAlternating);
+    // Data Matrix has high transition density in center (dense pattern)
+    return borderPatternFound && transitionDensity > 0.3;
   }
 }
 
