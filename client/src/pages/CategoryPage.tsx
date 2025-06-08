@@ -8,7 +8,7 @@ import { ArrowLeft, Star } from "lucide-react";
 
 export default function CategoryPage() {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const category = getToolCategory(categoryId!);
+  const category = getCategoryById(categoryId!);
 
   if (!category) {
     return (
@@ -59,12 +59,7 @@ export default function CategoryPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-slate-900">{tool.name}</h3>
-                    {tool.popular && (
-                      <Badge variant="secondary" className="mt-1">
-                        <Star className="w-3 h-3 mr-1" />
-                        Popular
-                      </Badge>
-                    )}
+
                   </div>
                 </div>
                 <p className="text-slate-600 text-sm mb-4">{tool.description}</p>
