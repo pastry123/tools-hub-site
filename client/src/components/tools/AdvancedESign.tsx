@@ -729,7 +729,7 @@ export default function AdvancedESign() {
                 >
                   Previous
                 </Button>
-                <span className="px-3 py-1 bg-gray-100 rounded text-sm">
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100">
                   Page {currentPage + 1} of {pdfPages.length}
                 </span>
                 <Button
@@ -906,7 +906,7 @@ export default function AdvancedESign() {
                   >
                     Previous
                   </Button>
-                  <span className="px-3 py-1 bg-gray-100 rounded text-sm">
+                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100">
                     Page {previewPage + 1} of {previewPages.length}
                   </span>
                   <Button
