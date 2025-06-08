@@ -171,10 +171,11 @@ export class BarcodeService {
         }
       }
 
-      // First try ZXing for accurate content extraction
-      const zxingResult = await this.decodeWithZXing(imageBuffer);
-      if (zxingResult) {
-        return zxingResult;
+      // First try multiple barcode detection
+      const multipleResults = await this.scanMultipleBarcodes(imageBuffer);
+      if (multipleResults.length > 0) {
+        // Return the first result for backward compatibility
+        return multipleResults[0];
       }
 
       // Fallback to pattern detection for unsupported formats
@@ -581,11 +582,12 @@ export class BarcodeService {
       const result = this.zxingReader.decode(bitmap);
       
       if (result) {
+        const formatName = this.getBarcodeFormatName(result.getBarcodeFormat());
         console.log(`ZXing successfully decoded: ${result.getText()}`);
         return {
           value: result.getText(),
-          type: result.getBarcodeFormat().toString(),
-          format: result.getBarcodeFormat().toString(),
+          type: formatName,
+          format: formatName,
           confidence: 0.95,
           metadata: {
             note: 'Content successfully extracted using ZXing decoder'
@@ -698,11 +700,12 @@ export class BarcodeService {
           const result = this.zxingReader.decode(bitmap);
 
           if (result) {
+            const formatName = this.getBarcodeFormatName(result.getBarcodeFormat());
             console.log(`Enhanced preprocessing successful: ${result.getText()}`);
             return {
               value: result.getText(),
-              type: result.getBarcodeFormat().toString(),
-              format: result.getBarcodeFormat().toString(),
+              type: formatName,
+              format: formatName,
               confidence: 0.9,
               metadata: {
                 note: `Content extracted using enhanced preprocessing (threshold: ${strategy.threshold})`
@@ -718,6 +721,80 @@ export class BarcodeService {
     } catch (error) {
       console.log('Enhanced preprocessing failed:', error instanceof Error ? error.message : String(error));
       return null;
+    }
+  }
+
+  private getBarcodeFormatName(format: any): string {
+    const formatMap: Record<string, string> = {
+      '1': 'AZTEC',
+      '2': 'CODABAR', 
+      '3': 'CODE_39',
+      '4': 'CODE_93',
+      '5': 'CODE_128',
+      '6': 'DATA_MATRIX',
+      '7': 'EAN_8',
+      '8': 'EAN_13',
+      '9': 'ITF',
+      '10': 'MAXICODE',
+      '11': 'PDF_417',
+      '12': 'QR_CODE',
+      '13': 'RSS_14',
+      '14': 'RSS_EXPANDED',
+      '15': 'UPC_A',
+      '16': 'UPC_E',
+      '17': 'UPC_EAN_EXTENSION'
+    };
+    
+    const formatString = format.toString();
+    return formatMap[formatString] || formatString;
+  }
+
+  private async scanMultipleBarcodes(imageBuffer: Buffer): Promise<BarcodeResult[]> {
+    const results: BarcodeResult[] = [];
+    
+    try {
+      // Try scanning the full image first
+      const fullResult = await this.decodeWithZXing(imageBuffer);
+      if (fullResult) {
+        results.push(fullResult);
+      }
+
+      // Get image metadata for region scanning
+      const metadata = await sharp(imageBuffer).metadata();
+      if (!metadata.width || !metadata.height) return results;
+
+      // Divide image into regions to detect multiple barcodes
+      const regions = [
+        { left: 0, top: 0, width: Math.floor(metadata.width / 2), height: metadata.height }, // Left half
+        { left: Math.floor(metadata.width / 2), top: 0, width: Math.floor(metadata.width / 2), height: metadata.height }, // Right half
+        { left: 0, top: 0, width: metadata.width, height: Math.floor(metadata.height / 2) }, // Top half
+        { left: 0, top: Math.floor(metadata.height / 2), width: metadata.width, height: Math.floor(metadata.height / 2) } // Bottom half
+      ];
+
+      for (const region of regions) {
+        try {
+          const regionBuffer = await sharp(imageBuffer)
+            .extract(region)
+            .toBuffer();
+          
+          const regionResult = await this.decodeWithZXing(regionBuffer);
+          if (regionResult && !results.some(r => r.value === regionResult.value)) {
+            results.push({
+              ...regionResult,
+              metadata: {
+                ...regionResult.metadata,
+                region: `${region.left},${region.top},${region.width},${region.height}`
+              }
+            });
+          }
+        } catch (regionError) {
+          continue;
+        }
+      }
+
+      return results;
+    } catch (error) {
+      return results;
     }
   }
 
