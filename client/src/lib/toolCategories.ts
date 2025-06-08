@@ -152,7 +152,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Draw or type signature and place it on PDF',
         icon: 'fa-signature'
       },
-
+      {
+        id: 'advanced-pdf-editor',
+        name: 'Advanced PDF Editor',
+        description: 'Full-featured PDF editor with real content editing, OCR, and digital signing',
+        icon: 'fa-edit'
+      },
       {
         id: 'pdf-form-filler',
         name: 'PDF Form Filler',

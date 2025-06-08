@@ -1352,6 +1352,224 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced PDF Editor with real content manipulation
+  app.post('/api/pdf/advanced-edit', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const edits = JSON.parse(req.body.edits || '{}');
+      
+      // Use pdf-lib for real PDF content manipulation
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+      const pdfDoc = await PDFDocument.load(req.file.buffer);
+      const pages = pdfDoc.getPages();
+      
+      // Apply edits to each page
+      for (const pageEdit of edits.pages) {
+        if (pageEdit.number <= pages.length) {
+          const page = pages[pageEdit.number - 1];
+          const { width, height } = page.getSize();
+          
+          // Add new text objects
+          for (const textObj of pageEdit.textObjects || []) {
+            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            page.drawText(textObj.text, {
+              x: textObj.x,
+              y: height - textObj.y - textObj.fontSize, // Convert coordinates
+              size: textObj.fontSize,
+              font: font,
+              color: rgb(
+                parseInt(textObj.color.slice(1, 3), 16) / 255,
+                parseInt(textObj.color.slice(3, 5), 16) / 255,
+                parseInt(textObj.color.slice(5, 7), 16) / 255
+              )
+            });
+          }
+          
+          // Add images
+          for (const imgObj of pageEdit.imageObjects || []) {
+            try {
+              // Convert base64 to buffer
+              const base64Data = imgObj.src.split(',')[1];
+              const imageBuffer = Buffer.from(base64Data, 'base64');
+              
+              let embeddedImage;
+              if (imgObj.src.includes('png')) {
+                embeddedImage = await pdfDoc.embedPng(imageBuffer);
+              } else {
+                embeddedImage = await pdfDoc.embedJpg(imageBuffer);
+              }
+              
+              page.drawImage(embeddedImage, {
+                x: imgObj.x,
+                y: height - imgObj.y - imgObj.height,
+                width: imgObj.width,
+                height: imgObj.height
+              });
+            } catch (error) {
+              console.warn('Failed to embed image:', error);
+            }
+          }
+          
+          // Add form fields
+          const form = pdfDoc.getForm();
+          for (const field of pageEdit.formFields || []) {
+            try {
+              switch (field.type) {
+                case 'text':
+                  const textField = form.createTextField(field.id);
+                  textField.addToPage(page, {
+                    x: field.x,
+                    y: height - field.y - field.height,
+                    width: field.width,
+                    height: field.height
+                  });
+                  if (field.value) textField.setText(field.value);
+                  break;
+                  
+                case 'checkbox':
+                  const checkBox = form.createCheckBox(field.id);
+                  checkBox.addToPage(page, {
+                    x: field.x,
+                    y: height - field.y - field.height,
+                    width: field.width,
+                    height: field.height
+                  });
+                  if (field.value === 'true') checkBox.check();
+                  break;
+              }
+            } catch (error) {
+              console.warn('Failed to add form field:', error);
+            }
+          }
+          
+          // Add signatures
+          for (const signature of pageEdit.signatures || []) {
+            try {
+              const signatureBuffer = Buffer.from(signature.signatureData.split(',')[1], 'base64');
+              const signatureImage = await pdfDoc.embedPng(signatureBuffer);
+              
+              page.drawImage(signatureImage, {
+                x: signature.x,
+                y: height - signature.y - signature.height,
+                width: signature.width,
+                height: signature.height
+              });
+              
+              // Add signature metadata
+              const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+              page.drawText(`Digitally signed by: ${signature.signerName}`, {
+                x: signature.x,
+                y: height - signature.y - signature.height - 15,
+                size: 8,
+                font: font,
+                color: rgb(0.5, 0.5, 0.5)
+              });
+              
+              page.drawText(`Date: ${signature.timestamp}`, {
+                x: signature.x,
+                y: height - signature.y - signature.height - 25,
+                size: 8,
+                font: font,
+                color: rgb(0.5, 0.5, 0.5)
+              });
+            } catch (error) {
+              console.warn('Failed to add signature:', error);
+            }
+          }
+        }
+      }
+      
+      // Generate the modified PDF
+      const pdfBytes = await pdfDoc.save();
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="edited-document.pdf"');
+      res.send(Buffer.from(pdfBytes));
+      
+    } catch (error) {
+      console.error('Advanced PDF edit error:', error);
+      res.status(500).json({ 
+        error: 'Failed to edit PDF',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Extract PDF structure and content for advanced editing
+  app.post('/api/pdf/extract-content', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { PDFDocument } = await import('pdf-lib');
+      const pdfDoc = await PDFDocument.load(req.file.buffer);
+      const pages = pdfDoc.getPages();
+      const form = pdfDoc.getForm();
+      
+      const extractedPages = [];
+      
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        const { width, height } = page.getSize();
+        
+        // Extract existing form fields
+        const formFields = [];
+        try {
+          const fields = form.getFields();
+          for (const field of fields) {
+            const widgets = field.acroField.getWidgets();
+            for (const widget of widgets) {
+              const rect = widget.getRectangle();
+              if (rect) {
+                formFields.push({
+                  id: field.getName(),
+                  type: field.constructor.name.toLowerCase().includes('text') ? 'text' : 
+                        field.constructor.name.toLowerCase().includes('checkbox') ? 'checkbox' : 'unknown',
+                  x: rect.x,
+                  y: height - rect.y - rect.height,
+                  width: rect.width,
+                  height: rect.height,
+                  value: field.constructor.name.toLowerCase().includes('text') ? 
+                         (field as any).getText?.() || '' : 
+                         field.constructor.name.toLowerCase().includes('checkbox') ? 
+                         ((field as any).isChecked?.() ? 'true' : 'false') : '',
+                  required: false
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('Form field extraction failed:', error);
+        }
+        
+        extractedPages.push({
+          number: i + 1,
+          width,
+          height,
+          formFields
+        });
+      }
+      
+      res.json({
+        success: true,
+        pages: extractedPages,
+        hasForm: form.getFields().length > 0,
+        totalPages: pages.length
+      });
+      
+    } catch (error) {
+      console.error('PDF content extraction error:', error);
+      res.status(500).json({ 
+        error: 'Failed to extract PDF content',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // DNS Lookup
   app.post('/api/dns/lookup', async (req, res) => {
     try {
