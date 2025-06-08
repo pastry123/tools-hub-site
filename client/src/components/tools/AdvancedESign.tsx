@@ -883,13 +883,27 @@ export default function AdvancedESign() {
               >
                 {pdfFile ? (
                   <div className="relative w-full h-96">
-                    <iframe
-                      src={URL.createObjectURL(pdfFile) + "#page=" + (currentPage + 1) + "&toolbar=0&navpanes=0&scrollbar=0"}
-                      width="100%"
-                      height="100%"
-                      className="border-0"
-                      title={`PDF Page ${currentPage + 1}`}
-                    />
+                    {/* Display enhanced content-based preview for accurate signature placement */}
+                    {pdfPages[currentPage] ? (
+                      <img
+                        src={pdfPages[currentPage]}
+                        alt={`Page ${currentPage + 1}`}
+                        className="max-w-full h-auto bg-white"
+                        style={{ 
+                          minHeight: '384px',
+                          objectFit: 'contain',
+                          width: '100%'
+                        }}
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-gray-100 text-gray-600">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto mb-2" />
+                          <p className="text-sm">Loading document content...</p>
+                        </div>
+                      </div>
+                    )}
                     {/* Clickable overlay for signature field positioning */}
                     <div 
                       className="absolute inset-0 bg-transparent cursor-crosshair" 

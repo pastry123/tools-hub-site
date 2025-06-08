@@ -551,35 +551,48 @@ export class ESignService {
     const width = pdfWidth * scaleFactor;
     const height = pdfHeight * scaleFactor;
     
-    // Generate text lines based on actual content
+    // Generate realistic text representation based on actual content
     let textElements = '';
     let yPosition = 80;
-    const lineHeight = 16;
+    const lineHeight = 18;
     const maxWidth = width - 120;
     
     if (pageContent.lines && pageContent.lines.length > 0) {
       pageContent.lines.forEach((line: string, index: number) => {
         if (yPosition > height - 100) return; // Stop if near bottom
         
-        const textLength = Math.min(line.length, 80);
-        const textWidth = Math.min(textLength * 6, maxWidth);
-        const fontSize = line.length > 50 ? 10 : 12;
+        const trimmedLine = line.trim();
+        if (trimmedLine.length === 0) {
+          yPosition += lineHeight * 0.5; // Half spacing for empty lines
+          return;
+        }
         
+        // Determine line characteristics
+        const isTitle = trimmedLine.length < 50 && (trimmedLine.includes(':') || /^[A-Z\s]+$/.test(trimmedLine));
+        const isHeader = trimmedLine.length < 30 && /^[A-Z]/.test(trimmedLine) && !trimmedLine.includes('.');
+        const lineWidth = Math.min((trimmedLine.length * 7) + 20, maxWidth);
+        const fontSize = isTitle ? 14 : isHeader ? 12 : 10;
+        const fontWeight = isTitle || isHeader ? 'bold' : 'normal';
+        const color = isTitle ? '#1a202c' : isHeader ? '#2d3748' : '#4a5568';
+        
+        // Add actual text content as SVG text
         textElements += `
-          <rect x="60" y="${yPosition}" width="${textWidth}" height="${fontSize}" fill="${line.trim().length > 0 ? '#2d3748' : '#e2e8f0'}"/>
+          <text x="60" y="${yPosition + fontSize}" 
+                font-family="Arial, sans-serif" 
+                font-size="${fontSize}" 
+                font-weight="${fontWeight}"
+                fill="${color}"
+                xml:space="preserve">${trimmedLine.substring(0, Math.floor(maxWidth / 8))}</text>
         `;
         
         yPosition += lineHeight;
       });
     } else {
-      // Fallback content structure
-      for (let i = 0; i < 15; i++) {
-        const lineWidth = Math.random() * maxWidth * 0.6 + maxWidth * 0.3;
-        textElements += `
-          <rect x="60" y="${yPosition}" width="${lineWidth}" height="12" fill="#cbd5e0"/>
-        `;
-        yPosition += lineHeight;
-      }
+      // Minimal fallback structure
+      textElements = `
+        <text x="60" y="100" font-family="Arial" font-size="14" fill="#2d3748" font-weight="bold">Document Content</text>
+        <text x="60" y="130" font-family="Arial" font-size="12" fill="#4a5568">No text content extracted</text>
+      `;
     }
     
     // Highlight suggested signature areas
