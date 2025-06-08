@@ -472,6 +472,18 @@ export const toolCategories: ToolCategory[] = [
         name: 'Website Screenshot',
         description: 'Get full-page screenshot of any website',
         icon: 'fa-camera'
+      },
+      {
+        id: 'api-access',
+        name: 'API Access',
+        description: 'Developer API keys and documentation',
+        icon: 'fa-key'
+      },
+      {
+        id: 'mobile-app-plan',
+        name: 'Mobile App Plans',
+        description: 'ToolHub mobile application roadmap and features',
+        icon: 'fa-mobile-alt'
       }
     ]
   }

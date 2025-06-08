@@ -62,6 +62,8 @@ import InvoiceGenerator from "@/components/tools/InvoiceGenerator";
 import SignatureGenerator from "@/components/tools/SignatureGenerator";
 import AdvancedESign from "@/components/tools/AdvancedESign";
 import PDFEditor from "@/components/tools/PDFEditor";
+import APIAccess from "@/components/tools/APIAccess";
+import MobileAppPlan from "@/components/tools/MobileAppPlan";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
 import TimezoneConverter from "@/components/tools/TimezoneConverter";
@@ -262,6 +264,10 @@ export default function ToolPage() {
         return <DNSLookup />;
       case 'website-screenshot':
         return <WebsiteScreenshot />;
+      case 'api-access':
+        return <APIAccess />;
+      case 'mobile-app-plan':
+        return <MobileAppPlan />;
       default:
         return (
           <Card>
