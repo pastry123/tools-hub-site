@@ -79,6 +79,30 @@ export const toolCategories: ToolCategory[] = [
         name: 'Images to PDF',
         description: 'Convert images to PDF format',
         icon: 'fa-images'
+      },
+      {
+        id: 'pdf-to-images',
+        name: 'PDF to Images',
+        description: 'Convert PDF pages to image files',
+        icon: 'fa-file-image'
+      },
+      {
+        id: 'pdf-watermark',
+        name: 'PDF Watermark',
+        description: 'Add watermarks to PDF files',
+        icon: 'fa-tint'
+      },
+      {
+        id: 'pdf-rotate',
+        name: 'PDF Rotate',
+        description: 'Rotate PDF pages',
+        icon: 'fa-redo'
+      },
+      {
+        id: 'pdf-protect',
+        name: 'PDF Protect',
+        description: 'Password protect PDF files',
+        icon: 'fa-lock'
       }
     ]
   },
@@ -151,6 +175,24 @@ export const toolCategories: ToolCategory[] = [
         name: 'Lorem Ipsum Generator',
         description: 'Generate placeholder text',
         icon: 'fa-paragraph'
+      },
+      {
+        id: 'password-generator',
+        name: 'Password Generator',
+        description: 'Generate secure passwords',
+        icon: 'fa-key'
+      },
+      {
+        id: 'hash-generator',
+        name: 'Hash Generator',
+        description: 'Generate MD5, SHA1, SHA256 hashes',
+        icon: 'fa-hashtag'
+      },
+      {
+        id: 'text-diff',
+        name: 'Text Diff',
+        description: 'Compare and find differences between texts',
+        icon: 'fa-code-branch'
       }
     ]
   },

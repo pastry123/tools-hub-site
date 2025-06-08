@@ -51,6 +51,7 @@ import HTMLEncoder from "@/components/tools/HTMLEncoder";
 import CSSMinifier from "@/components/tools/CSSMinifier";
 import JSMinifier from "@/components/tools/JSMinifier";
 import LoremPicsum from "@/components/tools/LoremPicsum";
+import TextDiffTool from "@/components/tools/TextDiffTool";
 import PDFRotate from "@/components/tools/PDFRotate";
 import PDFWatermark from "@/components/tools/PDFWatermark";
 import ImageToText from "@/components/tools/ImageToText";
@@ -124,16 +125,22 @@ export default function ToolPage() {
         return <PDFCompressor />;
       case 'pdf-to-text':
       case 'images-to-pdf':
+      case 'pdf-to-images':
         return <PDFConverter />;
       case 'pdf-watermark':
         return <PDFWatermark />;
       case 'pdf-rotate':
         return <PDFRotate />;
+      case 'pdf-protect':
       case 'pdf-protector':
       case 'pdf-unlock':
         return <PDFProtector />;
       case 'password-generator':
         return <PasswordGenerator />;
+      case 'hash-generator':
+        return <HashGenerator />;
+      case 'text-diff':
+        return <TextDiffTool />;
       case 'image-compressor':
         return <ImageCompressor />;
       case 'background-remover':
