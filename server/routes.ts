@@ -11,6 +11,7 @@ import { generatorService } from "./generatorService";
 import { developerService } from "./developerService";
 import { barcodeService } from "./barcodeService";
 import { currencyService } from "./currencyService";
+import { analyticsService } from "./analyticsService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -982,10 +983,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get current exchange rates
   app.get('/api/currency/rates', async (req, res) => {
+    const startTime = Date.now();
     try {
       const rates = await currencyService.getExchangeRates();
+      const responseTime = Date.now() - startTime;
+      analyticsService.trackToolUsage('currency-rates', 'Currency Exchange Rates', 'Converters & Utilities', responseTime, true);
       res.json(rates);
     } catch (error) {
+      const responseTime = Date.now() - startTime;
+      analyticsService.trackToolUsage('currency-rates', 'Currency Exchange Rates', 'Converters & Utilities', responseTime, false);
       console.error('Currency rates error:', error);
       res.status(500).json({ error: 'Failed to fetch exchange rates' });
     }
@@ -993,6 +999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Convert currency
   app.post('/api/currency/convert', async (req, res) => {
+    const startTime = Date.now();
     try {
       const { amount, from, to } = req.body;
       
@@ -1001,6 +1008,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const result = await currencyService.convertCurrency(parseFloat(amount), from, to);
+      const responseTime = Date.now() - startTime;
+      analyticsService.trackToolUsage('currency-converter', 'Currency Converter', 'Converters & Utilities', responseTime, true);
+      
       res.json({ 
         amount: parseFloat(amount),
         from,
@@ -1009,8 +1019,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
+      const responseTime = Date.now() - startTime;
+      analyticsService.trackToolUsage('currency-converter', 'Currency Converter', 'Converters & Utilities', responseTime, false);
       console.error('Currency conversion error:', error);
       res.status(500).json({ error: 'Failed to convert currency' });
+    }
+  });
+
+  // ANALYTICS DASHBOARD ENDPOINTS
+
+  // Get system metrics overview
+  app.get('/api/analytics/metrics', async (req, res) => {
+    try {
+      const metrics = analyticsService.getSystemMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error('Analytics metrics error:', error);
+      res.status(500).json({ error: 'Failed to fetch system metrics' });
+    }
+  });
+
+  // Get popular tools
+  app.get('/api/analytics/popular-tools', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const popularTools = analyticsService.getPopularTools(limit);
+      res.json(popularTools);
+    } catch (error) {
+      console.error('Popular tools error:', error);
+      res.status(500).json({ error: 'Failed to fetch popular tools' });
+    }
+  });
+
+  // Get recent activity
+  app.get('/api/analytics/recent-activity', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const recentActivity = analyticsService.getRecentActivity(limit);
+      res.json(recentActivity);
+    } catch (error) {
+      console.error('Recent activity error:', error);
+      res.status(500).json({ error: 'Failed to fetch recent activity' });
+    }
+  });
+
+  // Get daily statistics
+  app.get('/api/analytics/daily-stats', async (req, res) => {
+    try {
+      const days = parseInt(req.query.days as string) || 7;
+      const dailyStats = analyticsService.getDailyStats(days);
+      res.json(dailyStats);
+    } catch (error) {
+      console.error('Daily stats error:', error);
+      res.status(500).json({ error: 'Failed to fetch daily statistics' });
+    }
+  });
+
+  // Get category breakdown
+  app.get('/api/analytics/categories', async (req, res) => {
+    try {
+      const categoryBreakdown = analyticsService.getCategoryBreakdown();
+      res.json(categoryBreakdown);
+    } catch (error) {
+      console.error('Category breakdown error:', error);
+      res.status(500).json({ error: 'Failed to fetch category breakdown' });
     }
   });
 
