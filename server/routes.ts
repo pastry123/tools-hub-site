@@ -1316,73 +1316,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pdfDoc = await PDFDocument.load(req.file.buffer);
       const pages = pdfDoc.getPages();
       
-      // Process edits for each page
-      for (const pageEdit of edits.pages || []) {
-        const pageIndex = pageEdit.number - 1;
-        if (pageIndex >= 0 && pageIndex < pages.length) {
-          const page = pages[pageIndex];
-          
-          // Add new text elements
-          for (const textEl of pageEdit.textElements || []) {
-            try {
-              const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-              
-              page.drawText(textEl.text, {
-                x: textEl.x,
-                y: page.getHeight() - textEl.y - textEl.height,
-                size: textEl.fontSize,
-                font: font,
-                color: rgb(
-                  parseInt(textEl.color.slice(1, 3), 16) / 255,
-                  parseInt(textEl.color.slice(3, 5), 16) / 255,
-                  parseInt(textEl.color.slice(5, 7), 16) / 255
-                )
-              });
-            } catch (error) {
-              console.warn('Failed to add text element:', error);
-            }
+      // Add text elements to appropriate pages
+      for (const textEl of edits.textElements || []) {
+        try {
+          const pageIndex = textEl.page - 1;
+          if (pageIndex >= 0 && pageIndex < pages.length) {
+            const page = pages[pageIndex];
+            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            
+            // Convert hex color to RGB
+            const hexColor = textEl.color || '#000000';
+            const r = parseInt(hexColor.slice(1, 3), 16) / 255;
+            const g = parseInt(hexColor.slice(3, 5), 16) / 255;
+            const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+            
+            page.drawText(textEl.text, {
+              x: textEl.x,
+              y: page.getHeight() - textEl.y - 20, // Adjust for text baseline
+              size: textEl.fontSize || 16,
+              font: font,
+              color: rgb(r, g, b)
+            });
           }
-          
-          // Add signatures
-          for (const sig of pageEdit.signatures || []) {
-            try {
-              // Convert base64 signature to image
-              const signatureImageBytes = Buffer.from(
-                sig.signatureData.replace(/^data:image\/[a-z]+;base64,/, ''),
-                'base64'
-              );
-              
-              const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
-              
-              page.drawImage(signatureImage, {
-                x: sig.x,
-                y: page.getHeight() - sig.y - sig.height,
-                width: sig.width,
-                height: sig.height
-              });
-              
-              // Add signature metadata
-              const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-              page.drawText(`Signed by: ${sig.signerName}`, {
-                x: sig.x,
-                y: page.getHeight() - sig.y - sig.height - 15,
-                size: 8,
-                font: font,
-                color: rgb(0.5, 0.5, 0.5)
-              });
-              
-              page.drawText(`Date: ${sig.timestamp.toLocaleDateString()}`, {
-                x: sig.x,
-                y: page.getHeight() - sig.y - sig.height - 25,
-                size: 8,
-                font: font,
-                color: rgb(0.5, 0.5, 0.5)
-              });
-              
-            } catch (error) {
-              console.warn('Failed to add signature:', error);
-            }
-          }
+        } catch (error) {
+          console.warn('Failed to add text element:', error);
         }
       }
       
