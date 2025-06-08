@@ -10,6 +10,7 @@ import { converterService } from "./converterService";
 import { generatorService } from "./generatorService";
 import { developerService } from "./developerService";
 import { barcodeService } from "./barcodeService";
+import { currencyService } from "./currencyService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -974,6 +975,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Multiple barcode scan error:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to scan barcodes' });
+    }
+  });
+
+  // CURRENCY CONVERSION ENDPOINTS
+
+  // Get current exchange rates
+  app.get('/api/currency/rates', async (req, res) => {
+    try {
+      const rates = await currencyService.getExchangeRates();
+      res.json(rates);
+    } catch (error) {
+      console.error('Currency rates error:', error);
+      res.status(500).json({ error: 'Failed to fetch exchange rates' });
+    }
+  });
+
+  // Convert currency
+  app.post('/api/currency/convert', async (req, res) => {
+    try {
+      const { amount, from, to } = req.body;
+      
+      if (!amount || !from || !to) {
+        return res.status(400).json({ error: 'Amount, from, and to currencies are required' });
+      }
+
+      const result = await currencyService.convertCurrency(parseFloat(amount), from, to);
+      res.json({ 
+        amount: parseFloat(amount),
+        from,
+        to,
+        result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Currency conversion error:', error);
+      res.status(500).json({ error: 'Failed to convert currency' });
     }
   });
 

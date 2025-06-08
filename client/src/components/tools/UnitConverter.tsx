@@ -89,7 +89,7 @@ const conversions = {
 };
 
 export default function UnitConverter() {
-  const [activeTab, setActiveTab] = useState("length");
+  const [activeTab, setActiveTab] = useState("currency");
   const [inputValue, setInputValue] = useState("");
   const [fromUnit, setFromUnit] = useState("");
   const [toUnit, setToUnit] = useState("");
@@ -180,11 +180,23 @@ export default function UnitConverter() {
       convertedValue = baseValue / toUnitData.value;
     }
 
-    setResult(convertedValue.toString());
+    // Format result based on conversion type
+    let formattedResult = convertedValue.toString();
+    let toastDescription = "";
+
+    if (activeTab === "currency") {
+      formattedResult = convertedValue.toFixed(2);
+      toastDescription = `${value} ${fromUnitData.symbol} = ${formattedResult} ${toUnitData.symbol}`;
+    } else {
+      formattedResult = convertedValue.toFixed(6);
+      toastDescription = `${value} ${fromUnitData.symbol} = ${formattedResult} ${toUnitData.symbol}`;
+    }
+
+    setResult(formattedResult);
     
     toast({
       title: "Conversion Complete",
-      description: `${value} ${fromUnitData.symbol} = ${convertedValue.toFixed(6)} ${toUnitData.symbol}`,
+      description: toastDescription,
     });
   };
 
@@ -240,10 +252,37 @@ export default function UnitConverter() {
           <TabsContent key={key} value={key}>
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-slate-800 mb-4 flex items-center">
-                  <Calculator className="w-5 h-5 mr-2" />
-                  {category.name} Converter
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-slate-800 dark:text-white flex items-center">
+                    <Calculator className="w-5 h-5 mr-2" />
+                    {category.name} Converter
+                  </h3>
+                  {key === 'currency' && (
+                    <div className="flex items-center gap-2">
+                      {isLoadingRates && (
+                        <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={fetchExchangeRates}
+                        disabled={isLoadingRates}
+                      >
+                        <RefreshCw className="w-4 h-4 mr-1" />
+                        Refresh Rates
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {key === 'currency' && lastUpdated && (
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
+                      <Clock className="w-4 h-4 mr-2" />
+                      Exchange rates last updated: {new Date(lastUpdated).toLocaleString()}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* From */}
