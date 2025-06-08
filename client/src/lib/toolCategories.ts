@@ -127,6 +127,18 @@ export const toolCategories: ToolCategory[] = [
         name: 'PDF Unlock',
         description: 'Remove password protection from PDF files',
         icon: 'fa-unlock'
+      },
+      {
+        id: 'pdf-page-numbers',
+        name: 'Add Page Numbers',
+        description: 'Automatically number the pages of a PDF',
+        icon: 'fa-list-ol'
+      },
+      {
+        id: 'pdf-esign',
+        name: 'eSign PDF',
+        description: 'Draw or type signature and place it on PDF',
+        icon: 'fa-signature'
       }
     ]
   },
@@ -316,6 +328,24 @@ export const toolCategories: ToolCategory[] = [
         name: 'Unit Converter',
         description: 'Convert between various units of measurement',
         icon: 'fa-calculator'
+      },
+      {
+        id: 'timezone-converter',
+        name: 'Time Zone Converter',
+        description: 'See what time it is in different parts of the world',
+        icon: 'fa-globe'
+      },
+      {
+        id: 'video-to-gif',
+        name: 'Video to GIF Converter',
+        description: 'Create animated GIF from video file',
+        icon: 'fa-film'
+      },
+      {
+        id: 'audio-converter',
+        name: 'Audio Converter',
+        description: 'Convert between MP3, WAV, OGG formats',
+        icon: 'fa-music'
       }
     ]
   },
@@ -424,6 +454,18 @@ export const toolCategories: ToolCategory[] = [
         name: 'Lorem Picsum',
         description: 'Generate random images from Lorem Picsum',
         icon: 'fa-random'
+      },
+      {
+        id: 'dns-lookup',
+        name: 'DNS Lookup / Whois',
+        description: 'Find information about a domain name',
+        icon: 'fa-search'
+      },
+      {
+        id: 'website-screenshot',
+        name: 'Website Screenshot',
+        description: 'Get full-page screenshot of any website',
+        icon: 'fa-camera'
       }
     ]
   }
