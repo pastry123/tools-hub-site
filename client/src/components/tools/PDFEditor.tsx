@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { PDFDocument, rgb } from "pdf-lib";
 import { Button } from "@/components/ui/button";
+import SignatureCanvas from "react-signature-canvas";
 
 interface TextField {
   id: number;
@@ -33,6 +34,9 @@ export default function PDFEditor() {
   const [fields, setFields] = useState<TextField[]>([]);
   const [images, setImages] = useState<ImageField[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null);
+  const signaturePadRef = useRef<SignatureCanvas>(null);
 
   async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
