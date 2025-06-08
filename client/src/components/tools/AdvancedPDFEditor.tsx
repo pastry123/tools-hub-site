@@ -20,7 +20,11 @@ import SignatureCanvas from 'react-signature-canvas';
 
 // PDF.js configuration
 import * as pdfjsLib from 'pdfjs-dist';
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+// Use the worker from the same version as the installed package
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url
+).toString();
 
 interface PDFPage {
   id: string;
@@ -171,29 +175,48 @@ export default function AdvancedPDFEditor() {
           bold: false,
           italic: false,
           underline: false,
-          alignment: 'left',
+          alignment: 'left' as const,
           isSelected: false,
           isEditing: false,
           isOriginal: true
         })).filter((obj: any) => obj.text.trim().length > 0);
         
         // Perform OCR using Tesseract for enhanced text extraction
-        if (pageNum === 1) {
+        if (pageNum === 1 && textElements.length < 5) {
           setOcrProgress(0);
           try {
-            const { createWorker } = await import('tesseract.js');
-            const worker = await createWorker('eng');
+            const Tesseract = await import('tesseract.js');
+            const worker = await Tesseract.createWorker('eng');
             
-            const { data } = await worker.recognize(canvas, {
-              logger: (m: any) => {
-                if (m.status === 'recognizing text') {
-                  setOcrProgress(Math.round(m.progress * 100));
-                }
-              }
-            });
+            const { data } = await worker.recognize(canvas);
             
             // Add OCR-detected text that wasn't found by PDF.js
-            if (data.words) {
+            if (data.text && data.text.trim()) {
+              // Simple text block approach instead of word-by-word
+              const ocrText = data.text.trim();
+              if (ocrText.length > 10) {
+                textElements.push({
+                  id: `ocr-${pageNum}-block`,
+                  text: ocrText.substring(0, 200),
+                  x: 50,
+                  y: 50,
+                  width: 400,
+                  height: 100,
+                  fontSize: 12,
+                  fontFamily: 'Arial',
+                  color: '#000000',
+                  bold: false,
+                  italic: false,
+                  underline: false,
+                  alignment: 'left' as const,
+                  isSelected: false,
+                  isEditing: false,
+                  isOriginal: true
+                });
+              }
+            }
+            
+            if (false && data.words && Array.isArray(data.words)) {
               data.words.forEach((word: any, index: number) => {
                 if (word.confidence > 60 && word.text.trim()) {
                   const existingText = textElements.find(te => 
@@ -215,7 +238,7 @@ export default function AdvancedPDFEditor() {
                       bold: false,
                       italic: false,
                       underline: false,
-                      alignment: 'left',
+                      alignment: 'left' as const,
                       isSelected: false,
                       isEditing: false,
                       isOriginal: true
@@ -226,8 +249,9 @@ export default function AdvancedPDFEditor() {
             }
             
             await worker.terminate();
+            setOcrProgress(100);
           } catch (error) {
-            console.warn('OCR failed:', error);
+            console.warn('OCR processing failed:', error);
           }
         }
         
