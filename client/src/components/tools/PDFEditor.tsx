@@ -1,165 +1,82 @@
 import { useState, useRef } from "react";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
-import SignatureCanvas from "react-signature-canvas";
-
-interface TextField {
-  id: number;
-  x: number;
-  y: number;
-  text: string;
-  width: number;
-  height: number;
-  page: number;
-  color: string;
-}
-
-interface ImageField {
-  id: number;
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  type: string;
-  page: number;
-}
 
 export default function PDFEditor() {
   const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
   const [url, setUrl] = useState<string | null>(null);
-  const [pageIndex, setPageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const [transparentField, setTransparentField] = useState(false);
-  const [fields, setFields] = useState<TextField[]>([]);
-  const [images, setImages] = useState<ImageField[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [textColor, setTextColor] = useState("#000000");
-  const [showSignaturePad, setShowSignaturePad] = useState(false);
-  const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null);
-  const signaturePadRef = useRef<SignatureCanvas>(null);
 
   async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const arrayBuffer = await file.arrayBuffer();
+
+    // Load encrypted PDFs too
     const loadedPdf = await PDFDocument.load(arrayBuffer, {
       updateMetadata: true,
       ignoreEncryption: true,
     });
+
     setPdfDoc(loadedPdf);
     const blob = new Blob([arrayBuffer], { type: "application/pdf" });
     setUrl(URL.createObjectURL(blob));
-    setPageIndex(0);
   }
 
-  function addDraggableText() {
-    const id = Date.now();
-    setFields([...fields, { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30, page: pageIndex, color: textColor }]);
-  }
-
-  function updateField(id: number, updates: Partial<TextField>) {
-    setFields(fields.map(f => f.id === id ? { ...f, ...updates } : f));
-  }
-
-  function deleteSelected() {
-    setFields(fields.filter(f => f.id !== selectedId));
-    setImages(images.filter(i => i.id !== selectedId));
-    setSelectedId(null);
-  }
-
-  function startDrag(e: React.MouseEvent<HTMLTextAreaElement>, id: number) {
-    setSelectedId(id);
-    const offsetX = e.nativeEvent.offsetX;
-    const offsetY = e.nativeEvent.offsetY;
-    const onMove = (moveEvent: MouseEvent) => {
-      updateField(id, {
-        x: moveEvent.clientX - offsetX,
-        y: moveEvent.clientY - offsetY,
-      });
-    };
-    const onUp = () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-    };
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  }
-
-  async function renderToPdf() {
+  async function addEditableTextField() {
     if (!pdfDoc) return;
-    const page = pdfDoc.getPages()[pageIndex];
-    fields.filter(f => f.page === pageIndex).forEach(field => {
-      const [r, g, b] = hexToRgb(field.color || "#000000");
-      page.drawText(field.text, {
-        x: field.x,
-        y: page.getHeight() - field.y - field.height,
-        size: 12,
-        color: rgb(r / 255, g / 255, b / 255),
-        ...(transparentField ? {} : { backgroundColor: rgb(1, 1, 1) }),
-      });
+    const form = pdfDoc.getForm();
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+
+    const textField = form.createTextField("toolhub-edit-field");
+    textField.setText("Edit me");
+    textField.addToPage(firstPage, {
+      x: 50,
+      y: firstPage.getHeight() - 100,
+      width: 300,
+      height: 24,
+      textColor: rgb(0, 0, 0),
+      backgroundColor: rgb(1, 1, 1),
+      borderColor: rgb(0.5, 0.5, 0.5),
+      borderWidth: 1,
     });
 
-    for (const img of images.filter(i => i.page === pageIndex)) {
-      const imageBytes = await fetch(img.url).then(res => res.arrayBuffer());
-      let embeddedImg;
-      if (img.type === "image/jpeg") {
-        embeddedImg = await pdfDoc.embedJpg(imageBytes);
-      } else {
-        embeddedImg = await pdfDoc.embedPng(imageBytes);
-      }
-      page.drawImage(embeddedImg, {
-        x: img.x,
-        y: page.getHeight() - img.y - img.height,
-        width: img.width,
-        height: img.height,
-      });
-    }
+    form.updateFieldAppearances();
 
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     setUrl(URL.createObjectURL(blob));
-    setFields([]);
   }
 
-  function hexToRgb(hex: string): [number, number, number] {
-    const bigint = parseInt(hex.slice(1), 16);
-    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-  }
+  async function addImageToFirstPage(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!pdfDoc || !files || !files[0]) return;
+    const file = files[0];
+    const imageBytes = await file.arrayBuffer();
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+    const { width, height } = firstPage.getSize();
 
-  function addImageOverlay(file: File) {
-    const url = URL.createObjectURL(file);
-    const id = Date.now();
-    setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 150, type: file.type, page: pageIndex }]);
-  }
+    let img;
+    if (file.type === "image/jpeg") {
+      img = await pdfDoc.embedJpg(imageBytes);
+    } else {
+      img = await pdfDoc.embedPng(imageBytes);
+    }
 
-  function addImageOverlayFromURL(url: string, type: string) {
-    const id = Date.now();
-    setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 80, type, page: pageIndex }]);
-  }
+    const imgDims = img.scale(0.5);
 
-  function updateImage(id: number, updates: Partial<ImageField>) {
-    const updated = images.map(img => img.id === id ? { ...img, ...updates } : img);
-    setImages(updated);
-  }
+    firstPage.drawImage(img, {
+      x: width / 2 - imgDims.width / 2,
+      y: height / 2 - imgDims.height / 2,
+      width: imgDims.width,
+      height: imgDims.height,
+    });
 
-  function startImageDrag(e: React.MouseEvent<HTMLImageElement>, id: number) {
-    setSelectedId(id);
-    const offsetX = e.nativeEvent.offsetX;
-    const offsetY = e.nativeEvent.offsetY;
-    const onMove = (moveEvent: MouseEvent) => {
-      updateImage(id, {
-        x: moveEvent.clientX - offsetX,
-        y: moveEvent.clientY - offsetY,
-      });
-    };
-    const onUp = () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-    };
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    setUrl(URL.createObjectURL(blob));
   }
 
   async function downloadPdf() {
@@ -172,136 +89,30 @@ export default function PDFEditor() {
     a.click();
   }
 
-  const nextPage = () => {
-    if (pdfDoc && pageIndex < pdfDoc.getPages().length - 1) {
-      setPageIndex(pageIndex + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (pdfDoc && pageIndex > 0) {
-      setPageIndex(pageIndex - 1);
-    }
-  };
-
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">ToolHub PDF Editor</h1>
       <input type="file" accept="application/pdf" onChange={loadPdf} ref={fileInputRef} />
-      <div className="relative w-full h-[500px] border overflow-hidden">
-        {url && (
-          <>
-            <iframe
-              src={`${url}#page=${pageIndex + 1}`}
-              className="w-full h-full absolute z-0"
-              title="PDF Preview"
-            ></iframe>
-            <div ref={overlayRef} className="absolute inset-0 z-10">
-              {fields.filter(f => f.page === pageIndex).map(field => (
-                <textarea
-                  key={field.id}
-                  value={field.text}
-                  onChange={e => updateField(field.id, { text: e.target.value })}
-                  onMouseDown={e => startDrag(e, field.id)}
-                  style={{
-                    position: "absolute",
-                    left: field.x,
-                    top: field.y,
-                    width: field.width,
-                    height: field.height,
-                    background: transparentField ? "transparent" : "white",
-                    border: "1px solid #aaa",
-                    resize: "both",
-                    color: field.color || "#000000",
-                  }}
-                />
-              ))}
-              {images.filter(i => i.page === pageIndex).map(img => (
-                <img
-                  key={img.id}
-                  src={img.url}
-                  onMouseDown={e => startImageDrag(e, img.id)}
-                  style={{
-                    position: "absolute",
-                    left: img.x,
-                    top: img.y,
-                    width: img.width,
-                    height: img.height,
-                    cursor: "move",
-                  }}
-                  draggable={false}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      {url && (
+        <iframe
+          src={url}
+          className="w-full h-[500px] border"
+          title="PDF Preview"
+        ></iframe>
+      )}
       <div className="space-x-2">
-        <Button onClick={addDraggableText}>Add Editable Text</Button>
-        <Button onClick={() => setShowSignaturePad(true)}>Add Signature</Button>
-        <Button onClick={renderToPdf}>Apply Changes to PDF</Button>
+        <Button onClick={addEditableTextField}>Add Editable Text</Button>
         <label className="cursor-pointer inline-block">
           <span className="px-3 py-2 bg-gray-200 rounded">Add Image</span>
           <input
             type="file"
             accept="image/png, image/jpeg"
             className="hidden"
-            onChange={e => e.target.files?.[0] && addImageOverlay(e.target.files[0])}
+            onChange={addImageToFirstPage}
           />
         </label>
         <Button onClick={downloadPdf}>Download PDF</Button>
-        <Button onClick={deleteSelected} variant="destructive">Delete Selected</Button>
       </div>
-      <div className="flex gap-2 items-center">
-        <Button onClick={prevPage} disabled={pageIndex === 0}>Previous Page</Button>
-        <Button onClick={nextPage} disabled={pdfDoc && pageIndex >= pdfDoc.getPages().length - 1}>Next Page</Button>
-        <span>Page {pageIndex + 1}</span>
-      </div>
-      <label className="block pt-2">
-        <input
-          type="checkbox"
-          checked={transparentField}
-          onChange={(e) => setTransparentField(e.target.checked)}
-          className="mr-2"
-        />
-        Transparent Background
-      </label>
-      <label className="block pt-2">
-        <span className="mr-2">Text Color:</span>
-        <input
-          type="color"
-          value={textColor}
-          onChange={(e) => setTextColor(e.target.value)}
-        />
-      </label>
-      {showSignaturePad && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded space-y-4 shadow-xl w-[400px]">
-            <h2 className="text-xl font-semibold">Sign Here</h2>
-            <SignatureCanvas
-              ref={signaturePadRef}
-              penColor="black"
-              canvasProps={{ width: 350, height: 150, className: 'border' }}
-            />
-            <div className="flex justify-between">
-              <Button onClick={() => signaturePadRef.current?.clear()}>Clear</Button>
-              <Button
-                onClick={() => {
-                  if (signaturePadRef.current) {
-                    const url = signaturePadRef.current.getTrimmedCanvas().toDataURL("image/png");
-                    setSignatureDataURL(url);
-                    addImageOverlayFromURL(url, "image/png");
-                    setShowSignaturePad(false);
-                  }
-                }}
-              >
-                Save Signature
-              </Button>
-              <Button variant="destructive" onClick={() => setShowSignaturePad(false)}>Cancel</Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
