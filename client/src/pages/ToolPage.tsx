@@ -28,6 +28,7 @@ import CodeFormatter from "@/components/tools/CodeFormatter";
 import TextToSlug from "@/components/tools/TextToSlug";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import ColorConverter from "@/components/tools/ColorConverter";
+import CurrencyConverter from "@/components/tools/CurrencyConverter";
 import UUIDGenerator from "@/components/tools/UUIDGenerator";
 import TimestampConverter from "@/components/tools/TimestampConverter";
 import Base64Encoder from "@/components/tools/Base64Encoder";

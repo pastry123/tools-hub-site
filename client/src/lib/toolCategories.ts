@@ -86,7 +86,8 @@ export const toolCategories: ToolCategory[] = [
     icon: "fa-exchange-alt",
     color: "orange",
     tools: [
-      { id: "unit-converter", name: "Unit Converter", description: "Convert between different measurement units", icon: "fa-balance-scale", popular: true },
+      { id: "currency-converter", name: "Currency Converter", description: "Convert between currencies with live exchange rates", icon: "fa-coins", popular: true },
+      { id: "unit-converter", name: "Unit Converter", description: "Convert between different measurement units", icon: "fa-balance-scale" },
       { id: "color-converter", name: "Color Converter", description: "Convert between HEX, RGB, HSL color formats", icon: "fa-palette" },
       { id: "timestamp-converter", name: "Timestamp Converter", description: "Convert Unix timestamps to readable dates", icon: "fa-clock" },
       { id: "base64-encoder", name: "Base64 Encoder/Decoder", description: "Encode and decode Base64 strings", icon: "fa-code" },
