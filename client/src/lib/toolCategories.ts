@@ -139,6 +139,12 @@ export const toolCategories: ToolCategory[] = [
         name: 'eSign PDF',
         description: 'Draw or type signature and place it on PDF',
         icon: 'fa-signature'
+      },
+      {
+        id: 'pdf-editor',
+        name: 'Advanced PDF Editor',
+        description: 'Comprehensive PDF editing with batch processing',
+        icon: 'fa-edit'
       }
     ]
   },

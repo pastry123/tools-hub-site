@@ -1205,6 +1205,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF Info endpoint for advanced editor
+  app.post('/api/pdf/info', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const info = await pdfService.getPDFInfo(req.file.buffer);
+      res.json(info);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to get PDF info' });
+    }
+  });
+
+  // Batch PDF processing endpoint
+  app.post('/api/pdf/batch-process', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { operations } = req.body;
+      let processedBuffer = req.file.buffer;
+      
+      if (operations) {
+        const operationsList = JSON.parse(operations);
+        
+        for (const operation of operationsList) {
+          switch (operation.type) {
+            case 'rotate':
+              processedBuffer = await pdfService.rotatePDF(processedBuffer, operation.params.angle);
+              break;
+            case 'compress':
+              processedBuffer = await pdfService.compressPDF(processedBuffer, {
+                compressionLevel: operation.params.level > 50 ? 'high' : 'medium'
+              });
+              break;
+            case 'watermark':
+              processedBuffer = await pdfService.addWatermark(processedBuffer, operation.params.text);
+              break;
+            case 'password':
+              processedBuffer = await pdfService.protectPDF(processedBuffer, operation.params.password);
+              break;
+            case 'split':
+              // For split operations, return the first part
+              const splitResults = await pdfService.splitPDF(processedBuffer, {
+                splitType: operation.params.type,
+                splitValue: operation.params.value
+              });
+              if (splitResults.length > 0) {
+                processedBuffer = splitResults[0].data;
+              }
+              break;
+            case 'extract-pages':
+              const extractResults = await pdfService.splitPDF(processedBuffer, {
+                splitType: 'ranges',
+                ranges: parsePageRanges(operation.params.value)
+              });
+              if (extractResults.length > 0) {
+                processedBuffer = extractResults[0].data;
+              }
+              break;
+          }
+        }
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="processed-document.pdf"');
+      res.send(processedBuffer);
+    } catch (error) {
+      console.error('Batch processing error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to process PDF' });
+    }
+  });
+
+  // Helper function to parse page ranges
+  function parsePageRanges(rangeString: string): { start: number; end: number }[] {
+    const ranges: { start: number; end: number }[] = [];
+    const parts = rangeString.split(',');
+    
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (trimmed.includes('-')) {
+        const [start, end] = trimmed.split('-').map(n => parseInt(n.trim()));
+        if (!isNaN(start) && !isNaN(end)) {
+          ranges.push({ start, end });
+        }
+      } else {
+        const page = parseInt(trimmed);
+        if (!isNaN(page)) {
+          ranges.push({ start: page, end: page });
+        }
+      }
+    }
+    
+    return ranges;
+  }
+
   // CURRENCY CONVERSION ENDPOINTS
 
   // Get current exchange rates
