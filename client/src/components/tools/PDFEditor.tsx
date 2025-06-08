@@ -314,28 +314,28 @@ export default function PDFEditor() {
       )}
 
       {url && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="border border-gray-300 rounded">
-            <h3 className="p-2 bg-gray-100 font-medium text-sm">PDF Preview</h3>
+        <div className="border border-gray-300 rounded">
+          <h3 className="p-2 bg-gray-100 font-medium text-sm">PDF Editor - Direct Editing</h3>
+          <div 
+            ref={canvasRef}
+            className="relative w-full h-[700px] overflow-hidden bg-white"
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          >
+            {/* PDF Background */}
             <iframe
               src={url}
-              className="w-full h-[600px]"
-              title="PDF Preview"
+              className="absolute inset-0 w-full h-full"
+              title="PDF Background"
+              style={{ pointerEvents: 'none' }}
             />
-          </div>
-          
-          <div className="border border-gray-300 rounded">
-            <h3 className="p-2 bg-gray-100 font-medium text-sm">Editing Canvas (No Interference)</h3>
-            <div 
-              ref={canvasRef}
-              className="relative w-full h-[600px] bg-white overflow-hidden cursor-crosshair"
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-            >
+            
+            {/* Interactive Elements Overlay */}
+            <div className="absolute inset-0 pointer-events-none">
               {textElements.map((textEl) => (
                 <div
                   key={textEl.id}
-                  className={`absolute cursor-move border-2 ${
+                  className={`absolute cursor-move border-2 pointer-events-auto ${
                     selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
                   } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-90'} hover:border-gray-400`}
                   style={{
@@ -380,7 +380,7 @@ export default function PDFEditor() {
               {imageElements.map((imgEl) => (
                 <div
                   key={imgEl.id}
-                  className={`absolute cursor-move border-2 ${
+                  className={`absolute cursor-move border-2 pointer-events-auto ${
                     selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
                   } hover:border-gray-400`}
                   style={{
@@ -424,11 +424,11 @@ export default function PDFEditor() {
 
       {url && (
         <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-          <p><strong>Instructions:</strong></p>
-          <p>• Use the <strong>Editing Canvas</strong> on the right - it has no interference layers</p>
+          <p><strong>Direct PDF Editing:</strong></p>
+          <p>• Add text and images directly over the PDF</p>
           <p>• Click elements to select them</p>
           <p>• Double-click text to edit in real-time</p>
-          <p>• Drag elements to move them around</p>
+          <p>• Drag elements to reposition them</p>
           <p>• Use blue resize handles to adjust size</p>
           <p>• Toggle transparency for text backgrounds</p>
         </div>
