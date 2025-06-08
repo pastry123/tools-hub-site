@@ -128,7 +128,7 @@ export default function PDFEditor() {
 
   function addImageOverlayFromURL(url: string, type: string) {
     const id = Date.now();
-    setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 150, type, page: pageIndex }]);
+    setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 80, type, page: pageIndex }]);
   }
 
   function updateImage(id: number, updates: Partial<ImageField>) {
