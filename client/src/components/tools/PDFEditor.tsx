@@ -126,6 +126,11 @@ export default function PDFEditor() {
     setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 150, type: file.type, page: pageIndex }]);
   }
 
+  function addImageOverlayFromURL(url: string, type: string) {
+    const id = Date.now();
+    setImages([...images, { id, url, x: 100, y: 100, width: 150, height: 150, type, page: pageIndex }]);
+  }
+
   function updateImage(id: number, updates: Partial<ImageField>) {
     const updated = images.map(img => img.id === id ? { ...img, ...updates } : img);
     setImages(updated);
@@ -224,6 +229,7 @@ export default function PDFEditor() {
       </div>
       <div className="space-x-2">
         <Button onClick={addDraggableText}>Add Editable Text</Button>
+        <Button onClick={() => setShowSignaturePad(true)}>Add Signature</Button>
         <Button onClick={renderToPdf}>Apply Changes to PDF</Button>
         <label className="cursor-pointer inline-block">
           <span className="px-3 py-2 bg-gray-200 rounded">Add Image</span>
@@ -251,6 +257,34 @@ export default function PDFEditor() {
         />
         Transparent Background
       </label>
+      {showSignaturePad && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded space-y-4 shadow-xl w-[400px]">
+            <h2 className="text-xl font-semibold">Sign Here</h2>
+            <SignatureCanvas
+              ref={signaturePadRef}
+              penColor="black"
+              canvasProps={{ width: 350, height: 150, className: 'border' }}
+            />
+            <div className="flex justify-between">
+              <Button onClick={() => signaturePadRef.current?.clear()}>Clear</Button>
+              <Button
+                onClick={() => {
+                  if (signaturePadRef.current) {
+                    const url = signaturePadRef.current.getTrimmedCanvas().toDataURL("image/png");
+                    setSignatureDataURL(url);
+                    addImageOverlayFromURL(url, "image/png");
+                    setShowSignaturePad(false);
+                  }
+                }}
+              >
+                Save Signature
+              </Button>
+              <Button variant="destructive" onClick={() => setShowSignaturePad(false)}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
