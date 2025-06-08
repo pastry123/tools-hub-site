@@ -4,13 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Breadcrumb from "@/components/Breadcrumb";
-import { getToolCategory } from "@/lib/toolCategories";
+import { getCategoryById } from "@/lib/toolCategories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft, Star, Menu, X } from "lucide-react";
 
 export default function CategoryDetailPage() {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const category = getToolCategory(categoryId!);
+  const category = getCategoryById(categoryId!);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t } = useLanguage();

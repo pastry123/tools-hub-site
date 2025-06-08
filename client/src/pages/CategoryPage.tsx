@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Breadcrumb from "@/components/Breadcrumb";
-import { getToolCategory } from "@/lib/toolCategories";
+import { getCategoryById } from "@/lib/toolCategories";
 import { ArrowLeft, Star } from "lucide-react";
 
 export default function CategoryPage() {

@@ -316,3 +316,18 @@ export function getToolById(toolId: string): { tool: Tool; category: ToolCategor
 export function getCategoryById(categoryId: string): ToolCategory | null {
   return toolCategories.find(c => c.id === categoryId) || null;
 }
+
+export function getPopularTools() {
+  // Return a selection of popular tools from different categories
+  const popularToolIds = ['qr-generator', 'currency-converter', 'background-remover', 'pdf-merge'];
+  
+  const popularTools = [];
+  for (const toolId of popularToolIds) {
+    const result = getToolById(toolId);
+    if (result) {
+      popularTools.push(result);
+    }
+  }
+  
+  return popularTools;
+}

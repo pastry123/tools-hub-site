@@ -11,99 +11,111 @@ export default function FavoritesPage() {
   const { t } = useLanguage();
   const { favorites, removeFromFavorites, clearFavorites } = useUserData();
 
-  const getCategoryColor = (categoryId: string) => {
-    const category = toolCategories.find(cat => cat.id === categoryId);
-    return category?.color || "blue";
-  };
-
   const breadcrumbItems = [
-    { name: t("header.dashboard"), href: "/" },
-    { name: t("header.favorites") }
+    { name: "Favorites" }
   ];
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Breadcrumb items={breadcrumbItems} />
       
-      <div className="mt-8">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 dark:bg-pink-900 rounded-full mb-4">
-            <Heart className="w-8 h-8 text-pink-600 dark:text-pink-400" />
-          </div>
-          <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">
-            {t("header.favorites")}
-          </h1>
-          <p className="text-xl text-slate-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Your saved tools for quick access
-          </p>
-        </div>
-
-        {favorites.length === 0 ? (
-          <div className="text-center py-16">
-            <Star className="w-16 h-16 text-slate-300 dark:text-gray-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-white mb-2">
-              No favorites yet
-            </h2>
-            <p className="text-slate-600 dark:text-gray-300 mb-8">
-              Add tools to your favorites by clicking the heart icon on any tool page
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Favorite Tools</h1>
+            <p className="text-slate-600 dark:text-gray-300">
+              Tools you've marked as favorites for quick access
             </p>
-            <Link href="/" className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Browse Tools <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {favorites.map((tool) => {
-              const categoryColor = getCategoryColor(tool.category);
-              
-              return (
-                <div key={tool.id} className="relative group">
-                  <Link href={`/tool/${tool.id}`}>
-                    <Card className="h-full transition-all duration-200 hover:shadow-lg hover:scale-105 border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col items-center text-center">
-                          <div className={`w-12 h-12 bg-${categoryColor}-100 dark:bg-${categoryColor}-900 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                            <i className={`${tool.icon} text-${categoryColor}-600 dark:text-${categoryColor}-400`}></i>
-                          </div>
-                          
-                          <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                            {tool.name}
-                          </h3>
-                          
-                          <p className="text-sm text-slate-600 dark:text-gray-300 mb-4 leading-relaxed">
-                            {tool.description}
-                          </p>
-                          
-                          <div className="flex items-center justify-between w-full pt-2 border-t border-slate-100 dark:border-gray-700">
-                            <span className="text-xs text-slate-500 dark:text-gray-400 capitalize">
-                              {tool.category}
-                            </span>
-                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 flex items-center">
-                              Use Tool <ArrowRight className="w-3 h-3 ml-1" />
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                  
-                  {/* Remove from favorites button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      removeFavorite(tool.id);
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Remove from favorites"
-                  >
-                    <Heart className="w-4 h-4 text-pink-600 fill-current" />
-                  </button>
-                </div>
-              );
-            })}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Heart className="w-8 h-8 text-red-500" />
+              <Badge variant="secondary" className="text-lg px-3 py-1">
+                {favorites.length}
+              </Badge>
+            </div>
+            {favorites.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFavorites}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear All
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </div>
+
+      {favorites.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">
+              No Favorite Tools Yet
+            </h3>
+            <p className="text-slate-600 dark:text-gray-300 mb-6">
+              Start exploring tools and click the heart icon to add them to your favorites
+            </p>
+            <Link href="/">
+              <Button>
+                Browse All Tools
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {favorites.map((favorite) => (
+            <Link key={favorite.toolId} href={`/tool/${favorite.toolId}`}>
+              <Card className="group hover:shadow-lg transition-all cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                      <i className="fas fa-tools text-blue-500"></i>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeFromFavorites(favorite.toolId);
+                      }}
+                    >
+                      <Heart className="w-4 h-4 fill-current" />
+                    </Button>
+                  </div>
+                  
+                  <h3 className="font-semibold text-slate-800 dark:text-white mb-2 group-hover:text-primary transition-colors">
+                    {favorite.toolName}
+                  </h3>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <Badge variant="secondary" className="text-xs">
+                      {favorite.category}
+                    </Badge>
+                    <div className="flex items-center text-xs text-slate-500">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {new Date(favorite.addedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <span className="text-sm text-slate-600 dark:text-gray-300">
+                      Click to use tool
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
