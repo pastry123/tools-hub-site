@@ -1095,6 +1095,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF Preview with Signatures
+  app.post('/api/pdf/preview-with-signatures', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { signature, fields } = req.body;
+      if (!signature) {
+        return res.status(400).json({ error: 'Signature is required' });
+      }
+
+      const signatureFields = fields ? JSON.parse(fields) : [];
+      const result = await eSignService.generatePDFPreviewWithSignatures(
+        req.file.buffer,
+        signature,
+        signatureFields
+      );
+
+      if (result.success) {
+        res.json({ pages: result.pages });
+      } else {
+        res.status(500).json({ error: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate preview with signatures' });
+    }
+  });
+
   // Sign PDF with signature
   app.post('/api/pdf/sign', upload.single('pdf'), async (req, res) => {
     try {

@@ -215,41 +215,45 @@ export class ESignService {
 
   async generatePDFPreview(pdfBuffer: Buffer): Promise<{ success: boolean; pages?: string[]; error?: string }> {
     try {
-      const pdf2pic = require('pdf2pic').default;
+      const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
       
-      // Convert PDF pages to images
-      const convert = pdf2pic.fromBuffer(pdfBuffer, {
-        density: 100,
-        saveFilename: "page",
-        savePath: "./temp",
-        format: "png",
-        width: 600,
-        height: 800
-      });
-      
-      const pdfDoc = await PDFDocument.load(pdfBuffer);
-      const pageCount = pdfDoc.getPageCount();
+      // Load the PDF document
+      const loadingTask = pdfjsLib.getDocument({ data: pdfBuffer });
+      const pdfDocument = await loadingTask.promise;
       
       const pages: string[] = [];
+      const numPages = pdfDocument.numPages;
       
-      for (let i = 1; i <= pageCount; i++) {
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
         try {
-          const result = await convert(i);
-          if (result && result.base64) {
-            pages.push(`data:image/png;base64,${result.base64}`);
-          } else {
-            // Fallback to placeholder if conversion fails
-            pages.push(this.generatePlaceholderPage(i));
-          }
-        } catch (error) {
-          // Add placeholder for failed pages
-          pages.push(this.generatePlaceholderPage(i));
+          const page = await pdfDocument.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.5 });
+          
+          // Create canvas for rendering
+          const canvas = require('canvas').createCanvas(viewport.width, viewport.height);
+          const context = canvas.getContext('2d');
+          
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+          };
+          
+          await page.render(renderContext).promise;
+          
+          // Convert to base64
+          const imageData = canvas.toDataURL('image/png');
+          pages.push(imageData);
+          
+        } catch (pageError) {
+          console.log(`Failed to render page ${pageNum}, using placeholder`);
+          pages.push(this.generatePlaceholderPage(pageNum));
         }
       }
       
       return { success: true, pages };
     } catch (error) {
-      // Fallback to placeholder pages if pdf2pic fails
+      console.log('PDF rendering failed, using placeholders:', error);
+      // Fallback to placeholder pages
       try {
         const pdfDoc = await PDFDocument.load(pdfBuffer);
         const pageCount = pdfDoc.getPageCount();
@@ -335,6 +339,25 @@ export class ESignService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to send document'
+      };
+    }
+  }
+
+  async generatePDFPreviewWithSignatures(
+    pdfBuffer: Buffer,
+    signature: string,
+    fields: SignatureField[]
+  ): Promise<{ success: boolean; pages?: string[]; error?: string }> {
+    try {
+      // First, add signatures to the PDF
+      const signedPdfBuffer = await this.addSignatureToPDF(pdfBuffer, signature, fields);
+      
+      // Then generate preview of the signed PDF
+      return await this.generatePDFPreview(signedPdfBuffer);
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate preview with signatures'
       };
     }
   }

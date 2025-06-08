@@ -50,6 +50,8 @@ export default function AdvancedESign() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [previewPages, setPreviewPages] = useState<string[]>([]);
+  const [previewPage, setPreviewPage] = useState(0);
   const { toast } = useToast();
 
   const signatureFonts = [
@@ -420,6 +422,50 @@ export default function AdvancedESign() {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const previewWithSignatures = async () => {
+    if (!pdfFile || !currentSignature) {
+      toast({
+        title: "Error",
+        description: "Please create a signature and upload a PDF first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const formData = new FormData();
+      formData.append('pdf', pdfFile);
+      formData.append('signature', currentSignature);
+      formData.append('fields', JSON.stringify(signatureFields));
+
+      const response = await fetch('/api/pdf/preview-with-signatures', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPreviewPages(data.pages);
+        setPreviewPage(0);
+        toast({
+          title: "Success",
+          description: "Preview with signatures generated successfully!",
+        });
+      } else {
+        throw new Error('Failed to generate preview with signatures');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate preview with signatures",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const sendForSigning = async () => {
@@ -822,9 +868,13 @@ export default function AdvancedESign() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {pdfFile && currentSignature && (
               <>
+                <Button onClick={previewWithSignatures} disabled={isProcessing} variant="outline">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Preview with Signatures
+                </Button>
                 <Button onClick={downloadSignedPdf} disabled={isProcessing}>
                   <Download className="w-4 h-4 mr-2" />
                   Download Signed PDF
@@ -836,6 +886,51 @@ export default function AdvancedESign() {
               </>
             )}
           </div>
+
+          {/* Preview with Signatures */}
+          {previewPages.length > 0 && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="w-5 h-5" />
+                  Document Preview with Signatures
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2 mb-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPreviewPage(Math.max(0, previewPage - 1))}
+                    disabled={previewPage === 0}
+                    size="sm"
+                  >
+                    Previous
+                  </Button>
+                  <span className="px-3 py-1 bg-gray-100 rounded text-sm">
+                    Page {previewPage + 1} of {previewPages.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setPreviewPage(Math.min(previewPages.length - 1, previewPage + 1))}
+                    disabled={previewPage === previewPages.length - 1}
+                    size="sm"
+                  >
+                    Next
+                  </Button>
+                </div>
+                
+                <div className="border rounded-lg overflow-hidden bg-white">
+                  {previewPages[previewPage] && (
+                    <img
+                      src={previewPages[previewPage]}
+                      alt={`Preview Page ${previewPage + 1}`}
+                      className="w-full h-auto max-w-full"
+                    />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
 
