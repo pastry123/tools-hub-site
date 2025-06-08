@@ -7,10 +7,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import * as pdfjsLib from 'pdfjs-dist';
+// PDF.js import with proper worker setup
+let pdfjsLib: any = null;
 
-// Set up PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Dynamically import PDF.js to avoid SSR issues
+const initPdfJs = async () => {
+  if (typeof window !== 'undefined' && !pdfjsLib) {
+    try {
+      pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+    } catch (error) {
+      console.warn('PDF.js could not be loaded:', error);
+    }
+  }
+  return pdfjsLib;
+};
 
 interface SignatureField {
   id: string;
@@ -243,46 +254,75 @@ export default function AdvancedESign() {
     setIsProcessing(true);
 
     try {
-      // Load PDF using PDF.js directly for real content rendering
-      const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const pdf = await loadingTask.promise;
-      
-      setPdfDocument(pdf);
-      
-      // Render all pages to get real document images
-      const pages = [];
-      const canvases = [];
-      
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.5 });
+      // Try PDF.js for real content rendering
+      try {
+        const pdfJs = await initPdfJs();
+        if (!pdfJs) throw new Error('PDF.js not available');
         
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d')!;
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfJs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
         
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport,
-        };
+        setPdfDocument(pdf);
         
-        await page.render(renderContext).promise;
+        // Render all pages to get real document images
+        const pages = [];
+        const canvases = [];
         
-        const imageData = canvas.toDataURL('image/png');
-        pages.push(imageData);
-        canvases.push(canvas);
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.5 });
+          
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d')!;
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+          };
+          
+          await page.render(renderContext).promise;
+          
+          const imageData = canvas.toDataURL('image/png');
+          pages.push(imageData);
+          canvases.push(canvas);
+        }
+        
+        setPdfPages(pages);
+        setCanvasRefs(canvases);
+        setCurrentPage(0);
+        
+        toast({
+          title: "Success",
+          description: "PDF loaded with real content rendering!",
+        });
+        return;
+      } catch (pdfJsError) {
+        console.warn('PDF.js failed, falling back to server-side preview:', pdfJsError);
       }
       
-      setPdfPages(pages);
-      setCanvasRefs(canvases);
-      setCurrentPage(0);
-      
-      toast({
-        title: "Success",
-        description: "PDF loaded with real content rendering!",
+      // Fallback to server-side preview if PDF.js fails
+      const formData = new FormData();
+      formData.append('pdf', file);
+
+      const response = await fetch('/api/pdf/preview', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPdfPages(data.pages);
+        setCurrentPage(0);
+        toast({
+          title: "Success",
+          description: "PDF loaded successfully!",
+        });
+      } else {
+        throw new Error('Failed to load PDF');
+      }
     } catch (error) {
       console.error('Error loading PDF:', error);
       toast({
@@ -464,9 +504,36 @@ export default function AdvancedESign() {
 
     setIsProcessing(true);
     try {
-      // Generate preview using the same PDF.js approach but with signatures overlaid
+      // Generate preview using PDF.js with signatures overlaid
+      const pdfJs = await initPdfJs();
+      if (!pdfJs) {
+        // Fallback to server-side preview with signatures
+        const formData = new FormData();
+        formData.append('pdf', pdfFile);
+        formData.append('signature', currentSignature);
+        formData.append('fields', JSON.stringify(signatureFields));
+
+        const response = await fetch('/api/pdf/preview-with-signatures', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setPreviewPages(data.pages);
+          setPreviewPage(0);
+          toast({
+            title: "Success",
+            description: "Preview with signatures generated successfully!",
+          });
+        } else {
+          throw new Error('Failed to generate preview with signatures');
+        }
+        return;
+      }
+      
       const arrayBuffer = await pdfFile.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = pdfJs.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
       
       const previewPagesWithSigs = [];
