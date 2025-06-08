@@ -92,7 +92,7 @@ export default function ToolPage() {
   const renderTool = () => {
     // Handle all barcode-related tools
     const barcodeTools = [
-      'qr-generator', 'code-128', 'code-11', 'code-2of5', 'code-39', 'code-39-ascii', 
+      'qr-generator', 'barcode-generator', 'code128-generator', 'ean13-generator', 'datamatrix-generator', 'code-128', 'code-11', 'code-2of5', 'code-39', 'code-39-ascii', 
       'code-93', 'flattermarken', 'gs1-128', 'msi', 'pharmacode-one', 'pharmacode-two',
       'telepen-alpha', 'australia-post', 'daft', 'dpd-barcode', 'japanese-postal',
       'kix', 'korean-postal', 'planet-12', 'royal-mail-4state', 'royal-mail-mailmark-4state',
