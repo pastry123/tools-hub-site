@@ -64,6 +64,8 @@ import AdvancedESign from "@/components/tools/AdvancedESign";
 import PDFEditor from "@/components/tools/PDFEditor";
 import APIAccess from "@/components/tools/APIAccess";
 import MobileAppPlan from "@/components/tools/MobileAppPlan";
+import RFIDReader from "@/components/tools/RFIDReader";
+import BulkBarcodeGenerator from "@/components/tools/BulkBarcodeGenerator";
 import DummyTextGenerator from "@/components/tools/DummyTextGenerator";
 import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
 import TimezoneConverter from "@/components/tools/TimezoneConverter";
@@ -268,6 +270,10 @@ export default function ToolPage() {
         return <APIAccess />;
       case 'mobile-app-plan':
         return <MobileAppPlan />;
+      case 'rfid-reader':
+        return <RFIDReader />;
+      case 'bulk-barcode-generator':
+        return <BulkBarcodeGenerator />;
       default:
         return (
           <Card>

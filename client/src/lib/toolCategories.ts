@@ -58,6 +58,18 @@ export const toolCategories: ToolCategory[] = [
         name: 'Data Matrix Generator',
         description: 'Generate Data Matrix 2D codes',
         icon: 'fa-qrcode'
+      },
+      {
+        id: 'bulk-barcode-generator',
+        name: 'Bulk Barcode Generator',
+        description: 'Generate multiple barcodes from CSV files',
+        icon: 'fa-list'
+      },
+      {
+        id: 'rfid-reader',
+        name: 'RFID/NFC Reader',
+        description: 'Read and write NFC tags and RFID data',
+        icon: 'fa-wifi'
       }
     ]
   },
