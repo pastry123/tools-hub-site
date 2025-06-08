@@ -836,10 +836,38 @@ export default function AdvancedESign() {
                           className="max-w-full shadow-lg border"
                           style={{ display: 'block', margin: '0 auto' }}
                         />
+                        {/* Signature fields overlay */}
+                        {signatureFields
+                          .filter(field => field.page === currentPage)
+                          .map(field => (
+                            <div
+                              key={field.id}
+                              className={`signature-field absolute border-2 border-blue-500 bg-blue-50 bg-opacity-50 cursor-move ${selectedField === field.id ? 'border-blue-700 shadow-lg' : ''}`}
+                              style={{
+                                left: field.x / (pdfCanvasRef.current?.width || 1) * 100 + '%',
+                                top: field.y / (pdfCanvasRef.current?.height || 1) * 100 + '%',
+                                width: field.width / (pdfCanvasRef.current?.width || 1) * 100 + '%',
+                                height: field.height / (pdfCanvasRef.current?.height || 1) * 100 + '%',
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedField(field.id);
+                              }}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                removeSignatureField(field.id);
+                              }}
+                            >
+                              <div className="text-xs text-blue-700 p-1 truncate">
+                                Signature {signatureFields.indexOf(field) + 1}
+                              </div>
+                            </div>
+                          ))}
+                        
                         {/* Clickable overlay for signature field positioning */}
                         <div 
                           className="absolute inset-0 bg-transparent cursor-crosshair" 
-                          style={{ zIndex: 10 }}
+                          style={{ zIndex: 5 }}
                           onMouseDown={handlePdfClick}
                         ></div>
                       </div>
