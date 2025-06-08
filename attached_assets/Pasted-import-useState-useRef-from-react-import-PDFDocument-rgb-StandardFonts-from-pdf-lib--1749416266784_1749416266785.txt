@@ -3,13 +3,12 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 
 export default function PDFEditor() {
-  const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [url, setUrl] = useState(null);
+  const fileInputRef = useRef(null);
 
-  async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function loadPdf(e) {
+    const file = e.target.files[0];
     const arrayBuffer = await file.arrayBuffer();
 
     // Load encrypted PDFs too
@@ -49,10 +48,9 @@ export default function PDFEditor() {
     setUrl(URL.createObjectURL(blob));
   }
 
-  async function addImageToFirstPage(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
-    if (!pdfDoc || !files || !files[0]) return;
-    const file = files[0];
+  async function addImageToFirstPage(e) {
+    if (!pdfDoc || !e.target.files[0]) return;
+    const file = e.target.files[0];
     const imageBytes = await file.arrayBuffer();
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
