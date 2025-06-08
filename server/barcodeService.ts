@@ -141,12 +141,6 @@ export class BarcodeService {
         }
       }
 
-      // Try linear barcode pattern detection
-      const patternResult = await this.detectBarcodePattern(imageBuffer);
-      if (patternResult) {
-        return patternResult;
-      }
-
       // Comprehensive barcode type detection
       const barcodeTypeResult = await this.detectAnyBarcodeType(imageBuffer);
       if (barcodeTypeResult) {
@@ -316,7 +310,17 @@ export class BarcodeService {
           console.log(`Checking Data Matrix pattern with aspect ratio ${aspectRatio}`);
           if (this.detectDataMatrixPattern(data, info.width, info.height, pixelAnalysis)) {
             console.log('Data Matrix pattern confirmed');
-            throw new Error('Data Matrix barcode detected. Content extraction requires specialized decoding libraries like ZXing.');
+            return {
+              value: 'DATA_MATRIX_DETECTED',
+              type: 'Data Matrix',
+              format: 'DATA_MATRIX',
+              confidence: 0.85,
+              metadata: {
+                note: 'Data Matrix barcode detected. Content extraction requires specialized decoding libraries like ZXing.',
+                aspectRatio,
+                transitions: pixelAnalysis.horizontalTransitions + pixelAnalysis.verticalTransitions
+              }
+            };
           }
         }
 
@@ -332,8 +336,7 @@ export class BarcodeService {
               metadata: {
                 note: 'Linear barcode detected (Code 128, Code 39, or similar). Content extraction requires specialized decoding libraries.',
                 aspectRatio,
-                blackPixelRatio: pixelAnalysis.blackPixelRatio,
-                transitionDensity: pixelAnalysis.transitionDensity
+                transitions: pixelAnalysis.horizontalTransitions
               }
             };
           }
