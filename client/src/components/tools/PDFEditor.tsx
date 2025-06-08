@@ -56,47 +56,76 @@ export default function PDFEditor() {
     setSelectedElement(null);
   }
 
-  const addTextElement = () => {
+  const addTextElement = async () => {
     if (!pdfDoc) return;
     
-    const newElement: TextElement = {
-      id: `text-${Date.now()}`,
-      text: "Double-click to edit",
-      x: 100,
-      y: 100,
-      width: 200,
-      height: 30,
-      fontSize: 16,
-      isEditing: false,
-      isTransparent: false,
-      page: 0
-    };
-    
-    setTextElements(prev => [...prev, newElement]);
+    try {
+      const form = pdfDoc.getForm();
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      
+      const fieldName = `text-field-${Date.now()}`;
+      const textField = form.createTextField(fieldName);
+      textField.setText("Click to edit");
+      
+      textField.addToPage(firstPage, {
+        x: 100,
+        y: firstPage.getHeight() - 150,
+        width: 200,
+        height: 30,
+        textColor: rgb(0, 0, 0),
+        backgroundColor: rgb(1, 1, 1),
+        borderColor: rgb(0.5, 0.5, 0.5),
+        borderWidth: 1,
+      });
+
+      form.updateFieldAppearances();
+      
+      // Update the PDF and refresh the display
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      setUrl(URL.createObjectURL(blob));
+      
+    } catch (error) {
+      console.error('Error adding text field:', error);
+    }
   };
 
   const addImageElement = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !files[0]) return;
+    if (!files || !files[0] || !pdfDoc) return;
     const file = files[0];
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const src = event.target?.result as string;
+    try {
+      const imageBytes = await file.arrayBuffer();
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      const { width, height } = firstPage.getSize();
+
+      let img;
+      if (file.type === "image/jpeg") {
+        img = await pdfDoc.embedJpg(imageBytes);
+      } else {
+        img = await pdfDoc.embedPng(imageBytes);
+      }
+
+      const imgDims = img.scale(0.3);
+
+      firstPage.drawImage(img, {
+        x: width / 2 - imgDims.width / 2,
+        y: height / 2 - imgDims.height / 2,
+        width: imgDims.width,
+        height: imgDims.height,
+      });
+
+      // Update the PDF and refresh the display
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      setUrl(URL.createObjectURL(blob));
       
-      const newElement: ImageElement = {
-        id: `image-${Date.now()}`,
-        src,
-        x: 150,
-        y: 150,
-        width: 200,
-        height: 150,
-        page: 0
-      };
-      
-      setImageElements(prev => [...prev, newElement]);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error adding image:', error);
+    }
   };
 
   const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string, type: 'text' | 'image') => {
@@ -315,136 +344,24 @@ export default function PDFEditor() {
 
       {url && (
         <div className="border border-gray-300 rounded">
-          <h3 className="p-2 bg-gray-100 font-medium text-sm">Direct PDF Editor - Full Interaction</h3>
-          <div 
-            ref={canvasRef}
-            className="relative"
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          >
-            <iframe
-              src={url}
-              className="w-full h-[700px] relative z-0"
-              title="Interactive PDF Editor"
-            />
-            
-            {/* Direct overlay elements - minimal interference */}
-            {textElements.map((textEl) => (
-              <div
-                key={textEl.id}
-                className={`absolute cursor-move border-2 ${
-                  selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
-                } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-90'} hover:border-gray-400`}
-                style={{
-                  left: textEl.x,
-                  top: textEl.y + 32, // Account for header
-                  width: textEl.width,
-                  height: textEl.height,
-                  fontSize: textEl.fontSize,
-                  padding: '4px',
-                  zIndex: 10,
-                  pointerEvents: 'auto'
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  handleMouseDown(e, textEl.id, 'text');
-                }}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  handleTextDoubleClick(textEl.id);
-                }}
-              >
-                {textEl.isEditing ? (
-                  <input
-                    type="text"
-                    value={textEl.text}
-                    onChange={(e) => handleTextChange(textEl.id, e.target.value)}
-                    onBlur={() => handleTextBlur(textEl.id)}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === 'Enter') {
-                        handleTextBlur(textEl.id);
-                      }
-                    }}
-                    className="w-full h-full bg-transparent border-none outline-none"
-                    autoFocus
-                  />
-                ) : (
-                  <span className="select-none">{textEl.text}</span>
-                )}
-                
-                {selectedElement === textEl.id && (
-                  <div
-                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeMouseDown(e, textEl.id, 'text');
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-
-            {imageElements.map((imgEl) => (
-              <div
-                key={imgEl.id}
-                className={`absolute cursor-move border-2 ${
-                  selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
-                } hover:border-gray-400`}
-                style={{
-                  left: imgEl.x,
-                  top: imgEl.y + 32, // Account for header
-                  width: imgEl.width,
-                  height: imgEl.height,
-                  zIndex: 10,
-                  pointerEvents: 'auto'
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  handleMouseDown(e, imgEl.id, 'image');
-                }}
-              >
-                <img
-                  src={imgEl.src}
-                  alt="Uploaded"
-                  className="w-full h-full object-contain"
-                  draggable={false}
-                />
-                
-                {selectedElement === imgEl.id && (
-                  <>
-                    <div
-                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        handleResizeMouseDown(e, imgEl.id, 'image');
-                      }}
-                    />
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      className="absolute -top-8 -right-2"
-                      onClick={() => setImageElements(prev => prev.filter(i => i.id !== imgEl.id))}
-                    >
-                      ×
-                    </Button>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
+          <h3 className="p-2 bg-gray-100 font-medium text-sm">PDF Editor - Direct Document Editing</h3>
+          <iframe
+            src={url}
+            className="w-full h-[700px]"
+            title="PDF Editor"
+            key={url} // Force iframe refresh when URL changes
+          />
         </div>
       )}
 
       {url && (
         <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-          <p><strong>Direct PDF Editing:</strong></p>
-          <p>• Add text and images directly over the PDF</p>
-          <p>• Click elements to select them</p>
-          <p>• Double-click text to edit in real-time</p>
-          <p>• Drag elements to reposition them</p>
-          <p>• Use blue resize handles to adjust size</p>
-          <p>• Toggle transparency for text backgrounds</p>
+          <p><strong>Real PDF Document Editing:</strong></p>
+          <p>• Text fields are added directly to the PDF document</p>
+          <p>• Images are embedded permanently into the PDF</p>
+          <p>• All edits modify the actual PDF file</p>
+          <p>• You can interact with form fields directly in the PDF viewer</p>
+          <p>• Download saves the edited PDF with all modifications</p>
         </div>
       )}
       
