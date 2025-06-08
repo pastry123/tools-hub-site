@@ -25,6 +25,7 @@ function Router() {
         <Route path="/recent" component={RecentPage} />
         <Route path="/category/:categoryId" component={CategoryDetailPage} />
         <Route path="/tool/:toolId" component={ToolPage} />
+        <Route path="/tools/barcode-qr/scanner" component={() => <ToolPage />} />
         <Route component={NotFound} />
       </Switch>
     </>
