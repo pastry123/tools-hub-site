@@ -1,8 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TextElement {
   id: string;
@@ -44,7 +42,6 @@ export default function PDFEditor() {
     if (!file) return;
     const arrayBuffer = await file.arrayBuffer();
 
-    // Load encrypted PDFs too
     const loadedPdf = await PDFDocument.load(arrayBuffer, {
       updateMetadata: true,
       ignoreEncryption: true,
@@ -54,7 +51,6 @@ export default function PDFEditor() {
     const blob = new Blob([arrayBuffer], { type: "application/pdf" });
     setUrl(URL.createObjectURL(blob));
     
-    // Clear existing elements when loading new PDF
     setTextElements([]);
     setImageElements([]);
     setSelectedElement(null);
@@ -84,7 +80,6 @@ export default function PDFEditor() {
     if (!files || !files[0]) return;
     const file = files[0];
     
-    // Create data URL for preview
     const reader = new FileReader();
     reader.onload = (event) => {
       const src = event.target?.result as string;
@@ -104,7 +99,6 @@ export default function PDFEditor() {
     reader.readAsDataURL(file);
   };
 
-  // Interactive element handlers
   const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string, type: 'text' | 'image') => {
     e.preventDefault();
     setSelectedElement(elementId);
@@ -232,7 +226,6 @@ export default function PDFEditor() {
   async function downloadPdf() {
     if (!pdfDoc) return;
     
-    // Create a copy of the PDF
     const pdfCopy = await PDFDocument.create();
     const pages = pdfDoc.getPages();
     
@@ -240,7 +233,6 @@ export default function PDFEditor() {
       const [copiedPage] = await pdfCopy.copyPages(pdfDoc, [i]);
       pdfCopy.addPage(copiedPage);
       
-      // Add text elements to the page
       textElements.filter(el => el.page === i).forEach(async (textEl) => {
         const font = await pdfCopy.embedFont(StandardFonts.Helvetica);
         copiedPage.drawText(textEl.text, {
@@ -265,7 +257,6 @@ export default function PDFEditor() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">Interactive PDF Editor</h1>
       
-      {/* File Upload */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Button 
@@ -285,7 +276,6 @@ export default function PDFEditor() {
         {url && <span className="text-sm text-green-600">✓ PDF loaded</span>}
       </div>
       
-      {/* Tool Controls */}
       {url && (
         <div className="flex flex-wrap gap-2">
           <Button onClick={addTextElement}>Add Text</Button>
@@ -304,7 +294,6 @@ export default function PDFEditor() {
         </div>
       )}
 
-      {/* Selected Element Controls */}
       {selectedElement && selectedElement.startsWith('text-') && (
         <div className="flex gap-2 p-2 bg-gray-100 rounded">
           <Button 
@@ -324,119 +313,124 @@ export default function PDFEditor() {
         </div>
       )}
 
-      {/* PDF Canvas Area */}
       {url && (
-        <div className="relative">
-          <div 
-            ref={canvasRef}
-            className="relative w-full h-[600px] border border-gray-300 overflow-hidden bg-white"
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          >
-            {/* PDF iframe as background */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="border border-gray-300 rounded">
+            <h3 className="p-2 bg-gray-100 font-medium text-sm">PDF Preview</h3>
             <iframe
               src={url}
-              className="absolute inset-0 w-full h-full pointer-events-none z-0"
-              title="PDF Background"
+              className="w-full h-[600px]"
+              title="PDF Preview"
             />
-            
-            {/* Text Elements */}
-            {textElements.map((textEl) => (
-              <div
-                key={textEl.id}
-                className={`absolute cursor-move border-2 z-10 ${
-                  selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
-                } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-80'} hover:border-gray-400`}
-                style={{
-                  left: textEl.x,
-                  top: textEl.y,
-                  width: textEl.width,
-                  height: textEl.height,
-                  fontSize: textEl.fontSize,
-                  padding: '2px 4px',
-                }}
-                onMouseDown={(e) => handleMouseDown(e, textEl.id, 'text')}
-                onDoubleClick={() => handleTextDoubleClick(textEl.id)}
-              >
-                {textEl.isEditing ? (
-                  <input
-                    type="text"
-                    value={textEl.text}
-                    onChange={(e) => handleTextChange(textEl.id, e.target.value)}
-                    onBlur={() => handleTextBlur(textEl.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleTextBlur(textEl.id);
-                      }
-                    }}
-                    className="w-full h-full bg-transparent border-none outline-none"
-                    autoFocus
-                  />
-                ) : (
-                  <span className="select-none">{textEl.text}</span>
-                )}
-                
-                {/* Resize Handles */}
-                {selectedElement === textEl.id && (
-                  <div
-                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize z-20"
-                    onMouseDown={(e) => handleResizeMouseDown(e, textEl.id, 'text')}
-                  />
-                )}
-              </div>
-            ))}
-
-            {/* Image Elements */}
-            {imageElements.map((imgEl) => (
-              <div
-                key={imgEl.id}
-                className={`absolute cursor-move border-2 z-10 ${
-                  selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
-                } hover:border-gray-400`}
-                style={{
-                  left: imgEl.x,
-                  top: imgEl.y,
-                  width: imgEl.width,
-                  height: imgEl.height,
-                }}
-                onMouseDown={(e) => handleMouseDown(e, imgEl.id, 'image')}
-              >
-                <img
-                  src={imgEl.src}
-                  alt="Uploaded"
-                  className="w-full h-full object-contain"
-                  draggable={false}
-                />
-                
-                {/* Resize Handles */}
-                {selectedElement === imgEl.id && (
-                  <>
-                    <div
-                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize z-20"
-                      onMouseDown={(e) => handleResizeMouseDown(e, imgEl.id, 'image')}
-                    />
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      className="absolute -top-8 -right-2 z-20"
-                      onClick={() => setImageElements(prev => prev.filter(i => i.id !== imgEl.id))}
-                    >
-                      ×
-                    </Button>
-                  </>
-                )}
-              </div>
-            ))}
           </div>
           
-          {/* Instructions */}
-          <div className="mt-2 text-sm text-gray-600">
-            <p>• Click elements to select them</p>
-            <p>• Double-click text to edit in real-time</p>
-            <p>• Drag elements to move them</p>
-            <p>• Use resize handles to adjust size</p>
-            <p>• Toggle transparency for text backgrounds</p>
+          <div className="border border-gray-300 rounded">
+            <h3 className="p-2 bg-gray-100 font-medium text-sm">Editing Canvas (No Interference)</h3>
+            <div 
+              ref={canvasRef}
+              className="relative w-full h-[600px] bg-white overflow-hidden cursor-crosshair"
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+            >
+              {textElements.map((textEl) => (
+                <div
+                  key={textEl.id}
+                  className={`absolute cursor-move border-2 ${
+                    selectedElement === textEl.id ? 'border-blue-500' : 'border-transparent'
+                  } ${textEl.isTransparent ? 'bg-transparent' : 'bg-white bg-opacity-90'} hover:border-gray-400`}
+                  style={{
+                    left: textEl.x,
+                    top: textEl.y,
+                    width: textEl.width,
+                    height: textEl.height,
+                    fontSize: textEl.fontSize,
+                    padding: '4px',
+                    zIndex: selectedElement === textEl.id ? 20 : 10
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, textEl.id, 'text')}
+                  onDoubleClick={() => handleTextDoubleClick(textEl.id)}
+                >
+                  {textEl.isEditing ? (
+                    <input
+                      type="text"
+                      value={textEl.text}
+                      onChange={(e) => handleTextChange(textEl.id, e.target.value)}
+                      onBlur={() => handleTextBlur(textEl.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleTextBlur(textEl.id);
+                        }
+                      }}
+                      className="w-full h-full bg-transparent border-none outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="select-none">{textEl.text}</span>
+                  )}
+                  
+                  {selectedElement === textEl.id && (
+                    <div
+                      className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
+                      onMouseDown={(e) => handleResizeMouseDown(e, textEl.id, 'text')}
+                    />
+                  )}
+                </div>
+              ))}
+
+              {imageElements.map((imgEl) => (
+                <div
+                  key={imgEl.id}
+                  className={`absolute cursor-move border-2 ${
+                    selectedElement === imgEl.id ? 'border-blue-500' : 'border-transparent'
+                  } hover:border-gray-400`}
+                  style={{
+                    left: imgEl.x,
+                    top: imgEl.y,
+                    width: imgEl.width,
+                    height: imgEl.height,
+                    zIndex: selectedElement === imgEl.id ? 20 : 10
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, imgEl.id, 'image')}
+                >
+                  <img
+                    src={imgEl.src}
+                    alt="Uploaded"
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                  />
+                  
+                  {selectedElement === imgEl.id && (
+                    <>
+                      <div
+                        className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize"
+                        onMouseDown={(e) => handleResizeMouseDown(e, imgEl.id, 'image')}
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        className="absolute -top-8 -right-2"
+                        onClick={() => setImageElements(prev => prev.filter(i => i.id !== imgEl.id))}
+                      >
+                        ×
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
+      )}
+
+      {url && (
+        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+          <p><strong>Instructions:</strong></p>
+          <p>• Use the <strong>Editing Canvas</strong> on the right - it has no interference layers</p>
+          <p>• Click elements to select them</p>
+          <p>• Double-click text to edit in real-time</p>
+          <p>• Drag elements to move them around</p>
+          <p>• Use blue resize handles to adjust size</p>
+          <p>• Toggle transparency for text backgrounds</p>
         </div>
       )}
       
