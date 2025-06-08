@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import jsQR from 'jsqr';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 
 export interface BarcodeResult {
   value: string;
@@ -23,6 +24,12 @@ export interface BarcodeResult {
 }
 
 export class BarcodeService {
+  private zxingReader: BrowserMultiFormatReader;
+
+  constructor() {
+    this.zxingReader = new BrowserMultiFormatReader();
+  }
+
   async scanBarcode(imageBuffer: Buffer): Promise<BarcodeResult> {
     try {
       // Get image metadata first
@@ -309,14 +316,22 @@ export class BarcodeService {
           // Square format - likely Data Matrix or QR variant
           console.log(`Checking Data Matrix pattern with aspect ratio ${aspectRatio}`);
           if (this.detectDataMatrixPattern(data, info.width, info.height, pixelAnalysis)) {
-            console.log('Data Matrix pattern confirmed');
+            console.log('Data Matrix pattern confirmed, attempting content extraction');
+            
+            // Try to decode actual content using ZXing
+            const decodedContent = await this.decodeWithZXing(imageBuffer);
+            if (decodedContent) {
+              return decodedContent;
+            }
+            
+            // Fallback with pattern detection info
             return {
-              value: 'DATA_MATRIX_DETECTED',
+              value: 'Data Matrix pattern detected but content could not be extracted',
               type: 'Data Matrix',
               format: 'DATA_MATRIX',
-              confidence: 0.85,
+              confidence: 0.75,
               metadata: {
-                note: 'Data Matrix barcode detected. Content extraction requires specialized decoding libraries like ZXing.',
+                note: 'Data Matrix pattern detected. Content extraction attempted but may require higher quality image.',
                 aspectRatio,
                 transitions: pixelAnalysis.horizontalTransitions + pixelAnalysis.verticalTransitions
               }
@@ -327,14 +342,22 @@ export class BarcodeService {
         if (aspectRatio >= 2.0) {
           // Linear format - Code 128, Code 39, etc.
           if (this.detectLinearBarcodePattern(data, info.width, info.height, pixelAnalysis)) {
-            console.log('Linear barcode pattern confirmed');
+            console.log('Linear barcode pattern confirmed, attempting content extraction');
+            
+            // Try to decode actual content using ZXing
+            const decodedContent = await this.decodeWithZXing(imageBuffer);
+            if (decodedContent) {
+              return decodedContent;
+            }
+            
+            // Fallback with pattern detection info
             return {
-              value: 'LINEAR_BARCODE_DETECTED',
+              value: 'Linear barcode pattern detected but content could not be extracted',
               type: 'Linear Barcode',
               format: 'CODE_128_OR_SIMILAR',
-              confidence: 0.8,
+              confidence: 0.7,
               metadata: {
-                note: 'Linear barcode detected (Code 128, Code 39, or similar). Content extraction requires specialized decoding libraries.',
+                note: 'Linear barcode pattern detected. Content extraction attempted but may require higher quality image.',
                 aspectRatio,
                 transitions: pixelAnalysis.horizontalTransitions
               }
