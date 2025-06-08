@@ -9,8 +9,11 @@ import { ArrowLeft, Star } from "lucide-react";
 
 export default function CategoryDetailPage() {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const category = getCategoryById(categoryId!);
   const { t } = useLanguage();
+  
+  // Handle /barcodes route by defaulting to 'barcodes' category
+  const actualCategoryId = categoryId || (window.location.pathname === '/barcodes' ? 'barcodes' : null);
+  const category = getCategoryById(actualCategoryId!);
 
   if (!category) {
     return (
