@@ -1409,25 +1409,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           number: i + 1,
           width: 595,
           height: 842,
-          // Use white background with subtle grid for text editing
-          background: `data:image/svg+xml;base64,${Buffer.from(`
-            <svg width="595" height="842" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f9fafb" stroke-width="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="#ffffff"/>
-              <rect width="100%" height="100%" fill="url(#grid)"/>
-              <text x="30" y="30" font-family="Arial" font-size="12" fill="#9ca3af">
-                ${pdfInfo.title || 'PDF Document'} - Page ${i + 1}
-              </text>
-              <line x1="0" y1="50" x2="595" y2="50" stroke="#e5e7eb" stroke-width="1"/>
-            </svg>
-          `).toString('base64')}`,
+          background: null, // No background - pure text editing
           textElements: textBlocks,
           imageElements: [],
-          extractedText: pageText.substring(0, 1000)
+          extractedText: pageText.substring(0, 1000),
+          title: pdfInfo.title || 'PDF Document'
         };
       });
 

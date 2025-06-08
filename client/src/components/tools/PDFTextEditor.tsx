@@ -419,10 +419,11 @@ export default function PDFTextEditor() {
         ) : (
           <div 
             ref={editorRef}
-            className="relative mx-auto bg-white shadow-lg border"
+            className="relative mx-auto bg-white shadow-lg border min-h-screen"
             style={{
               width: `${(currentPageData?.width || 595) * zoom}px`,
-              height: `${(currentPageData?.height || 842) * zoom}px`,
+              minHeight: `${(currentPageData?.height || 842) * zoom}px`,
+              padding: '60px 40px 40px 40px',
               transform: `scale(${zoom})`,
               transformOrigin: 'top left'
             }}
@@ -431,16 +432,12 @@ export default function PDFTextEditor() {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {/* PDF Background */}
-            {currentPageData?.background && (
-              <img
-                src={currentPageData.background}
-                alt={`Page ${currentPage}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ zIndex: 1 }}
-                draggable={false}
-              />
-            )}
+            {/* Clean document header */}
+            <div className="absolute top-0 left-0 right-0 h-12 bg-gray-50 border-b border-gray-200 flex items-center px-4" style={{ zIndex: 1 }}>
+              <h3 className="text-sm font-medium text-gray-700">
+                {currentPageData?.title || 'PDF Document'} - Page {currentPage}
+              </h3>
+            </div>
 
             {/* Text Layers */}
             {textLayers.map((textLayer) => (
@@ -490,9 +487,7 @@ export default function PDFTextEditor() {
                   />
                 ) : (
                   <div
-                    className={`w-full h-full p-2 whitespace-pre-wrap break-words ${
-                      textLayer.isOriginal ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-gray-200'
-                    }`}
+                    className="w-full h-full p-3 whitespace-pre-wrap break-words bg-transparent border-none"
                     style={{
                       fontSize: textLayer.fontSize / zoom,
                       fontFamily: textLayer.fontFamily,
@@ -501,34 +496,30 @@ export default function PDFTextEditor() {
                       fontStyle: textLayer.italic ? 'italic' : 'normal',
                       textDecoration: textLayer.underline ? 'underline' : 'none',
                       textAlign: textLayer.alignment,
-                      cursor: textLayer.isSelected ? 'move' : 'text',
+                      cursor: 'text',
                       userSelect: 'text',
                       WebkitUserSelect: 'text',
                       MozUserSelect: 'text',
-                      lineHeight: '1.4'
+                      lineHeight: '1.5',
+                      outline: textLayer.isSelected ? '2px solid #3b82f6' : 'none',
+                      backgroundColor: textLayer.isSelected ? '#eff6ff' : 'transparent'
                     }}
                     onMouseDown={(e) => {
-                      // Allow text selection on triple click or when shift is held
-                      if (e.detail === 3 || e.shiftKey) {
+                      // Allow normal text selection
+                      if (e.shiftKey || getSelection()?.toString()) {
                         e.stopPropagation();
                         return;
                       }
                       handleMouseDown(textLayer, null, e);
                     }}
+                    contentEditable={textLayer.isSelected}
+                    suppressContentEditableWarning={true}
+                    onInput={(e) => {
+                      const content = e.currentTarget.textContent || '';
+                      updateTextLayer(textLayer.id, { content });
+                    }}
                   >
                     {textLayer.content}
-                    
-                    {/* Show content type indicator */}
-                    {textLayer.isOriginal && (
-                      <div className="absolute -top-2 -left-2 text-xs bg-blue-500 text-white px-1 rounded">
-                        PDF
-                      </div>
-                    )}
-                    {!textLayer.isOriginal && (
-                      <div className="absolute -top-2 -left-2 text-xs bg-green-500 text-white px-1 rounded">
-                        NEW
-                      </div>
-                    )}
                   </div>
                 )}
 
