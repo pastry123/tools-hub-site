@@ -1,229 +1,143 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect, DragEvent } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { 
-  Upload, FileText, Scissors, Merge, RotateCw, Shield, 
-  Image, Type, Palette, Download, Trash2, Plus, X,
-  Settings, Layers, Grid, MousePointer, Move, Copy,
-  Save, RefreshCw, Archive, Eye, EyeOff
+  Upload, Download, FileText, Edit3, Save, 
+  Eye, RotateCw, Copy, Trash2, Plus, Type,
+  Image, Move, Palette, AlignLeft, AlignCenter,
+  AlignRight, Bold, Italic, Underline, MousePointer,
+  Square, Circle, ArrowRight, Undo, Redo, ZoomIn,
+  ZoomOut, Grid, Layers, Settings
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface PDFFile {
+interface TextElement {
   id: string;
-  file: File;
+  content: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  fontFamily: string;
+  color: string;
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
+  alignment: 'left' | 'center' | 'right';
+  page: number;
+  rotation: number;
+}
+
+interface ImageElement {
+  id: string;
+  src: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  opacity: number;
+  page: number;
+  originalFile?: File;
+}
+
+interface PDFPage {
+  id: string;
+  number: number;
+  width: number;
+  height: number;
+  textElements: TextElement[];
+  imageElements: ImageElement[];
+  background?: string;
+}
+
+interface PDFDocument {
+  id: string;
   name: string;
-  size: number;
-  pages: number;
-  preview?: string;
-  operations: PDFOperation[];
-}
-
-interface PDFOperation {
-  id: string;
-  type: 'rotate' | 'crop' | 'watermark' | 'compress' | 'split' | 'merge' | 'password' | 'extract-pages';
-  params: any;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-}
-
-interface BatchJob {
-  id: string;
-  files: PDFFile[];
-  operations: PDFOperation[];
-  progress: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  results?: { file: PDFFile; output: Blob }[];
+  file: File;
+  pages: PDFPage[];
+  currentPage: number;
+  zoom: number;
+  history: any[];
+  historyIndex: number;
 }
 
 export default function PDFEditor() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<PDFFile[]>([]);
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [currentOperation, setCurrentOperation] = useState<string>('');
-  const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
+  const [documents, setDocuments] = useState<PDFDocument[]>([]);
+  const [selectedDoc, setSelectedDoc] = useState<PDFDocument | null>(null);
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [tool, setTool] = useState<'select' | 'text' | 'image' | 'shape'>('select');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [showGrid, setShowGrid] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(true);
 
-  // Operation parameters
-  const [rotationAngle, setRotationAngle] = useState(90);
-  const [compressionLevel, setCompressionLevel] = useState(50);
-  const [watermarkText, setWatermarkText] = useState("");
-  const [password, setPassword] = useState("");
-  const [splitType, setSplitType] = useState("pages");
-  const [splitValue, setSplitValue] = useState("1");
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFiles = Array.from(event.target.files || []);
-    const pdfFiles = uploadedFiles.filter(file => file.type === 'application/pdf');
-    
-    if (pdfFiles.length !== uploadedFiles.length) {
-      toast({
-        title: "Warning",
-        description: "Only PDF files are supported",
-        variant: "destructive",
-      });
-    }
-
-    const newFiles: PDFFile[] = await Promise.all(
-      pdfFiles.map(async (file) => {
-        try {
-          const formData = new FormData();
-          formData.append('pdf', file);
-          
-          const response = await fetch('/api/pdf/info', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          const info = await response.json();
-          
-          return {
-            id: `file-${Date.now()}-${Math.random()}`,
-            file,
-            name: file.name,
-            size: file.size,
-            pages: info.pages || 1,
-            operations: []
-          };
-        } catch (error) {
-          return {
-            id: `file-${Date.now()}-${Math.random()}`,
-            file,
-            name: file.name,
-            size: file.size,
-            pages: 1,
-            operations: []
-          };
-        }
-      })
-    );
-
-    setFiles(prev => [...prev, ...newFiles]);
-    toast({
-      title: "Success",
-      description: `Added ${newFiles.length} PDF files`,
-    });
-  };
-
-  const addOperation = (type: string) => {
-    if (selectedFiles.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select files first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const operation: PDFOperation = {
-      id: `op-${Date.now()}`,
-      type: type as any,
-      params: getOperationParams(type),
-      status: 'pending'
-    };
-
-    setFiles(prev => prev.map(file => 
-      selectedFiles.includes(file.id) 
-        ? { ...file, operations: [...file.operations, operation] }
-        : file
-    ));
-
-    toast({
-      title: "Operation Added",
-      description: `${type} operation queued for ${selectedFiles.length} files`,
-    });
-  };
-
-  const getOperationParams = (type: string) => {
-    switch (type) {
-      case 'rotate':
-        return { angle: rotationAngle };
-      case 'compress':
-        return { level: compressionLevel };
-      case 'watermark':
-        return { text: watermarkText };
-      case 'password':
-        return { password };
-      case 'split':
-        return { type: splitType, value: splitValue };
-      default:
-        return {};
-    }
-  };
-
-  const processBatch = async () => {
-    if (files.length === 0) {
-      toast({
-        title: "Error",
-        description: "No files to process",
-        variant: "destructive",
-      });
-      return;
-    }
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     setIsProcessing(true);
-    setProgress(0);
-
-    const batchJob: BatchJob = {
-      id: `batch-${Date.now()}`,
-      files: files.filter(f => f.operations.length > 0),
-      operations: [],
-      progress: 0,
-      status: 'processing'
-    };
-
-    setBatchJobs(prev => [...prev, batchJob]);
 
     try {
-      const results = [];
-      const totalFiles = batchJob.files.length;
+      for (const file of Array.from(files)) {
+        if (file.type !== 'application/pdf') {
+          toast({
+            title: "Invalid File",
+            description: "Please upload PDF files only",
+            variant: "destructive",
+          });
+          continue;
+        }
 
-      for (let i = 0; i < batchJob.files.length; i++) {
-        const file = batchJob.files[i];
-        setProgress((i / totalFiles) * 100);
-
+        // Analyze PDF structure
         const formData = new FormData();
-        formData.append('pdf', file.file);
-        formData.append('operations', JSON.stringify(file.operations));
+        formData.append('pdf', file);
 
-        const response = await fetch('/api/pdf/batch-process', {
+        const response = await fetch('/api/pdf/analyze', {
           method: 'POST',
           body: formData,
         });
 
-        if (response.ok) {
-          const blob = await response.blob();
-          results.push({ file, output: blob });
-        } else {
-          throw new Error(`Failed to process ${file.name}`);
+        const analysis = await response.json();
+
+        const newDoc: PDFDocument = {
+          id: `doc-${Date.now()}-${Math.random()}`,
+          name: file.name.replace('.pdf', ''),
+          file,
+          pages: analysis.pages || generateSamplePages(),
+          currentPage: 0,
+          zoom: 1,
+          history: [],
+          historyIndex: -1
+        };
+
+        setDocuments(prev => [...prev, newDoc]);
+        if (!selectedDoc) {
+          setSelectedDoc(newDoc);
         }
       }
 
-      batchJob.results = results;
-      batchJob.status = 'completed';
-      batchJob.progress = 100;
-      setProgress(100);
-
       toast({
-        title: "Batch Processing Complete",
-        description: `Successfully processed ${results.length} files`,
+        title: "PDF Loaded",
+        description: "PDF is ready for editing",
       });
-
     } catch (error) {
-      batchJob.status = 'failed';
       toast({
-        title: "Batch Processing Failed",
-        description: "Some files could not be processed",
+        title: "Load Failed",
+        description: "Could not load PDF file",
         variant: "destructive",
       });
     } finally {
@@ -231,392 +145,819 @@ export default function PDFEditor() {
     }
   };
 
-  const downloadResults = (batchJob: BatchJob) => {
-    if (!batchJob.results) return;
-
-    batchJob.results.forEach(({ file, output }) => {
-      const url = URL.createObjectURL(output);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `processed_${file.name}`;
-      link.click();
-      URL.revokeObjectURL(url);
-    });
+  const generateSamplePages = (): PDFPage[] => {
+    return [
+      {
+        id: 'page-1',
+        number: 1,
+        width: 595,
+        height: 842,
+        textElements: [
+          {
+            id: 'text-1',
+            content: 'Sample Text - Click to Edit',
+            x: 100,
+            y: 100,
+            width: 300,
+            height: 30,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            color: '#000000',
+            bold: false,
+            italic: false,
+            underline: false,
+            alignment: 'left',
+            page: 1,
+            rotation: 0
+          }
+        ],
+        imageElements: []
+      }
+    ];
   };
 
-  const removeFile = (fileId: string) => {
-    setFiles(prev => prev.filter(f => f.id !== fileId));
-    setSelectedFiles(prev => prev.filter(id => id !== fileId));
+  const addTextElement = (x: number = 100, y: number = 100) => {
+    if (!selectedDoc) return;
+
+    const newTextElement: TextElement = {
+      id: `text-${Date.now()}`,
+      content: 'New Text',
+      x,
+      y,
+      width: 200,
+      height: 30,
+      fontSize: 16,
+      fontFamily: 'Arial',
+      color: '#000000',
+      bold: false,
+      italic: false,
+      underline: false,
+      alignment: 'left',
+      page: selectedDoc.currentPage + 1,
+      rotation: 0
+    };
+
+    const updatedDoc = {
+      ...selectedDoc,
+      pages: selectedDoc.pages.map(page =>
+        page.number === selectedDoc.currentPage + 1
+          ? {
+              ...page,
+              textElements: [...page.textElements, newTextElement]
+            }
+          : page
+      )
+    };
+
+    updateDocument(updatedDoc);
+    setSelectedElement(newTextElement.id);
   };
 
-  const toggleFileSelection = (fileId: string) => {
-    setSelectedFiles(prev => 
-      prev.includes(fileId) 
-        ? prev.filter(id => id !== fileId)
-        : [...prev, fileId]
-    );
+  const updateTextElement = (id: string, updates: Partial<TextElement>) => {
+    if (!selectedDoc) return;
+
+    const updatedDoc = {
+      ...selectedDoc,
+      pages: selectedDoc.pages.map(page => ({
+        ...page,
+        textElements: page.textElements.map(element =>
+          element.id === id ? { ...element, ...updates } : element
+        )
+      }))
+    };
+
+    updateDocument(updatedDoc);
   };
 
-  const selectAllFiles = () => {
-    setSelectedFiles(files.map(f => f.id));
+  const deleteTextElement = (id: string) => {
+    if (!selectedDoc) return;
+
+    const updatedDoc = {
+      ...selectedDoc,
+      pages: selectedDoc.pages.map(page => ({
+        ...page,
+        textElements: page.textElements.filter(element => element.id !== id)
+      }))
+    };
+
+    updateDocument(updatedDoc);
+    setSelectedElement(null);
   };
 
-  const clearSelection = () => {
-    setSelectedFiles([]);
+  const addImageElement = async (file: File) => {
+    if (!selectedDoc) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const newImageElement: ImageElement = {
+        id: `image-${Date.now()}`,
+        src: e.target?.result as string,
+        x: 100,
+        y: 200,
+        width: 200,
+        height: 150,
+        rotation: 0,
+        opacity: 1,
+        page: selectedDoc.currentPage + 1,
+        originalFile: file
+      };
+
+      const updatedDoc = {
+        ...selectedDoc,
+        pages: selectedDoc.pages.map(page =>
+          page.number === selectedDoc.currentPage + 1
+            ? {
+                ...page,
+                imageElements: [...page.imageElements, newImageElement]
+              }
+            : page
+        )
+      };
+
+      updateDocument(updatedDoc);
+      setSelectedElement(newImageElement.id);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const updateImageElement = (id: string, updates: Partial<ImageElement>) => {
+    if (!selectedDoc) return;
+
+    const updatedDoc = {
+      ...selectedDoc,
+      pages: selectedDoc.pages.map(page => ({
+        ...page,
+        imageElements: page.imageElements.map(element =>
+          element.id === id ? { ...element, ...updates } : element
+        )
+      }))
+    };
+
+    updateDocument(updatedDoc);
+  };
+
+  const deleteImageElement = (id: string) => {
+    if (!selectedDoc) return;
+
+    const updatedDoc = {
+      ...selectedDoc,
+      pages: selectedDoc.pages.map(page => ({
+        ...page,
+        imageElements: page.imageElements.filter(element => element.id !== id)
+      }))
+    };
+
+    updateDocument(updatedDoc);
+    setSelectedElement(null);
+  };
+
+  const updateDocument = (doc: PDFDocument) => {
+    setSelectedDoc(doc);
+    setDocuments(prev => prev.map(d => d.id === doc.id ? doc : d));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload image files only",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addImageElement(file);
+  };
+
+  const exportPDF = async () => {
+    if (!selectedDoc) return;
+
+    setIsProcessing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('pdf', selectedDoc.file);
+      formData.append('edits', JSON.stringify({
+        pages: selectedDoc.pages,
+        textElements: selectedDoc.pages.flatMap(p => p.textElements),
+        imageElements: selectedDoc.pages.flatMap(p => p.imageElements)
+      }));
+
+      const response = await fetch('/api/pdf/apply-edits', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `edited_${selectedDoc.name}.pdf`;
+        a.click();
+
+        toast({
+          title: "PDF Exported",
+          description: "Edited PDF has been downloaded",
+        });
+      } else {
+        throw new Error('Export failed');
+      }
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Could not export edited PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const getCurrentPage = () => {
+    if (!selectedDoc) return null;
+    return selectedDoc.pages[selectedDoc.currentPage];
+  };
+
+  const getSelectedTextElement = () => {
+    const page = getCurrentPage();
+    if (!page || !selectedElement) return null;
+    return page.textElements.find(el => el.id === selectedElement);
+  };
+
+  const getSelectedImageElement = () => {
+    const page = getCurrentPage();
+    if (!page || !selectedElement) return null;
+    return page.imageElements.find(el => el.id === selectedElement);
+  };
+
+  const handleElementDragStart = (e: DragEvent, elementId: string, elementType: 'text' | 'image') => {
+    e.dataTransfer.setData('elementId', elementId);
+    e.dataTransfer.setData('elementType', elementType);
+    setSelectedElement(elementId);
+  };
+
+  const handleElementDragEnd = (e: DragEvent) => {
+    if (!selectedDoc || !selectedElement) return;
+
+    const rect = e.currentTarget.parentElement?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = Math.max(0, (e.clientX - rect.left) / selectedDoc.zoom);
+    const y = Math.max(0, (e.clientY - rect.top) / selectedDoc.zoom);
+
+    const elementType = e.dataTransfer.getData('elementType');
+    
+    if (elementType === 'text') {
+      updateTextElement(selectedElement, { x, y });
+    } else if (elementType === 'image') {
+      updateImageElement(selectedElement, { x, y });
+    }
+  };
+
+  const duplicateElement = () => {
+    if (!selectedElement || !selectedDoc) return;
+
+    const page = getCurrentPage();
+    if (!page) return;
+
+    const textElement = page.textElements.find(el => el.id === selectedElement);
+    const imageElement = page.imageElements.find(el => el.id === selectedElement);
+
+    if (textElement) {
+      const newElement = {
+        ...textElement,
+        id: `text-${Date.now()}`,
+        x: textElement.x + 20,
+        y: textElement.y + 20,
+        content: textElement.content + ' (Copy)'
+      };
+
+      const updatedDoc = {
+        ...selectedDoc,
+        pages: selectedDoc.pages.map(p =>
+          p.number === selectedDoc.currentPage + 1
+            ? { ...p, textElements: [...p.textElements, newElement] }
+            : p
+        )
+      };
+
+      updateDocument(updatedDoc);
+      setSelectedElement(newElement.id);
+    } else if (imageElement) {
+      const newElement = {
+        ...imageElement,
+        id: `image-${Date.now()}`,
+        x: imageElement.x + 20,
+        y: imageElement.y + 20
+      };
+
+      const updatedDoc = {
+        ...selectedDoc,
+        pages: selectedDoc.pages.map(p =>
+          p.number === selectedDoc.currentPage + 1
+            ? { ...p, imageElements: [...p.imageElements, newElement] }
+            : p
+        )
+      };
+
+      updateDocument(updatedDoc);
+      setSelectedElement(newElement.id);
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Advanced PDF Editor</h1>
-        <p className="text-gray-600">Comprehensive PDF editing with batch processing capabilities</p>
+        <p className="text-gray-600">Edit text, add images, and manipulate PDF content directly</p>
       </div>
 
-      {/* File Upload */}
+      {/* Toolbar */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="w-5 h-5" />
-            Upload PDF Files
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium mb-2">Drop PDF files here or click to browse</p>
-              <p className="text-sm text-gray-500">Supports multiple file selection and batch processing</p>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="application/pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </div>
-        </CardContent>
-      </Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button onClick={() => fileInputRef.current?.click()}>
+                <Upload className="w-4 h-4 mr-2" />
+                Load PDF
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
 
-      {/* File Management */}
-      {files.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+              <Separator orientation="vertical" className="h-8" />
+
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Loaded Files ({files.length})
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={selectAllFiles}>
-                  Select All
-                </Button>
-                <Button variant="outline" size="sm" onClick={clearSelection}>
-                  Clear Selection
-                </Button>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {files.map((file) => (
-                <div
-                  key={file.id}
-                  className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedFiles.includes(file.id) ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => toggleFileSelection(file.id)}
+                <Button
+                  variant={tool === 'select' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTool('select')}
                 >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedFiles.includes(file.id)}
-                      onChange={() => toggleFileSelection(file.id)}
-                      className="rounded"
-                    />
-                    <FileText className="w-5 h-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">{file.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB • {file.pages} pages
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {file.operations.length > 0 && (
-                      <Badge variant="secondary">
-                        {file.operations.length} operations
-                      </Badge>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(file.id);
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Operations Panel */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            PDF Operations
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="batch">Batch</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rotate Pages</label>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      value={[rotationAngle]}
-                      onValueChange={(value) => setRotationAngle(value[0])}
-                      max={360}
-                      min={0}
-                      step={90}
-                      className="flex-1"
-                    />
-                    <span className="text-sm w-12">{rotationAngle}°</span>
-                  </div>
-                  <Button 
-                    onClick={() => addOperation('rotate')} 
-                    size="sm" 
-                    className="w-full"
-                  >
-                    <RotateCw className="w-4 h-4 mr-2" />
-                    Add Rotation
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Compress PDF</label>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      value={[compressionLevel]}
-                      onValueChange={(value) => setCompressionLevel(value[0])}
-                      max={100}
-                      min={10}
-                      step={10}
-                      className="flex-1"
-                    />
-                    <span className="text-sm w-12">{compressionLevel}%</span>
-                  </div>
-                  <Button 
-                    onClick={() => addOperation('compress')} 
-                    size="sm" 
-                    className="w-full"
-                  >
-                    <Archive className="w-4 h-4 mr-2" />
-                    Add Compression
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Add Watermark</label>
-                  <Input
-                    placeholder="Watermark text"
-                    value={watermarkText}
-                    onChange={(e) => setWatermarkText(e.target.value)}
-                  />
-                  <Button 
-                    onClick={() => addOperation('watermark')} 
-                    size="sm" 
-                    className="w-full"
-                    disabled={!watermarkText.trim()}
-                  >
-                    <Type className="w-4 h-4 mr-2" />
-                    Add Watermark
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="advanced" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Split PDF</label>
-                  <Select value={splitType} onValueChange={setSplitType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pages">Split by Pages</SelectItem>
-                      <SelectItem value="size">Split by Size</SelectItem>
-                      <SelectItem value="range">Page Range</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="Value (e.g., 5 or 1-5)"
-                    value={splitValue}
-                    onChange={(e) => setSplitValue(e.target.value)}
-                  />
-                  <Button 
-                    onClick={() => addOperation('split')} 
-                    size="sm" 
-                    className="w-full"
-                  >
-                    <Scissors className="w-4 h-4 mr-2" />
-                    Add Split
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Extract Pages</label>
-                  <Input
-                    placeholder="Page range (e.g., 1-3,5,7-10)"
-                    value={splitValue}
-                    onChange={(e) => setSplitValue(e.target.value)}
-                  />
-                  <Button 
-                    onClick={() => addOperation('extract-pages')} 
-                    size="sm" 
-                    className="w-full"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Extract Pages
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="security" className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Password Protection</label>
-                <Input
-                  type="password"
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  <MousePointer className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={tool === 'text' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTool('text')}
+                >
+                  <Type className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={tool === 'image' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => imageInputRef.current?.click()}
+                >
+                  <Image className="w-4 h-4" />
+                </Button>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
                 />
-                <Button 
-                  onClick={() => addOperation('password')} 
-                  size="sm" 
-                  className="w-full"
-                  disabled={!password.trim()}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Add Password Protection
-                </Button>
               </div>
-            </TabsContent>
 
-            <TabsContent value="batch" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Batch Processing</h3>
-                  <p className="text-sm text-gray-500">
-                    Process all selected files with queued operations
-                  </p>
-                </div>
+              <Separator orientation="vertical" className="h-8" />
+
+              <Button
+                size="sm"
+                onClick={() => addTextElement()}
+                disabled={!selectedDoc}
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Text
+              </Button>
+
+              {selectedElement && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={duplicateElement}
+                >
+                  <Copy className="w-4 h-4 mr-1" />
+                  Duplicate
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Grid className="w-4 h-4" />
+                <Switch
+                  checked={showGrid}
+                  onCheckedChange={setShowGrid}
+                />
+              </div>
+
+              {selectedDoc && (
                 <Button 
-                  onClick={processBatch}
-                  disabled={isProcessing || files.filter(f => f.operations.length > 0).length === 0}
-                  size="lg"
+                  onClick={exportPDF}
+                  disabled={isProcessing}
                 >
                   {isProcessing ? (
                     <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Processing...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Process Batch
+                      <Download className="w-4 h-4 mr-2" />
+                      Export PDF
                     </>
                   )}
                 </Button>
-              </div>
-
-              {isProcessing && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Processing files...</span>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <Progress value={progress} className="w-full" />
-                </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Batch Jobs History */}
-      {batchJobs.length > 0 && (
+      {documents.length === 0 ? (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Grid className="w-5 h-5" />
-              Batch Jobs History
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {batchJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      job.status === 'completed' ? 'bg-green-500' :
-                      job.status === 'failed' ? 'bg-red-500' :
-                      job.status === 'processing' ? 'bg-blue-500' : 'bg-gray-500'
-                    }`} />
-                    <div>
-                      <p className="font-medium">
-                        Batch Job #{job.id.slice(-6)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {job.files.length} files • {job.status}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {job.status === 'completed' && job.results && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadResults(job)}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download All
-                      </Button>
-                    )}
-                    <Badge variant={
-                      job.status === 'completed' ? 'default' :
-                      job.status === 'failed' ? 'destructive' :
-                      'secondary'
-                    }>
-                      {job.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <CardContent className="p-12 text-center">
+            <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-medium mb-2">No PDF loaded</h3>
+            <p className="text-gray-600 mb-4">Upload a PDF file to start editing</p>
+            <Button onClick={() => fileInputRef.current?.click()}>
+              <Upload className="w-4 h-4 mr-2" />
+              Load PDF
+            </Button>
           </CardContent>
         </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Document List */}
+          <div className="space-y-4">
+            <h3 className="font-medium">Open Documents</h3>
+            {documents.map((doc) => (
+              <Card 
+                key={doc.id}
+                className={`cursor-pointer transition-colors ${
+                  selectedDoc?.id === doc.id ? 'border-blue-500 bg-blue-50' : ''
+                }`}
+                onClick={() => setSelectedDoc(doc)}
+              >
+                <CardContent className="p-4">
+                  <h4 className="font-medium text-sm">{doc.name}</h4>
+                  <p className="text-xs text-gray-600">
+                    Page {doc.currentPage + 1} of {doc.pages.length}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Main Editor */}
+          <div className="lg:col-span-2">
+            {selectedDoc ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>{selectedDoc.name}</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateDocument({
+                          ...selectedDoc,
+                          currentPage: Math.max(0, selectedDoc.currentPage - 1)
+                        })}
+                        disabled={selectedDoc.currentPage === 0}
+                      >
+                        Previous
+                      </Button>
+                      <span className="text-sm px-2">
+                        {selectedDoc.currentPage + 1} / {selectedDoc.pages.length}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateDocument({
+                          ...selectedDoc,
+                          currentPage: Math.min(selectedDoc.pages.length - 1, selectedDoc.currentPage + 1)
+                        })}
+                        disabled={selectedDoc.currentPage === selectedDoc.pages.length - 1}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative border rounded-lg overflow-hidden">
+                    <div 
+                      className={`relative bg-white ${showGrid ? 'bg-grid' : ''}`}
+                      style={{
+                        width: '100%',
+                        height: '600px',
+                        transform: `scale(${selectedDoc.zoom})`,
+                        transformOrigin: 'top left'
+                      }}
+                      onClick={(e) => {
+                        if (tool === 'text') {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = (e.clientX - rect.left) / selectedDoc.zoom;
+                          const y = (e.clientY - rect.top) / selectedDoc.zoom;
+                          addTextElement(x, y);
+                        }
+                      }}
+                    >
+                      {/* Render Text Elements */}
+                      {getCurrentPage()?.textElements.map((textEl) => (
+                        <div
+                          key={textEl.id}
+                          draggable
+                          className={`absolute cursor-move border-2 select-none ${
+                            selectedElement === textEl.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-300'
+                          }`}
+                          style={{
+                            left: textEl.x,
+                            top: textEl.y,
+                            width: textEl.width,
+                            height: textEl.height,
+                            fontSize: textEl.fontSize,
+                            fontFamily: textEl.fontFamily,
+                            color: textEl.color,
+                            fontWeight: textEl.bold ? 'bold' : 'normal',
+                            fontStyle: textEl.italic ? 'italic' : 'normal',
+                            textDecoration: textEl.underline ? 'underline' : 'none',
+                            textAlign: textEl.alignment,
+                            transform: `rotate(${textEl.rotation}deg)`,
+                            padding: '4px'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(textEl.id);
+                          }}
+                          onDragStart={(e) => handleElementDragStart(e, textEl.id, 'text')}
+                          onDragEnd={handleElementDragEnd}
+                        >
+                          {textEl.content}
+                        </div>
+                      ))}
+
+                      {/* Render Image Elements */}
+                      {getCurrentPage()?.imageElements.map((imgEl) => (
+                        <div
+                          key={imgEl.id}
+                          draggable
+                          className={`absolute cursor-move border-2 select-none ${
+                            selectedElement === imgEl.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-300'
+                          }`}
+                          style={{
+                            left: imgEl.x,
+                            top: imgEl.y,
+                            width: imgEl.width,
+                            height: imgEl.height,
+                            transform: `rotate(${imgEl.rotation}deg)`,
+                            opacity: imgEl.opacity
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(imgEl.id);
+                          }}
+                          onDragStart={(e) => handleElementDragStart(e, imgEl.id, 'image')}
+                          onDragEnd={handleElementDragEnd}
+                        >
+                          <img
+                            src={imgEl.src}
+                            alt="PDF Element"
+                            className="w-full h-full object-contain pointer-events-none"
+                            draggable={false}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-2">Select a document</h3>
+                  <p className="text-gray-600">Choose a document from the list to start editing</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Properties Panel */}
+          <div className="space-y-4">
+            <h3 className="font-medium">Properties</h3>
+            
+            {selectedElement && getSelectedTextElement() && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Text Properties</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Content</label>
+                    <Textarea
+                      value={getSelectedTextElement()!.content}
+                      onChange={(e) => updateTextElement(selectedElement, { content: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Font Size</label>
+                      <Input
+                        type="number"
+                        value={getSelectedTextElement()!.fontSize}
+                        onChange={(e) => updateTextElement(selectedElement, { fontSize: parseInt(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Color</label>
+                      <Input
+                        type="color"
+                        value={getSelectedTextElement()!.color}
+                        onChange={(e) => updateTextElement(selectedElement, { color: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Font Family</label>
+                    <Select
+                      value={getSelectedTextElement()!.fontFamily}
+                      onValueChange={(value) => updateTextElement(selectedElement, { fontFamily: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Arial">Arial</SelectItem>
+                        <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                        <SelectItem value="Courier New">Courier New</SelectItem>
+                        <SelectItem value="Helvetica">Helvetica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={getSelectedTextElement()!.bold ? 'default' : 'outline'}
+                      onClick={() => updateTextElement(selectedElement, { bold: !getSelectedTextElement()!.bold })}
+                    >
+                      <Bold className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={getSelectedTextElement()!.italic ? 'default' : 'outline'}
+                      onClick={() => updateTextElement(selectedElement, { italic: !getSelectedTextElement()!.italic })}
+                    >
+                      <Italic className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={getSelectedTextElement()!.underline ? 'default' : 'outline'}
+                      onClick={() => updateTextElement(selectedElement, { underline: !getSelectedTextElement()!.underline })}
+                    >
+                      <Underline className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">X Position</label>
+                      <Input
+                        type="number"
+                        value={getSelectedTextElement()!.x}
+                        onChange={(e) => updateTextElement(selectedElement, { x: parseInt(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Y Position</label>
+                      <Input
+                        type="number"
+                        value={getSelectedTextElement()!.y}
+                        onChange={(e) => updateTextElement(selectedElement, { y: parseInt(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteTextElement(selectedElement)}
+                    className="w-full"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Text
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {selectedElement && getSelectedImageElement() && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Image Properties</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Width</label>
+                      <Input
+                        type="number"
+                        value={getSelectedImageElement()!.width}
+                        onChange={(e) => updateImageElement(selectedElement, { width: parseInt(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Height</label>
+                      <Input
+                        type="number"
+                        value={getSelectedImageElement()!.height}
+                        onChange={(e) => updateImageElement(selectedElement, { height: parseInt(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">X Position</label>
+                      <Input
+                        type="number"
+                        value={getSelectedImageElement()!.x}
+                        onChange={(e) => updateImageElement(selectedElement, { x: parseInt(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Y Position</label>
+                      <Input
+                        type="number"
+                        value={getSelectedImageElement()!.y}
+                        onChange={(e) => updateImageElement(selectedElement, { y: parseInt(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Rotation</label>
+                    <Slider
+                      value={[getSelectedImageElement()!.rotation]}
+                      onValueChange={([value]) => updateImageElement(selectedElement, { rotation: value })}
+                      min={0}
+                      max={360}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-600 mt-1">{getSelectedImageElement()!.rotation}°</div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Opacity</label>
+                    <Slider
+                      value={[getSelectedImageElement()!.opacity * 100]}
+                      onValueChange={([value]) => updateImageElement(selectedElement, { opacity: value / 100 })}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-600 mt-1">{Math.round(getSelectedImageElement()!.opacity * 100)}%</div>
+                  </div>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteImageElement(selectedElement)}
+                    className="w-full"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Image
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {!selectedElement && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <MousePointer className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-sm font-medium mb-2">No element selected</h3>
+                  <p className="text-xs text-gray-600">Click on text or image to edit properties</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

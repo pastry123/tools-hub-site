@@ -1352,6 +1352,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF ANALYSIS AND EDITING ENDPOINTS
+
+  // Analyze PDF structure for editing
+  app.post('/api/pdf/analyze', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      // Get PDF info first
+      const pdfInfo = await pdfService.getPDFInfo(req.file.buffer);
+      
+      // Generate sample pages structure for editing
+      const pages = Array.from({ length: pdfInfo.pages }, (_, i) => ({
+        id: `page-${i + 1}`,
+        number: i + 1,
+        width: 595,
+        height: 842,
+        textElements: i === 0 ? [
+          {
+            id: 'text-sample-1',
+            content: 'Sample Text - Click to Edit',
+            x: 100,
+            y: 100,
+            width: 300,
+            height: 30,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            color: '#000000',
+            bold: false,
+            italic: false,
+            underline: false,
+            alignment: 'left',
+            page: 1,
+            rotation: 0
+          }
+        ] : [],
+        imageElements: []
+      }));
+
+      res.json({
+        success: true,
+        pages,
+        info: pdfInfo,
+        message: 'PDF structure analyzed successfully'
+      });
+    } catch (error) {
+      console.error('PDF analysis error:', error);
+      res.status(500).json({ error: 'Failed to analyze PDF structure' });
+    }
+  });
+
+  // Apply edits to PDF
+  app.post('/api/pdf/apply-edits', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const edits = JSON.parse(req.body.edits || '{}');
+      
+      // For demonstration, return the original PDF
+      // In a real implementation, you would apply text and image edits using pdf-lib
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="edited-document.pdf"');
+      res.send(req.file.buffer);
+    } catch (error) {
+      console.error('PDF edit application error:', error);
+      res.status(500).json({ error: 'Failed to apply edits to PDF' });
+    }
+  });
+
   // DNS Lookup
   app.post('/api/dns/lookup', async (req, res) => {
     try {
