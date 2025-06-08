@@ -7,21 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, Pen, Type, Trash2, FileText, Wand2, Eye, Save, Shield, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-// PDF.js import with proper worker setup
-let pdfjsLib: any = null;
+import { Document, Page, pdfjs } from 'react-pdf';
 
-// Dynamically import PDF.js to avoid SSR issues
-const initPdfJs = async () => {
-  if (typeof window !== 'undefined' && !pdfjsLib) {
-    try {
-      pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-    } catch (error) {
-      console.warn('PDF.js could not be loaded:', error);
-    }
-  }
-  return pdfjsLib;
-};
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface SignatureField {
   id: string;
@@ -55,8 +44,8 @@ export default function AdvancedESign() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPages, setPdfPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [pdfDocument, setPdfDocument] = useState<any>(null);
-  const [canvasRefs, setCanvasRefs] = useState<HTMLCanvasElement[]>([]);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageWidth, setPageWidth] = useState<number>(600);
   const [signatureFields, setSignatureFields] = useState<SignatureField[]>([]);
   const [signers, setSigners] = useState<Signer[]>([]);
   const [documentTitle, setDocumentTitle] = useState("");
@@ -251,88 +240,12 @@ export default function AdvancedESign() {
     }
 
     setPdfFile(file);
-    setIsProcessing(true);
-
-    try {
-      // Try PDF.js for real content rendering
-      try {
-        const pdfJs = await initPdfJs();
-        if (!pdfJs) throw new Error('PDF.js not available');
-        
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfJs.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
-        
-        setPdfDocument(pdf);
-        
-        // Render all pages to get real document images
-        const pages = [];
-        const canvases = [];
-        
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 1.5 });
-          
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d')!;
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          
-          const renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-          };
-          
-          await page.render(renderContext).promise;
-          
-          const imageData = canvas.toDataURL('image/png');
-          pages.push(imageData);
-          canvases.push(canvas);
-        }
-        
-        setPdfPages(pages);
-        setCanvasRefs(canvases);
-        setCurrentPage(0);
-        
-        toast({
-          title: "Success",
-          description: "PDF loaded with real content rendering!",
-        });
-        return;
-      } catch (pdfJsError) {
-        console.warn('PDF.js failed, falling back to server-side preview:', pdfJsError);
-      }
-      
-      // Fallback to server-side preview if PDF.js fails
-      const formData = new FormData();
-      formData.append('pdf', file);
-
-      const response = await fetch('/api/pdf/preview', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPdfPages(data.pages);
-        setCurrentPage(0);
-        toast({
-          title: "Success",
-          description: "PDF loaded successfully!",
-        });
-      } else {
-        throw new Error('Failed to load PDF');
-      }
-    } catch (error) {
-      console.error('Error loading PDF:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load PDF. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    setCurrentPage(0);
+    
+    toast({
+      title: "Success",
+      description: "PDF loaded successfully!",
+    });
   };
 
   const addSigner = () => {
@@ -509,84 +422,28 @@ export default function AdvancedESign() {
 
     setIsProcessing(true);
     try {
-      // Generate preview using PDF.js with signatures overlaid
-      const pdfJs = await initPdfJs();
-      if (!pdfJs) {
-        // Fallback to server-side preview with signatures
-        const formData = new FormData();
-        formData.append('pdf', pdfFile);
-        formData.append('signature', currentSignature);
-        formData.append('fields', JSON.stringify(signatureFields));
+      // Use server-side preview with signatures
+      const formData = new FormData();
+      formData.append('pdf', pdfFile);
+      formData.append('signature', currentSignature);
+      formData.append('fields', JSON.stringify(signatureFields));
 
-        const response = await fetch('/api/pdf/preview-with-signatures', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setPreviewPages(data.pages);
-          setPreviewPage(0);
-          toast({
-            title: "Success",
-            description: "Preview with signatures generated successfully!",
-          });
-        } else {
-          throw new Error('Failed to generate preview with signatures');
-        }
-        return;
-      }
-      
-      const arrayBuffer = await pdfFile.arrayBuffer();
-      const loadingTask = pdfJs.getDocument({ data: arrayBuffer });
-      const pdf = await loadingTask.promise;
-      
-      const previewPagesWithSigs = [];
-      
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.5 });
-        
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d')!;
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        
-        // Render the original PDF page
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport,
-        };
-        
-        await page.render(renderContext).promise;
-        
-        // Overlay signatures for fields on this page
-        const pageFields = signatureFields.filter(field => field.page === pageNum - 1);
-        
-        for (const field of pageFields) {
-          if (currentSignature) {
-            const img = new Image();
-            await new Promise((resolve) => {
-              img.onload = resolve;
-              img.src = currentSignature;
-            });
-            
-            // Draw signature at field position with proper scaling
-            context.drawImage(img, field.x, field.y, field.width, field.height);
-          }
-        }
-        
-        const imageData = canvas.toDataURL('image/png');
-        previewPagesWithSigs.push(imageData);
-      }
-      
-      setPreviewPages(previewPagesWithSigs);
-      setPreviewPage(0);
-      
-      toast({
-        title: "Success",
-        description: "Preview with signatures generated successfully!",
+      const response = await fetch('/api/pdf/preview-with-signatures', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPreviewPages(data.pages);
+        setPreviewPage(0);
+        toast({
+          title: "Success",
+          description: "Preview with signatures generated successfully!",
+        });
+      } else {
+        throw new Error('Failed to generate preview with signatures');
+      }
     } catch (error) {
       console.error('Error generating preview with signatures:', error);
       toast({
@@ -848,7 +705,7 @@ export default function AdvancedESign() {
           </div>
 
           {/* PDF Preview and Signature Placement */}
-          {pdfPages.length > 0 && (
+          {pdfFile && (
             <div className="border rounded-lg p-4">
               <h3 className="font-medium mb-4">Document Preview & Signature Placement</h3>
               <div className="flex gap-2 mb-4">
@@ -861,12 +718,12 @@ export default function AdvancedESign() {
                   Previous
                 </Button>
                 <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100">
-                  Page {currentPage + 1} of {pdfPages.length}
+                  Page {currentPage + 1} of {numPages || 1}
                 </span>
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage(Math.min(pdfPages.length - 1, currentPage + 1))}
-                  disabled={currentPage === pdfPages.length - 1}
+                  onClick={() => setCurrentPage(Math.min((numPages || 1) - 1, currentPage + 1))}
+                  disabled={currentPage === (numPages || 1) - 1}
                   size="sm"
                 >
                   Next
@@ -883,33 +740,26 @@ export default function AdvancedESign() {
               >
                 {pdfFile ? (
                   <div className="relative w-full h-96">
-                    {/* Display enhanced content-based preview for accurate signature placement */}
-                    {pdfPages[currentPage] ? (
-                      <img
-                        src={pdfPages[currentPage]}
-                        alt={`Page ${currentPage + 1}`}
-                        className="max-w-full h-auto bg-white"
-                        style={{ 
-                          minHeight: '384px',
-                          objectFit: 'contain',
-                          width: '100%'
-                        }}
-                        draggable={false}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full bg-gray-100 text-gray-600">
-                        <div className="text-center">
-                          <FileText className="w-8 h-8 mx-auto mb-2" />
-                          <p className="text-sm">Loading document content...</p>
-                        </div>
+                    <Document
+                      file={pdfFile}
+                      onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                      className="flex justify-center"
+                    >
+                      <div className="relative">
+                        <Page
+                          pageNumber={currentPage + 1}
+                          width={pageWidth}
+                          className="shadow-lg"
+                          onLoadSuccess={(page) => setPageWidth(page.width)}
+                        />
+                        {/* Clickable overlay for signature field positioning */}
+                        <div 
+                          className="absolute inset-0 bg-transparent cursor-crosshair" 
+                          style={{ zIndex: 10 }}
+                          onMouseDown={handlePdfClick}
+                        ></div>
                       </div>
-                    )}
-                    {/* Clickable overlay for signature field positioning */}
-                    <div 
-                      className="absolute inset-0 bg-transparent cursor-crosshair" 
-                      style={{ zIndex: 10 }}
-                      onMouseDown={handlePdfClick}
-                    ></div>
+                    </Document>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-96 text-gray-500">
