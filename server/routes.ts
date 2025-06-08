@@ -1112,8 +1112,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             default:
               operationResults.push({ type: operation.type, status: 'failed', error: 'Unknown operation' });
           }
-        } catch (opError) {
-          operationResults.push({ type: operation.type, status: 'failed', error: opError.message });
+        } catch (opError: any) {
+          operationResults.push({ type: operation.type, status: 'failed', error: opError instanceof Error ? opError.message : 'Unknown error' });
         }
       }
 
@@ -1360,7 +1360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PDF Info endpoint for advanced editor
-  app.post('/api/pdf/info', upload.single('pdf'), async (req, res) => {
+  app.post('/api/pdf/info', uploadPDF.single('pdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No PDF file provided' });
