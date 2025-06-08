@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PDF Editor Grid Background */
+.bg-grid {
+  background-image: 
+    linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-grid-dark {
+  background-image: 
+    linear-gradient(to right, #374151 1px, transparent 1px),
+    linear-gradient(to bottom, #374151 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
