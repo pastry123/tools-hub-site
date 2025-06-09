@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,8 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy } from "lucide-react";
+import JsBarcode from "jsbarcode";
+import QRCode from "qrcode";
 
 interface BarcodeOptions {
   text: string;
@@ -27,17 +29,42 @@ interface BarcodeOptions {
   paddingbottom: number;
 }
 
-const BARCODE_TYPES: Record<string, { name: string; description: string; category: string }> = {
-  // QR Codes
+// JsBarcode supported formats mapped to our comprehensive list
+const BARCODE_TYPES: Record<string, { name: string; description: string; category: string; jsFormat?: string }> = {
+  // JsBarcode native support - Linear Codes
+  'CODE128': { name: 'Code 128', description: 'High-density linear barcode', category: 'Linear', jsFormat: 'CODE128' },
+  'CODE128A': { name: 'Code 128A', description: 'Code 128 subset A', category: 'Linear', jsFormat: 'CODE128A' },
+  'CODE128B': { name: 'Code 128B', description: 'Code 128 subset B', category: 'Linear', jsFormat: 'CODE128B' },
+  'CODE128C': { name: 'Code 128C', description: 'Code 128 subset C', category: 'Linear', jsFormat: 'CODE128C' },
+  'CODE39': { name: 'Code 39', description: 'Alphanumeric barcode', category: 'Linear', jsFormat: 'CODE39' },
+  'CODE93': { name: 'Code 93', description: 'Compact alphanumeric barcode', category: 'Linear', jsFormat: 'CODE93' },
+  'CODABAR': { name: 'Codabar', description: 'Numeric barcode for libraries/blood banks', category: 'Linear', jsFormat: 'codabar' },
+  'MSI': { name: 'MSI Plessey', description: 'Numeric barcode for inventory', category: 'Linear', jsFormat: 'MSI' },
+  'MSI10': { name: 'MSI Mod 10', description: 'MSI with Mod 10 checksum', category: 'Linear', jsFormat: 'MSI10' },
+  'MSI11': { name: 'MSI Mod 11', description: 'MSI with Mod 11 checksum', category: 'Linear', jsFormat: 'MSI11' },
+  'MSI1010': { name: 'MSI Mod 1010', description: 'MSI with Mod 1010 checksum', category: 'Linear', jsFormat: 'MSI1010' },
+  'MSI1110': { name: 'MSI Mod 1110', description: 'MSI with Mod 1110 checksum', category: 'Linear', jsFormat: 'MSI1110' },
+  
+  // EAN/UPC Codes
+  'EAN13': { name: 'EAN-13', description: '13-digit European Article Number', category: 'EAN/UPC', jsFormat: 'EAN13' },
+  'EAN8': { name: 'EAN-8', description: '8-digit European Article Number', category: 'EAN/UPC', jsFormat: 'EAN8' },
+  'EAN5': { name: 'EAN-5', description: '5-digit EAN add-on', category: 'EAN/UPC', jsFormat: 'EAN5' },
+  'EAN2': { name: 'EAN-2', description: '2-digit EAN add-on', category: 'EAN/UPC', jsFormat: 'EAN2' },
+  'UPC': { name: 'UPC-A', description: 'Universal Product Code A', category: 'EAN/UPC', jsFormat: 'UPC' },
+  'UPCE': { name: 'UPC-E', description: 'Universal Product Code E', category: 'EAN/UPC', jsFormat: 'UPCE' },
+  
+  // ITF Codes  
+  'ITF14': { name: 'ITF-14', description: '14-digit Interleaved 2 of 5', category: 'EAN/UPC', jsFormat: 'ITF14' },
+  'ITF': { name: 'ITF', description: 'Interleaved 2 of 5', category: 'Linear', jsFormat: 'ITF' },
+  
+  // Pharmacode
+  'pharmacode': { name: 'Pharmacode', description: 'Pharmaceutical barcode', category: 'Healthcare', jsFormat: 'pharmacode' },
+  
+  // QR Code (requires separate library)
   'qrcode': { name: 'QR Code', description: 'Quick Response Code', category: '2D Codes' },
   
-  // Linear Codes
-  'code128': { name: 'Code 128', description: 'High-density linear barcode', category: 'Linear' },
-  'code39': { name: 'Code 39', description: 'Alphanumeric barcode', category: 'Linear' },
-  'code93': { name: 'Code 93', description: 'Compact alphanumeric barcode', category: 'Linear' },
+  // Additional formats with custom implementation
   'code11': { name: 'Code 11', description: 'Numeric barcode for telecommunications', category: 'Linear' },
-  'codabar': { name: 'Codabar', description: 'Numeric barcode for libraries/blood banks', category: 'Linear' },
-  'msi': { name: 'MSI Plessey', description: 'Numeric barcode for inventory', category: 'Linear' },
   'code25': { name: 'Code 25', description: 'Standard Code 25', category: 'Linear' },
   'code25iata': { name: 'Code 25 IATA', description: 'IATA 2 of 5', category: 'Linear' },
   'plessey': { name: 'Plessey', description: 'Plessey barcode', category: 'Linear' },
@@ -45,17 +72,7 @@ const BARCODE_TYPES: Record<string, { name: string; description: string; categor
   'telepennumeric': { name: 'Telepen Numeric', description: 'Numeric Telepen', category: 'Linear' },
   'fim': { name: 'FIM', description: 'Facing Identification Mark', category: 'Linear' },
   
-  // EAN/UPC Codes
-  'ean8': { name: 'EAN-8', description: '8-digit European Article Number', category: 'EAN/UPC' },
-  'ean13': { name: 'EAN-13', description: '13-digit European Article Number', category: 'EAN/UPC' },
-  'ean14': { name: 'EAN-14', description: '14-digit shipping container code', category: 'EAN/UPC' },
-  'upca': { name: 'UPC-A', description: 'Universal Product Code A', category: 'EAN/UPC' },
-  'upce': { name: 'UPC-E', description: 'Universal Product Code E', category: 'EAN/UPC' },
-  'ean5': { name: 'EAN-5', description: '5-digit EAN add-on', category: 'EAN/UPC' },
-  'ean2': { name: 'EAN-2', description: '2-digit EAN add-on', category: 'EAN/UPC' },
-  'itf14': { name: 'ITF-14', description: '14-digit Interleaved 2 of 5', category: 'EAN/UPC' },
-  
-  // 2D Codes
+  // 2D Codes (would need additional libraries)
   'datamatrix': { name: 'Data Matrix', description: '2D matrix barcode', category: '2D Codes' },
   'pdf417': { name: 'PDF417', description: 'Portable Data File barcode', category: '2D Codes' },
   'micropdf417': { name: 'Micro PDF417', description: 'Compact PDF417', category: '2D Codes' },
@@ -64,7 +81,7 @@ const BARCODE_TYPES: Record<string, { name: string; description: string; categor
   'dotcode': { name: 'DotCode', description: 'High-speed 2D matrix code', category: '2D Codes' },
   'hanxin': { name: 'Han Xin Code', description: 'Chinese national 2D barcode', category: '2D Codes' },
   
-  // Postal Codes
+  // Postal Codes (would need custom implementation)
   'postnet': { name: 'POSTNET', description: 'USPS Postal Numeric Encoding', category: 'Postal' },
   'planet': { name: 'PLANET', description: 'USPS PLANET barcode', category: 'Postal' },
   'royalmail': { name: 'Royal Mail 4-State', description: 'UK postal barcode', category: 'Postal' },
@@ -75,7 +92,7 @@ const BARCODE_TYPES: Record<string, { name: string; description: string; categor
   'leitcode': { name: 'Deutsche Post Leitcode', description: 'German postal leitcode', category: 'Postal' },
   'onecode': { name: 'USPS Intelligent Mail', description: 'USPS OneCode', category: 'Postal' },
   
-  // GS1 DataBar
+  // GS1 DataBar (would need custom implementation)
   'gs1databar': { name: 'GS1 DataBar Omnidirectional', description: 'Omnidirectional DataBar', category: 'GS1 DataBar' },
   'gs1databarstacked': { name: 'GS1 DataBar Stacked', description: 'Stacked DataBar', category: 'GS1 DataBar' },
   'gs1databarstackedomni': { name: 'GS1 DataBar Stacked Omnidirectional', description: 'Stacked Omnidirectional DataBar', category: 'GS1 DataBar' },
@@ -85,9 +102,8 @@ const BARCODE_TYPES: Record<string, { name: string; description: string; categor
   'gs1databarexpandedstacked': { name: 'GS1 DataBar Expanded Stacked', description: 'Expanded Stacked DataBar', category: 'GS1 DataBar' },
   'gs1-128': { name: 'GS1-128', description: 'Application identifier barcode', category: 'GS1 DataBar' },
   
-  // Healthcare Codes
+  // Healthcare Codes  
   'code32': { name: 'Code32', description: 'Italian pharmacode', category: 'Healthcare' },
-  'pharmacode': { name: 'Pharmacode One-Track', description: 'Single-track pharmaceutical barcode', category: 'Healthcare' },
   'pharmacode2': { name: 'Pharmacode Two-Track', description: 'Two-track pharmaceutical barcode', category: 'Healthcare' },
   'pzn': { name: 'PZN', description: 'German pharmaceutical number', category: 'Healthcare' },
   'hibccode128': { name: 'HIBC Code 128', description: 'Healthcare Industry Bar Code 128', category: 'Healthcare' },
@@ -115,7 +131,7 @@ const BARCODE_TYPES: Record<string, { name: string; description: string; categor
 export default function BarcodeGenerator() {
   const [options, setOptions] = useState<BarcodeOptions>({
     text: "Hello World",
-    bcid: "qrcode",
+    bcid: "CODE128",
     scale: 3,
     height: 10,
     includetext: true,
@@ -134,6 +150,7 @@ export default function BarcodeGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   // Get unique categories
@@ -168,13 +185,50 @@ export default function BarcodeGenerator() {
     setIsGenerating(true);
     
     try {
-      const canvas = generateBarcodeCanvas(options);
-      const dataUrl = canvas.toDataURL('image/png');
+      let dataUrl: string;
+      
+      if (options.bcid === 'qrcode') {
+        // Generate real QR code using QRCode library
+        dataUrl = await QRCode.toDataURL(options.text, {
+          width: options.scale * 150,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: options.backgroundcolor || '#ffffff'
+          }
+        });
+      } else {
+        // Generate real barcode using JsBarcode library
+        const barcodeType = BARCODE_TYPES[options.bcid];
+        if (!barcodeType?.jsFormat) {
+          throw new Error(`Barcode type ${options.bcid} is not yet supported with real encoding. Please select a supported type like CODE128, CODE39, EAN13, UPC, etc.`);
+        }
+        
+        const canvas = document.createElement('canvas');
+        
+        try {
+          JsBarcode(canvas, options.text, {
+            format: barcodeType.jsFormat,
+            width: options.scale,
+            height: options.height * 10,
+            displayValue: options.includetext,
+            fontSize: options.textsize,
+            background: options.backgroundcolor || '#ffffff',
+            lineColor: '#000000',
+            margin: 10
+          });
+          
+          dataUrl = canvas.toDataURL('image/png');
+        } catch (barcodeError) {
+          throw new Error(`Failed to generate ${barcodeType.name}: ${barcodeError instanceof Error ? barcodeError.message : 'Invalid data for this barcode type'}`);
+        }
+      }
+      
       setBarcodeUrl(dataUrl);
       
       toast({
         title: "Barcode Generated",
-        description: "Your barcode has been generated successfully!",
+        description: "Your authentic, scannable barcode has been generated!",
       });
     } catch (error) {
       toast({
@@ -187,184 +241,12 @@ export default function BarcodeGenerator() {
     }
   };
 
-  const generateBarcodeCanvas = (options: BarcodeOptions): HTMLCanvasElement => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    
-    if (options.bcid === 'qrcode') {
-      return generateQRCode(options.text, options.scale * 150, options.backgroundcolor);
+  // Auto-generate barcode when options change
+  useEffect(() => {
+    if (options.text.trim()) {
+      generateBarcode();
     }
-    
-    // Linear barcode generation
-    const width = Math.max(300, options.text.length * 15 * options.scale);
-    const height = Math.max(80, options.height * 3);
-    canvas.width = width;
-    canvas.height = height;
-    
-    // Draw background
-    ctx.fillStyle = options.backgroundcolor || '#ffffff';
-    ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = '#000000';
-    
-    // Generate barcode pattern
-    const pattern = createBarcodePattern(options.text, options.bcid);
-    const barWidth = Math.max(1, options.scale);
-    let x = 20;
-    
-    // Draw bars
-    for (let i = 0; i < pattern.length && x < width - 20; i++) {
-      if (pattern[i] === '1') {
-        ctx.fillRect(x, 10, barWidth, height - 30);
-      }
-      x += barWidth;
-    }
-    
-    // Add text if requested
-    if (options.includetext) {
-      ctx.font = `${options.textsize || 12}px monospace`;
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#000000';
-      ctx.fillText(options.text, width / 2, height - 8);
-    }
-    
-    return canvas;
-  };
-
-  const generateQRCode = (text: string, size: number, bgColor: string): HTMLCanvasElement => {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-    
-    const gridSize = 21;
-    const moduleSize = size / gridSize;
-    
-    // Fill background
-    ctx.fillStyle = bgColor || '#ffffff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = '#000000';
-    
-    // Create QR matrix based on text
-    const matrix = createQRMatrix(text, gridSize);
-    
-    // Draw QR modules
-    for (let row = 0; row < gridSize; row++) {
-      for (let col = 0; col < gridSize; col++) {
-        if (matrix[row][col]) {
-          ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
-        }
-      }
-    }
-    
-    return canvas;
-  };
-
-  const createQRMatrix = (text: string, size: number): boolean[][] => {
-    const matrix: boolean[][] = Array(size).fill(null).map(() => Array(size).fill(false));
-    
-    // Add finder patterns (corner squares)
-    addFinderPattern(matrix, 0, 0);
-    addFinderPattern(matrix, size - 7, 0);
-    addFinderPattern(matrix, 0, size - 7);
-    
-    // Add timing patterns
-    for (let i = 8; i < size - 8; i++) {
-      matrix[6][i] = i % 2 === 0;
-      matrix[i][6] = i % 2 === 0;
-    }
-    
-    // Encode text data
-    const textHash = hashText(text);
-    for (let row = 1; row < size - 1; row++) {
-      for (let col = 1; col < size - 1; col++) {
-        if (isReservedArea(row, col, size)) continue;
-        
-        const dataValue = (textHash + row * size + col) * 1103515245 + 12345;
-        matrix[row][col] = (dataValue >>> 16) % 2 === 1;
-      }
-    }
-    
-    return matrix;
-  };
-
-  const addFinderPattern = (matrix: boolean[][], startRow: number, startCol: number) => {
-    const pattern = [
-      [1,1,1,1,1,1,1],
-      [1,0,0,0,0,0,1],
-      [1,0,1,1,1,0,1],
-      [1,0,1,1,1,0,1],
-      [1,0,1,1,1,0,1],
-      [1,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1]
-    ];
-    
-    for (let i = 0; i < 7; i++) {
-      for (let j = 0; j < 7; j++) {
-        if (startRow + i < matrix.length && startCol + j < matrix[0].length) {
-          matrix[startRow + i][startCol + j] = pattern[i][j] === 1;
-        }
-      }
-    }
-  };
-
-  const hashText = (text: string): number => {
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      const char = text.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash);
-  };
-
-  const isReservedArea = (row: number, col: number, size: number): boolean => {
-    // Finder patterns
-    if ((row < 9 && col < 9) || 
-        (row < 9 && col >= size - 8) || 
-        (row >= size - 8 && col < 9)) {
-      return true;
-    }
-    // Timing patterns
-    if (row === 6 || col === 6) {
-      return true;
-    }
-    return false;
-  };
-
-  const createBarcodePattern = (text: string, type: string): string => {
-    const patterns: Record<string, Record<string, string>> = {
-      code128: {
-        ' ': '11011001100', 'A': '11001011000', 'B': '11001000110', 'C': '10010011000',
-        '0': '11011001100', '1': '11001011000', '2': '11001000110', '3': '10010011000',
-        '4': '10011001000', '5': '10000110100', '6': '10000100110', '7': '10110001000',
-        '8': '10001101000', '9': '10001100010'
-      },
-      code39: {
-        '0': '101001101101', '1': '110100101011', '2': '101100101011',
-        '3': '110110010101', '4': '101001101011', '5': '110100110101',
-        '6': '101100110101', '7': '101001011011', '8': '110100101101',
-        '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
-        'C': '110110100101', ' ': '101101101001', '*': '100101101101'
-      }
-    };
-    
-    const typePatterns = patterns[type] || patterns.code128;
-    let binary = type === 'code39' ? typePatterns['*'] : '11010000100'; // Start pattern
-    
-    for (const char of text) {
-      const pattern = typePatterns[char.toUpperCase()] || typePatterns['0'];
-      binary += pattern;
-      if (type === 'code39') binary += '0'; // Inter-character gap
-    }
-    
-    if (type === 'code39') {
-      binary += typePatterns['*']; // Stop pattern
-    } else {
-      binary += '1100011101011'; // Stop pattern
-    }
-    
-    return binary;
-  };
+  }, [options.text, options.bcid]);
 
   const downloadBarcode = () => {
     if (!barcodeUrl) return;
