@@ -29,7 +29,7 @@ interface BarcodeOptions {
 }
 
 // Complete bwip-js supported barcode categories - all authentic encoding
-const barcodeCategories: Record<string, Record<string, { bcid: string; hint: string; options?: any; ccSupport?: boolean }>> = {
+const barcodeCategories: Record<string, Record<string, { bcid: string; hint: string; options?: any; ccSupport?: boolean; actualBcid?: string }>> = {
   "Linear Codes": {
     "Code-128": { bcid: "code128", hint: "Alphanumeric or all numeric." },
     "Code-11": { bcid: "code11", hint: "Numeric (0-9) and hyphen (-)." },
@@ -53,11 +53,11 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
     "Planet Code 12": { bcid: "planet", hint: "12 or 14 digits. USPS Marketing Mail." },
     "Royal Mail 4-State (RM4SCC)": { bcid: "royalmail", hint: "Alphanumeric, UK postal." },
     "Royal Mail Mailmark 4-State": { bcid: "mailmark", hint: "Complex, requires specific data structure." },
-    "USPS PostNet 5": { bcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "5-digit ZIP." },
-    "USPS PostNet 9": { bcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "9-digit ZIP (ZIP+4)." },
-    "USPS PostNet 11": { bcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "11-digit Delivery Point." },
-    "USPS IM Package (IMpb)": { bcid: "gs1-128", hint: "GS1-128 with specific AIs for USPS Intelligent Mail Package Barcode." },
-    "UPU S10": { bcid: "gs1-128", hint: "International postal items, often GS1-128. Format: (420)ZIP(92)COUNTRY(01)ITEM_ID" }
+    "USPS PostNet 5": { bcid: "postnet-5", actualBcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "5-digit ZIP." },
+    "USPS PostNet 9": { bcid: "postnet-9", actualBcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "9-digit ZIP (ZIP+4)." },
+    "USPS PostNet 11": { bcid: "postnet-11", actualBcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "11-digit Delivery Point." },
+    "USPS IM Package (IMpb)": { bcid: "impb", actualBcid: "gs1-128", hint: "GS1-128 with specific AIs for USPS Intelligent Mail Package Barcode." },
+    "UPU S10": { bcid: "upu-s10", actualBcid: "gs1-128", hint: "International postal items, often GS1-128. Format: (420)ZIP(92)COUNTRY(01)ITEM_ID" }
   },
   "GS1 DataBar": {
     "GS1-DataBar Omnidirectional": { bcid: "gs1databaromni", hint: "14 digits, typically GTIN." },
@@ -66,24 +66,24 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
     "GS1-DataBar Limited": { bcid: "gs1databarlimited", hint: "14 digits, leading (0) or (1)." },
     "GS1-DataBar Expanded": { bcid: "gs1databarexpanded", hint: "Up to 74 numeric or 41 alphabetic chars. Uses AIs." },
     "GS1-DataBar Expanded Stacked": { bcid: "gs1databarexpandedstacked", hint: "Multi-row version of Expanded." },
-    "GS1-128 Composite Symbology": { bcid: "gs1-128", ccSupport: true, hint: "GS1-128 with 2D component. Data | CC_Data" },
-    "GS1-DataBar Composite": { bcid: "gs1databaromni", ccSupport: true, hint: "DataBar Omni with 2D component. Data | CC_Data" },
-    "GS1-DataBar Stacked Composite": { bcid: "gs1databarstacked", ccSupport: true, hint: "DataBar Stacked with 2D. Data | CC_Data" },
-    "GS1-DataBar Stacked Omni Composite": { bcid: "gs1databarstackedomni", ccSupport: true, hint: "Stacked Omni with 2D. Data | CC_Data" },
-    "GS1-DataBar Limited Composite": { bcid: "gs1databarlimited", ccSupport: true, hint: "Limited with 2D. Data | CC_Data" },
-    "GS1-DataBar Expanded Composite": { bcid: "gs1databarexpanded", ccSupport: true, hint: "Expanded with 2D. Data | CC_Data" },
-    "GS1-DataBar Expanded Stacked Composite": { bcid: "gs1databarexpandedstacked", ccSupport: true, hint: "Expanded Stacked with 2D. Data | CC_Data" }
+    "GS1-128 Composite Symbology": { bcid: "gs1-128-composite", actualBcid: "gs1-128", ccSupport: true, hint: "GS1-128 with 2D component. Data | CC_Data" },
+    "GS1-DataBar Composite": { bcid: "gs1databaromni-composite", actualBcid: "gs1databaromni", ccSupport: true, hint: "DataBar Omni with 2D component. Data | CC_Data" },
+    "GS1-DataBar Stacked Composite": { bcid: "gs1databarstacked-composite", actualBcid: "gs1databarstacked", ccSupport: true, hint: "DataBar Stacked with 2D. Data | CC_Data" },
+    "GS1-DataBar Stacked Omni Composite": { bcid: "gs1databarstackedomni-composite", actualBcid: "gs1databarstackedomni", ccSupport: true, hint: "Stacked Omni with 2D. Data | CC_Data" },
+    "GS1-DataBar Limited Composite": { bcid: "gs1databarlimited-composite", actualBcid: "gs1databarlimited", ccSupport: true, hint: "Limited with 2D. Data | CC_Data" },
+    "GS1-DataBar Expanded Composite": { bcid: "gs1databarexpanded-composite", actualBcid: "gs1databarexpanded", ccSupport: true, hint: "Expanded with 2D. Data | CC_Data" },
+    "GS1-DataBar Expanded Stacked Composite": { bcid: "gs1databarexpandedstacked-composite", actualBcid: "gs1databarexpandedstacked", ccSupport: true, hint: "Expanded Stacked with 2D. Data | CC_Data" }
   },
   "EAN / UPC": {
     "EAN-8": { bcid: "ean8", hint: "8 digits." },
     "EAN-13": { bcid: "ean13", hint: "13 digits (12 data + 1 check)." },
     "EAN-14": { bcid: "ean14", hint: "14 digits (GTIN-14), often represented as GS1-128 (01) or DataMatrix." },
-    "EAN-8 Composite Symbology": { bcid: "ean8", ccSupport: true, hint: "EAN-8 with 2D component. Data | CC_Data" },
-    "EAN-13 Composite Symbology": { bcid: "ean13", ccSupport: true, hint: "EAN-13 with 2D component. Data | CC_Data" },
+    "EAN-8 Composite Symbology": { bcid: "ean8-composite", actualBcid: "ean8", ccSupport: true, hint: "EAN-8 with 2D component. Data | CC_Data" },
+    "EAN-13 Composite Symbology": { bcid: "ean13-composite", actualBcid: "ean13", ccSupport: true, hint: "EAN-13 with 2D component. Data | CC_Data" },
     "UPC-A": { bcid: "upca", hint: "12 digits (11 data + 1 check)." },
     "UPC-E": { bcid: "upce", hint: "8 digits (compressed from UPC-A)." },
-    "UPC-A Composite Symbology": { bcid: "upca", ccSupport: true, hint: "UPC-A with 2D component. Data | CC_Data" },
-    "UPC-E Composite Symbology": { bcid: "upce", ccSupport: true, hint: "UPC-E with 2D component. Data | CC_Data" }
+    "UPC-A Composite Symbology": { bcid: "upca-composite", actualBcid: "upca", ccSupport: true, hint: "UPC-A with 2D component. Data | CC_Data" },
+    "UPC-E Composite Symbology": { bcid: "upce-composite", actualBcid: "upce", ccSupport: true, hint: "UPC-E with 2D component. Data | CC_Data" }
   },
   "2D Codes": {
     "QR Code": { bcid: "qrcode", hint: "Alphanumeric data, URLs, etc." },
@@ -97,20 +97,20 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
     "Micro QR Code": { bcid: "microqrcode", hint: "Smaller version of QR Code." },
     "Han Xin": { bcid: "hanxin", hint: "Chinese 2D code." },
     "DotCode": { bcid: "dotcode", hint: "For high-speed industrial printing." },
-    "Royal Mail Mailmark 2D": { bcid: "datamatrix", options: { "mailmark": true }, hint: "Data Matrix for Royal Mail Mailmark. Specific data structure." },
-    "NTIN Code": { bcid: "datamatrix", hint: "German PPN system, uses Data Matrix. Data: PPN_Data" },
-    "PPN Code": { bcid: "datamatrix", hint: "Pharmacy Product Number, uses Data Matrix. Data: PPN_Data" }
+    "Royal Mail Mailmark 2D": { bcid: "mailmark-2d", actualBcid: "datamatrix", options: { "mailmark": true }, hint: "Data Matrix for Royal Mail Mailmark. Specific data structure." },
+    "NTIN Code": { bcid: "ntin-datamatrix", actualBcid: "datamatrix", hint: "German PPN system, uses Data Matrix. Data: PPN_Data" },
+    "PPN Code": { bcid: "ppn-datamatrix", actualBcid: "datamatrix", hint: "Pharmacy Product Number, uses Data Matrix. Data: PPN_Data" }
   },
   "GS1 2D Barcodes": {
     "GS1 QR Code": { bcid: "gs1qrcode", hint: "QR Code with GS1 data structure (FNC1)." },
     "GS1 DataMatrix": { bcid: "gs1datamatrix", hint: "Data Matrix with GS1 data structure (FNC1)." },
-    "GS1 Digital Link QR code": { bcid: "qrcode", hint: "URL using GS1 Digital Link syntax. e.g. https://d.gs1.org/gtin/..." },
-    "GS1 Digital Link Data Matrix": { bcid: "datamatrix", hint: "URL using GS1 Digital Link syntax. e.g. https://d.gs1.org/gtin/..." }
+    "GS1 Digital Link QR code": { bcid: "gs1-digital-qr", actualBcid: "qrcode", hint: "URL using GS1 Digital Link syntax. e.g. https://d.gs1.org/gtin/..." },
+    "GS1 Digital Link Data Matrix": { bcid: "gs1-digital-dm", actualBcid: "datamatrix", hint: "URL using GS1 Digital Link syntax. e.g. https://d.gs1.org/gtin/..." }
   },
   "Banking and Payments": {
-    "EPC QR Code V2": { bcid: "qrcode", hint: "SEPA Credit Transfer QR. Structured data: BCD\\n002\\n1\\nSCT\\n..." },
+    "EPC QR Code V2": { bcid: "epc-qr", actualBcid: "qrcode", hint: "SEPA Credit Transfer QR. Structured data: BCD\\n002\\n1\\nSCT\\n..." },
     "Swiss QR Code v.1.0/v.2.2": { bcid: "swissqrcode", hint: "Highly structured data for Swiss payments. Refer to Swiss QR standards for data format." },
-    "ZATCA QR Code (Saudi Arabia)": { bcid: "qrcode", hint: "Base64 encoded TLV for ZATCA e-invoicing. Complex data structure." }
+    "ZATCA QR Code (Saudi Arabia)": { bcid: "zatca-qr", actualBcid: "qrcode", hint: "Base64 encoded TLV for ZATCA e-invoicing. Complex data structure." }
   },
   "Healthcare Codes": {
     "Code32 (Italian Pharmacode)": { bcid: "code32", hint: "Italian pharmaceutical code." },
@@ -124,17 +124,17 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
     "HIBC LIC QR-Code": { bcid: "hibcqrcode", hint: "HIBC with QR Code. Data: +LIC_Data" },
     "HIBC PAS 128": { bcid: "hibcpascode128", hint: "HIBC PAS with Code 128. Data: +PAS_Data" },
     "HIBC PAS 39": { bcid: "hibcpascode39", hint: "HIBC PAS with Code 39. Data: +PAS_Data" },
-    "NTIN (Data Matrix)": { bcid: "datamatrix", hint: "German PPN system, uses Data Matrix. Data: PPN_Data" },
-    "PPN (Pharmacy Product Number)": { bcid: "datamatrix", hint: "Data Matrix. Data: PPN_Data (typically starts with //S)" },
-    "PZN7": { bcid: "code39", options: { "pzn": true }, hint: "German pharma number (old). Usually Code 39 based." },
+    "NTIN (Data Matrix)": { bcid: "ntin-healthcare", actualBcid: "datamatrix", hint: "German PPN system, uses Data Matrix. Data: PPN_Data" },
+    "PPN (Pharmacy Product Number)": { bcid: "ppn-healthcare", actualBcid: "datamatrix", hint: "Data Matrix. Data: PPN_Data (typically starts with //S)" },
+    "PZN7": { bcid: "pzn7", actualBcid: "code39", options: { "pzn": true }, hint: "German pharma number (old). Usually Code 39 based." },
     "PZN8": { bcid: "pzn8", hint: "German pharma number (new)." }
   },
   "ISBN Codes": {
-    "ISBN 13": { bcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "13 digits (usually starts 978/979). Can add price addon: ISBN|Price (e.g. 9781234567890|51299)" },
-    "ISBN 13 + 5 Digits": { bcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISBN with 5-digit price addon. Format: ISBN_Number|Addon_Digits" },
-    "ISMN": { bcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Music Number (EAN-13 format, starts 979-0). Can have addon." },
-    "ISSN": { bcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Serial Number (EAN-13 format, starts 977). Can have addon." },
-    "ISSN + 2 Digits": { bcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISSN with 2-digit issue addon. Format: ISSN_Number|Addon_Digits" }
+    "ISBN 13": { bcid: "isbn13", actualBcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "13 digits (usually starts 978/979). Can add price addon: ISBN|Price (e.g. 9781234567890|51299)" },
+    "ISBN 13 + 5 Digits": { bcid: "isbn13-addon", actualBcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISBN with 5-digit price addon. Format: ISBN_Number|Addon_Digits" },
+    "ISMN": { bcid: "ismn", actualBcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Music Number (EAN-13 format, starts 979-0). Can have addon." },
+    "ISSN": { bcid: "issn", actualBcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Serial Number (EAN-13 format, starts 977). Can have addon." },
+    "ISSN + 2 Digits": { bcid: "issn-addon", actualBcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISSN with 2-digit issue addon. Format: ISSN_Number|Addon_Digits" }
   }
 };
 
