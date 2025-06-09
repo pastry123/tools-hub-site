@@ -290,8 +290,8 @@ export default function PDFEditor() {
                   height: field.height,
                   minWidth: "100px",
                   minHeight: "40px",
-                  background: transparentField ? "transparent" : "rgba(255,255,255,0.9)",
-                  border: selectedField === field.id ? "2px dashed #007acc" : "1px solid rgba(0,0,0,0.2)",
+                  background: selectedField === field.id ? (transparentField ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.9)") : "transparent",
+                  border: selectedField === field.id ? "2px dashed #007acc" : "none",
                   borderRadius: "4px",
                   zIndex: 20,
                   boxShadow: selectedField === field.id ? "0 2px 8px rgba(0,122,204,0.3)" : "none",
@@ -382,38 +382,63 @@ export default function PDFEditor() {
                   </>
                 )}
 
-                <textarea
-                  value={field.text}
-                  onChange={e => {
-                    const newText = e.target.value;
-                    updateField(pageIndex, field.id, { text: newText });
-                    
-                    // Auto-resize based on content if not manually resized
-                    if (!field.manualResize) {
-                      const newSize = autoResizeText(newText);
-                      updateField(pageIndex, field.id, { 
-                        width: Math.max(newSize.width, 100),
-                        height: Math.max(newSize.height, 40)
-                      });
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
-                    background: "transparent",
-                    resize: "none",
-                    outline: "none",
-                    padding: "8px",
-                    color: "#000000",
-                    fontSize: "14px",
-                    fontFamily: "Arial, sans-serif",
-                    lineHeight: "1.4",
-                    cursor: "text",
-                  }}
-                  onFocus={() => setSelectedField(field.id)}
-                  placeholder="Click to edit text..."
-                />
+                {selectedField === field.id ? (
+                  <textarea
+                    value={field.text}
+                    onChange={e => {
+                      const newText = e.target.value;
+                      updateField(pageIndex, field.id, { text: newText });
+                      
+                      // Auto-resize based on content if not manually resized
+                      if (!field.manualResize) {
+                        const newSize = autoResizeText(newText);
+                        updateField(pageIndex, field.id, { 
+                          width: Math.max(newSize.width, 100),
+                          height: Math.max(newSize.height, 40)
+                        });
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      border: "none",
+                      background: "transparent",
+                      resize: "none",
+                      outline: "none",
+                      padding: "8px",
+                      color: "#000000",
+                      fontSize: "14px",
+                      fontFamily: "Arial, sans-serif",
+                      lineHeight: "1.4",
+                      cursor: "text",
+                    }}
+                    placeholder="Type your text here..."
+                    autoFocus
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      padding: "8px",
+                      color: "#000000",
+                      fontSize: "14px",
+                      fontFamily: "Arial, sans-serif",
+                      lineHeight: "1.4",
+                      cursor: "pointer",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      display: "flex",
+                      alignItems: field.text.length < 20 ? "center" : "flex-start",
+                    }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedField(field.id);
+                    }}
+                  >
+                    {field.text || "Click to edit"}
+                  </div>
+                )}
               </div>
             ))}
             
