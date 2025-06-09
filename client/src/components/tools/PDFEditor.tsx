@@ -1,157 +1,237 @@
 import { useState, useRef, useEffect } from "react";
-import { pdfjs, Document, Page } from "react-pdf";
+import { PDFDocument, rgb } from "pdf-lib";
 import { Button } from "@/components/ui/button";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 export default function PDFEditor() {
-  const [file, setFile] = useState(null);
-  const [numPages, setNumPages] = useState(null);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [fields, setFields] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [textColor, setTextColor] = useState("#000000");
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [pdfPages, setPdfPages] = useState([]);
+  const [pdfBlobs, setPdfBlobs] = useState([]);
+  const fileInputRef = useRef(null);
   const [transparentField, setTransparentField] = useState(false);
+  const [fields, setFields] = useState({});
+  const [images, setImages] = useState({});
 
-  const containerRef = useRef(null);
+  async function loadPdf(e) {
+    const file = e.target.files[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const loadedPdf = await PDFDocument.load(arrayBuffer, {
+      updateMetadata: true,
+      ignoreEncryption: true,
+    });
+    const pageCount = loadedPdf.getPageCount();
 
-  function onDocumentLoadSuccess({ numPages }) {
-    setNumPages(numPages);
+    const pageUrls = [];
+    for (let i = 0; i < pageCount; i++) {
+      const newPdf = await PDFDocument.create();
+      const [copiedPage] = await newPdf.copyPages(loadedPdf, [i]);
+      newPdf.addPage(copiedPage);
+      const pdfBytes = await newPdf.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      pageUrls.push(URL.createObjectURL(blob));
+    }
+
+    setPdfDoc(loadedPdf);
+    setPdfPages(Array.from({ length: pageCount }, (_, i) => i));
+    setPdfBlobs(pageUrls);
+
+    setFields({});
+    setImages({});
   }
 
-  function handleFileChange(e) {
-    setFile(e.target.files[0]);
-    setPageIndex(0);
-    setFields([]); // reset fields
-  }
-
-  function addDraggableText() {
+  function addDraggableText(page) {
     const id = Date.now();
-    setFields(prev => [
+    setFields(prev => ({
       ...prev,
-      {
-        id,
+      [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30 }]
+    }));
+  }
+
+  function updateField(page, id, updates) {
+    setFields(prev => ({
+      ...prev,
+      [page]: prev[page].map(f => f.id === id ? { ...f, ...updates } : f)
+    }));
+  }
+
+  function startDrag(e, page, id) {
+    const offsetX = e.nativeEvent.offsetX;
+    const offsetY = e.nativeEvent.offsetY;
+    const onMove = moveEvent => {
+      updateField(page, id, {
+        x: moveEvent.clientX - offsetX,
+        y: moveEvent.clientY - offsetY,
+      });
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
+  function addImageOverlay(page, file) {
+    const url = URL.createObjectURL(file);
+    setImages(prev => ({
+      ...prev,
+      [page]: [...(prev[page] || []), {
+        url,
         x: 100,
         y: 100,
-        text: "Edit me",
-        color: textColor,
-        page: pageIndex,
         width: 150,
-        height: 30,
-      },
-    ]);
+        height: 150,
+        type: file.type
+      }]
+    }));
   }
 
-  function updateField(id, updates) {
-    setFields(fields.map(f => (f.id === id ? { ...f, ...updates } : f)));
+  function updateImage(page, idx, updates) {
+    setImages(prev => {
+      const updated = [...(prev[page] || [])];
+      updated[idx] = { ...updated[idx], ...updates };
+      return { ...prev, [page]: updated };
+    });
   }
 
-  function deleteSelected() {
-    if (selectedId != null) {
-      setFields(fields.filter(f => f.id !== selectedId));
-      setSelectedId(null);
-    }
+  function startImageDrag(e, page, idx) {
+    const offsetX = e.nativeEvent.offsetX;
+    const offsetY = e.nativeEvent.offsetY;
+    const onMove = moveEvent => {
+      updateImage(page, idx, {
+        x: moveEvent.clientX - offsetX,
+        y: moveEvent.clientY - offsetY,
+      });
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
   }
 
-  const nextPage = () => {
-    if (pageIndex < numPages - 1) setPageIndex(pageIndex + 1);
-  };
+  async function renderToPdf() {
+    if (!pdfDoc) return;
 
-  const prevPage = () => {
-    if (pageIndex > 0) setPageIndex(pageIndex - 1);
-  };
+    const pages = pdfDoc.getPages();
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const pageFields = fields[i] || [];
+      const pageImages = images[i] || [];
 
-  function startDrag(e, id) {
-    e.preventDefault();
-    e.stopPropagation();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const field = fields.find(f => f.id === id);
-    const origX = field.x;
-    const origY = field.y;
+      for (const field of pageFields) {
+        page.drawText(field.text, {
+          x: field.x,
+          y: page.getHeight() - field.y - field.height,
+          size: 12,
+          color: rgb(0, 0, 0),
+          ...(transparentField ? {} : { backgroundColor: rgb(1, 1, 1) }),
+        });
+      }
 
-    function onMouseMove(moveEvent) {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const newX = Math.max(0, Math.min(containerRect.width - field.width, origX + dx));
-      const newY = Math.max(0, Math.min(containerRect.height - field.height, origY + dy));
-      updateField(id, { x: newX, y: newY });
+      for (const img of pageImages) {
+        const imageBytes = await fetch(img.url).then(res => res.arrayBuffer());
+        let embeddedImg;
+        if (img.type === "image/jpeg") {
+          embeddedImg = await pdfDoc.embedJpg(imageBytes);
+        } else {
+          embeddedImg = await pdfDoc.embedPng(imageBytes);
+        }
+        page.drawImage(embeddedImg, {
+          x: img.x,
+          y: page.getHeight() - img.y - img.height,
+          width: img.width,
+          height: img.height,
+        });
+      }
     }
 
-    function onMouseUp() {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    }
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const newUrl = URL.createObjectURL(blob);
+    setPdfBlobs([newUrl]); // Preview all in single iframe again if needed
+  }
 
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
+  async function downloadPdf() {
+    if (!pdfDoc) return;
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "edited.pdf";
+    a.click();
   }
 
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">ToolHub PDF Canvas Editor</h1>
+      <h1 className="text-2xl font-bold">ToolHub PDF Editor</h1>
+      <input type="file" accept="application/pdf" onChange={loadPdf} ref={fileInputRef} />
 
-      <input type="file" accept="application/pdf" onChange={handleFileChange} />
-
-      {file && (
-        <div className="relative border mx-auto" ref={containerRef} style={{ width: 800 }}>
-          <Document
-            file={file}
-            onLoadSuccess={onDocumentLoadSuccess}
-            className="w-full"
-          >
-            <Page
-              pageNumber={pageIndex + 1}
-              width={800}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-            />
-          </Document>
-
-          <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-            {fields
-              .filter(f => f.page === pageIndex)
-              .map(field => (
+      <div className="space-y-8">
+        {pdfBlobs.map((blobUrl, pageIndex) => (
+          <div key={pageIndex} className="relative w-full h-[700px] border">
+            <iframe
+              src={blobUrl}
+              className="w-full h-full absolute z-0"
+              title={`Page ${pageIndex + 1}`}
+            ></iframe>
+            <div className="absolute inset-0 z-10">
+              {(fields[pageIndex] || []).map(field => (
                 <textarea
                   key={field.id}
                   value={field.text}
-                  onChange={e => updateField(field.id, { text: e.target.value })}
-                  onMouseDown={(e) => {
-                    setSelectedId(field.id);
-                    startDrag(e, field.id);
-                  }}
+                  onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
+                  onMouseDown={e => startDrag(e, pageIndex, field.id)}
                   style={{
                     position: "absolute",
-                    top: field.y,
                     left: field.x,
+                    top: field.y,
                     width: field.width,
                     height: field.height,
                     background: transparentField ? "transparent" : "white",
-                    color: field.color,
-                    border: selectedId === field.id ? "2px solid blue" : "1px solid #999",
+                    border: "1px solid #aaa",
                     resize: "both",
-                    pointerEvents: "auto",
-                    padding: "4px",
-                    overflow: "hidden",
-                    zIndex: 10,
                   }}
                 />
               ))}
+              {(images[pageIndex] || []).map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img.url}
+                  onMouseDown={e => startImageDrag(e, pageIndex, idx)}
+                  style={{
+                    position: "absolute",
+                    left: img.x,
+                    top: img.y,
+                    width: img.width,
+                    height: img.height,
+                    cursor: "move",
+                  }}
+                  draggable={false}
+                />
+              ))}
+            </div>
+            <div className="absolute bottom-2 left-2 z-20 space-x-2 bg-white bg-opacity-80 p-1 rounded">
+              <Button size="sm" onClick={() => addDraggableText(pageIndex)}>
+                Add Text to Page {pageIndex + 1}
+              </Button>
+              <label className="cursor-pointer inline-block">
+                <span className="px-2 py-1 bg-gray-300 rounded text-sm">Add Image</span>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  className="hidden"
+                  onChange={e => addImageOverlay(pageIndex, e.target.files[0])}
+                />
+              </label>
+            </div>
           </div>
-        </div>
-      )}
-
-      <div className="space-x-2">
-        <Button onClick={addDraggableText}>Add Editable Text</Button>
-        <Button onClick={deleteSelected} variant="destructive">Delete Selected</Button>
+        ))}
       </div>
 
-      <div className="flex gap-2 items-center">
-        <Button onClick={prevPage} disabled={pageIndex === 0}>Previous Page</Button>
-        <Button onClick={nextPage} disabled={pageIndex >= (numPages || 1) - 1}>Next Page</Button>
-        <span>Page {pageIndex + 1} / {numPages}</span>
+      <div className="space-x-2 pt-4">
+        <Button onClick={renderToPdf}>Apply All Changes</Button>
+        <Button onClick={downloadPdf}>Download PDF</Button>
       </div>
 
       <label className="block pt-2">
@@ -162,15 +242,6 @@ export default function PDFEditor() {
           className="mr-2"
         />
         Transparent Background
-      </label>
-
-      <label className="block pt-2">
-        <span className="mr-2">Text Color:</span>
-        <input
-          type="color"
-          value={textColor}
-          onChange={(e) => setTextColor(e.target.value)}
-        />
       </label>
     </div>
   );

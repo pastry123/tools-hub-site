@@ -1,0 +1,248 @@
+import { useState, useRef, useEffect } from "react";
+import { PDFDocument, rgb } from "pdf-lib";
+import { Button } from "@/components/ui/button";
+
+export default function PDFEditor() {
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [pdfPages, setPdfPages] = useState([]);
+  const [pdfBlobs, setPdfBlobs] = useState([]);
+  const fileInputRef = useRef(null);
+  const [transparentField, setTransparentField] = useState(false);
+  const [fields, setFields] = useState({});
+  const [images, setImages] = useState({});
+
+  async function loadPdf(e) {
+    const file = e.target.files[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const loadedPdf = await PDFDocument.load(arrayBuffer, {
+      updateMetadata: true,
+      ignoreEncryption: true,
+    });
+    const pageCount = loadedPdf.getPageCount();
+
+    const pageUrls = [];
+    for (let i = 0; i < pageCount; i++) {
+      const newPdf = await PDFDocument.create();
+      const [copiedPage] = await newPdf.copyPages(loadedPdf, [i]);
+      newPdf.addPage(copiedPage);
+      const pdfBytes = await newPdf.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      pageUrls.push(URL.createObjectURL(blob));
+    }
+
+    setPdfDoc(loadedPdf);
+    setPdfPages(Array.from({ length: pageCount }, (_, i) => i));
+    setPdfBlobs(pageUrls);
+
+    setFields({});
+    setImages({});
+  }
+
+  function addDraggableText(page) {
+    const id = Date.now();
+    setFields(prev => ({
+      ...prev,
+      [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30 }]
+    }));
+  }
+
+  function updateField(page, id, updates) {
+    setFields(prev => ({
+      ...prev,
+      [page]: prev[page].map(f => f.id === id ? { ...f, ...updates } : f)
+    }));
+  }
+
+  function startDrag(e, page, id) {
+    const offsetX = e.nativeEvent.offsetX;
+    const offsetY = e.nativeEvent.offsetY;
+    const onMove = moveEvent => {
+      updateField(page, id, {
+        x: moveEvent.clientX - offsetX,
+        y: moveEvent.clientY - offsetY,
+      });
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
+  function addImageOverlay(page, file) {
+    const url = URL.createObjectURL(file);
+    setImages(prev => ({
+      ...prev,
+      [page]: [...(prev[page] || []), {
+        url,
+        x: 100,
+        y: 100,
+        width: 150,
+        height: 150,
+        type: file.type
+      }]
+    }));
+  }
+
+  function updateImage(page, idx, updates) {
+    setImages(prev => {
+      const updated = [...(prev[page] || [])];
+      updated[idx] = { ...updated[idx], ...updates };
+      return { ...prev, [page]: updated };
+    });
+  }
+
+  function startImageDrag(e, page, idx) {
+    const offsetX = e.nativeEvent.offsetX;
+    const offsetY = e.nativeEvent.offsetY;
+    const onMove = moveEvent => {
+      updateImage(page, idx, {
+        x: moveEvent.clientX - offsetX,
+        y: moveEvent.clientY - offsetY,
+      });
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
+  async function renderToPdf() {
+    if (!pdfDoc) return;
+
+    const pages = pdfDoc.getPages();
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const pageFields = fields[i] || [];
+      const pageImages = images[i] || [];
+
+      for (const field of pageFields) {
+        page.drawText(field.text, {
+          x: field.x,
+          y: page.getHeight() - field.y - field.height,
+          size: 12,
+          color: rgb(0, 0, 0),
+          ...(transparentField ? {} : { backgroundColor: rgb(1, 1, 1) }),
+        });
+      }
+
+      for (const img of pageImages) {
+        const imageBytes = await fetch(img.url).then(res => res.arrayBuffer());
+        let embeddedImg;
+        if (img.type === "image/jpeg") {
+          embeddedImg = await pdfDoc.embedJpg(imageBytes);
+        } else {
+          embeddedImg = await pdfDoc.embedPng(imageBytes);
+        }
+        page.drawImage(embeddedImg, {
+          x: img.x,
+          y: page.getHeight() - img.y - img.height,
+          width: img.width,
+          height: img.height,
+        });
+      }
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const newUrl = URL.createObjectURL(blob);
+    setPdfBlobs([newUrl]); // Preview all in single iframe again if needed
+  }
+
+  async function downloadPdf() {
+    if (!pdfDoc) return;
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "edited.pdf";
+    a.click();
+  }
+
+  return (
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold">ToolHub PDF Editor</h1>
+      <input type="file" accept="application/pdf" onChange={loadPdf} ref={fileInputRef} />
+
+      <div className="space-y-8">
+        {pdfBlobs.map((blobUrl, pageIndex) => (
+          <div key={pageIndex} className="relative w-full h-[700px] border">
+            <iframe
+              src={blobUrl}
+              className="w-full h-full absolute z-0"
+              title={`Page ${pageIndex + 1}`}
+            ></iframe>
+            <div className="absolute inset-0 z-10">
+              {(fields[pageIndex] || []).map(field => (
+                <textarea
+                  key={field.id}
+                  value={field.text}
+                  onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
+                  onMouseDown={e => startDrag(e, pageIndex, field.id)}
+                  style={{
+                    position: "absolute",
+                    left: field.x,
+                    top: field.y,
+                    width: field.width,
+                    height: field.height,
+                    background: transparentField ? "transparent" : "white",
+                    border: "1px solid #aaa",
+                    resize: "both",
+                  }}
+                />
+              ))}
+              {(images[pageIndex] || []).map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img.url}
+                  onMouseDown={e => startImageDrag(e, pageIndex, idx)}
+                  style={{
+                    position: "absolute",
+                    left: img.x,
+                    top: img.y,
+                    width: img.width,
+                    height: img.height,
+                    cursor: "move",
+                  }}
+                  draggable={false}
+                />
+              ))}
+            </div>
+            <div className="absolute bottom-2 left-2 z-20 space-x-2 bg-white bg-opacity-80 p-1 rounded">
+              <Button size="sm" onClick={() => addDraggableText(pageIndex)}>
+                Add Text to Page {pageIndex + 1}
+              </Button>
+              <label className="cursor-pointer inline-block">
+                <span className="px-2 py-1 bg-gray-300 rounded text-sm">Add Image</span>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  className="hidden"
+                  onChange={e => addImageOverlay(pageIndex, e.target.files[0])}
+                />
+              </label>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-x-2 pt-4">
+        <Button onClick={renderToPdf}>Apply All Changes</Button>
+        <Button onClick={downloadPdf}>Download PDF</Button>
+      </div>
+
+      <label className="block pt-2">
+        <input
+          type="checkbox"
+          checked={transparentField}
+          onChange={(e) => setTransparentField(e.target.checked)}
+          className="mr-2"
+        />
+        Transparent Background
+      </label>
+    </div>
+  );
+}
