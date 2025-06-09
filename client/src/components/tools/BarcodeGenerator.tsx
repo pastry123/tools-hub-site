@@ -241,7 +241,13 @@ export default function BarcodeGenerator() {
     }
   };
 
-  // Auto-generate barcode when options change
+  // Auto-generate barcode when component mounts and options change
+  useEffect(() => {
+    if (options.text.trim()) {
+      generateBarcode();
+    }
+  }, []);
+
   useEffect(() => {
     if (options.text.trim()) {
       generateBarcode();
@@ -324,9 +330,20 @@ export default function BarcodeGenerator() {
                   {filteredBarcodeTypes.length > 0 ? (
                     filteredBarcodeTypes.map(([key, type]) => (
                       <SelectItem key={key} value={key}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{type.name}</span>
-                          <span className="text-xs text-gray-500">{type.description}</span>
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{type.name}</span>
+                            <span className="text-xs text-gray-500">{type.description}</span>
+                          </div>
+                          {type.jsFormat || key === 'qrcode' ? (
+                            <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1 rounded">
+                              ✓ Real
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-1 rounded">
+                              Coming Soon
+                            </span>
+                          )}
                         </div>
                       </SelectItem>
                     ))
@@ -340,18 +357,46 @@ export default function BarcodeGenerator() {
               
               {/* Show current selection info */}
               {BARCODE_TYPES[options.bcid] && (
-                <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-sm">
-                    <span className="font-medium text-blue-700 dark:text-blue-300">
-                      {BARCODE_TYPES[options.bcid].name}
-                    </span>
-                    <span className="mx-2 text-blue-500">•</span>
-                    <span className="text-blue-600 dark:text-blue-400">
-                      {BARCODE_TYPES[options.bcid].category}
+                <div className={`mt-2 p-3 rounded-lg ${
+                  BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
+                    ? 'bg-green-50 dark:bg-green-900/20' 
+                    : 'bg-orange-50 dark:bg-orange-900/20'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">
+                      <span className={`font-medium ${
+                        BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
+                          ? 'text-green-700 dark:text-green-300' 
+                          : 'text-orange-700 dark:text-orange-300'
+                      }`}>
+                        {BARCODE_TYPES[options.bcid].name}
+                      </span>
+                      <span className="mx-2 text-gray-500">•</span>
+                      <span className={`${
+                        BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-orange-600 dark:text-orange-400'
+                      }`}>
+                        {BARCODE_TYPES[options.bcid].category}
+                      </span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
+                        ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300' 
+                        : 'bg-orange-100 dark:bg-orange-800 text-orange-700 dark:text-orange-300'
+                    }`}>
+                      {BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode' ? 'Authentic Encoding' : 'Coming Soon'}
                     </span>
                   </div>
-                  <div className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                  <div className={`text-xs mt-1 ${
+                    BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
+                      ? 'text-green-600 dark:text-green-300' 
+                      : 'text-orange-600 dark:text-orange-300'
+                  }`}>
                     {BARCODE_TYPES[options.bcid].description}
+                    {BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode' 
+                      ? ' - Generates real, scannable barcodes' 
+                      : ' - Implementation in progress'}
                   </div>
                 </div>
               )}
