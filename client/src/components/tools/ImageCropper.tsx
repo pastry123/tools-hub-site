@@ -201,13 +201,36 @@ export default function ImageCropper() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
+    console.log('Mouse down at:', { x, y });
+    
     const handle = getHandleAtPosition(x, y);
+    console.log('Handle detected:', handle);
     
     if (handle && handle !== 'move') {
       setIsResizing(true);
       setResizeHandle(handle);
+      console.log('Starting resize with handle:', handle);
     } else if (handle === 'move') {
       setIsDragging(true);
+      console.log('Starting drag');
+    } else {
+      // If no handle detected, check if we're close to the crop area and allow drag anyway
+      if (!canvasRef.current || !imageRef.current) return;
+      
+      const scale = canvas.width / imageRef.current.naturalWidth;
+      const scaledCropX = cropArea.x * scale;
+      const scaledCropY = cropArea.y * scale;
+      const scaledCropWidth = cropArea.width * scale;
+      const scaledCropHeight = cropArea.height * scale;
+      
+      // More generous click area for small crops
+      const clickTolerance = Math.max(20, Math.min(scaledCropWidth, scaledCropHeight) * 0.2);
+      
+      if (x >= scaledCropX - clickTolerance && x <= scaledCropX + scaledCropWidth + clickTolerance && 
+          y >= scaledCropY - clickTolerance && y <= scaledCropY + scaledCropHeight + clickTolerance) {
+        setIsDragging(true);
+        console.log('Starting drag with extended tolerance');
+      }
     }
     
     setDragStart({ x, y });

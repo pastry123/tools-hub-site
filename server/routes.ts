@@ -422,9 +422,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const croppedImage = await simpleImageService.cropImage(req.file.buffer, options);
 
-      res.setHeader('Content-Type', `image/${options.format}`);
-      res.setHeader('Content-Disposition', `attachment; filename="cropped.${options.format}"`);
-      res.send(croppedImage);
+      // Set proper headers for download
+      const contentType = options.format === 'webp' ? 'image/webp' : 
+                         (options.format?.includes('jpg') || options.format?.includes('jpeg')) ? 'image/jpeg' : 'image/png';
+      
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="cropped-${Date.now()}.${options.format}"`);
+      res.setHeader('Content-Length', croppedImage.length);
+      res.end(croppedImage);
     } catch (error) {
       console.error('Image crop error:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to crop image' });
