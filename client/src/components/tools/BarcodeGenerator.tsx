@@ -200,28 +200,39 @@ export default function BarcodeGenerator() {
   };
 
   const generateCanvasBarcode = (options: BarcodeOptions): HTMLCanvasElement => {
-    if (options.bcid === 'qrcode') {
-      return generateQRCode(options.text, options.scale * 100);
-    }
-    
-    if (options.bcid === 'datamatrix') {
-      return generateDataMatrix(options.text, options.scale * 20);
-    }
-    
-    if (options.bcid === 'pdf417') {
-      return generatePDF417(options.text, options.scale, options.height);
-    }
-    
-    if (options.bcid.includes('postal') || ['postnet', 'planet', 'royalmail', 'onecode'].includes(options.bcid)) {
-      return generatePostalBarcode(options.text, options.bcid, options.scale, options.height);
-    }
-    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     
-    // Set canvas size for linear barcodes
-    const width = Math.max(400, options.text.length * 12 * options.scale);
-    const height = Math.max(100, options.height * 2);
+    // Handle QR Code generation
+    if (options.bcid === 'qrcode') {
+      const size = options.scale * 150;
+      canvas.width = size;
+      canvas.height = size;
+      
+      // Generate actual QR code pattern
+      const modules = generateQRMatrix(options.text);
+      const moduleSize = size / modules.length;
+      
+      // Fill background
+      ctx.fillStyle = options.backgroundcolor || '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#000000';
+      
+      // Draw QR modules
+      for (let row = 0; row < modules.length; row++) {
+        for (let col = 0; col < modules[row].length; col++) {
+          if (modules[row][col]) {
+            ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+          }
+        }
+      }
+      
+      return canvas;
+    }
+    
+    // Handle linear barcodes
+    const width = Math.max(300, options.text.length * 15 * options.scale);
+    const height = Math.max(80, options.height * 3);
     canvas.width = width;
     canvas.height = height;
     
@@ -230,25 +241,25 @@ export default function BarcodeGenerator() {
     ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = '#000000';
     
-    // Generate specific barcode patterns
-    if (options.bcid.startsWith('ean') || options.bcid.startsWith('upc')) {
-      generateEANUPCPattern(ctx, options.text, options.bcid, width, height, options.scale);
-    } else if (options.bcid === 'code39') {
-      generateCode39Pattern(ctx, options.text, width, height, options.scale);
-    } else if (options.bcid === 'code93') {
-      generateCode93Pattern(ctx, options.text, width, height, options.scale);
-    } else if (options.bcid === 'codabar') {
-      generateCodabarPattern(ctx, options.text, width, height, options.scale);
-    } else {
-      // Default Code 128-style pattern
-      generateCode128Pattern(ctx, options.text, width, height, options.scale);
+    // Generate barcode pattern based on type
+    const pattern = generateBarcodePattern(options.text, options.bcid);
+    const barWidth = Math.max(1, options.scale);
+    let x = 20;
+    
+    // Draw bars
+    for (let i = 0; i < pattern.length && x < width - 20; i++) {
+      if (pattern[i] === '1') {
+        ctx.fillRect(x, 10, barWidth, height - 30);
+      }
+      x += barWidth;
     }
     
     // Add text if requested
     if (options.includetext) {
       ctx.font = `${options.textsize || 12}px monospace`;
       ctx.textAlign = 'center';
-      ctx.fillText(options.text, width / 2, height - 5);
+      ctx.fillStyle = '#000000';
+      ctx.fillText(options.text, width / 2, height - 8);
     }
     
     return canvas;
