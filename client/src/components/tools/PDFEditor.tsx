@@ -322,7 +322,7 @@ export default function PDFEditor() {
                   onFocus={() => setSelectedField(field.id)}
                 />
               </div>
-              );
+              )
             })}
             
             {/* Images */}
