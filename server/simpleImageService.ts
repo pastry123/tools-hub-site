@@ -52,9 +52,25 @@ export class SimpleImageService {
   }
 
   async cropImage(buffer: Buffer, options: ImageCropOptions): Promise<Buffer> {
-    // For demonstration - returns original buffer
-    // In production, would use Sharp or Canvas for cropping
-    return buffer;
+    try {
+      const sharp = require('sharp');
+      
+      // Extract crop region and convert to target format
+      const croppedBuffer = await sharp(buffer)
+        .extract({
+          left: Math.round(options.x),
+          top: Math.round(options.y),
+          width: Math.round(options.width),
+          height: Math.round(options.height)
+        })
+        .toFormat(options.format || 'png')
+        .toBuffer();
+        
+      return croppedBuffer;
+    } catch (error) {
+      console.error('Crop operation failed:', error);
+      throw new Error('Failed to crop image');
+    }
   }
 
   async addWatermark(buffer: Buffer, options: WatermarkOptions): Promise<Buffer> {
