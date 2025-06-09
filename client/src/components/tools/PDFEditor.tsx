@@ -46,7 +46,7 @@ export default function PDFEditor() {
     const id = Date.now().toString();
     setFields(prev => ({
       ...prev,
-      [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30 }]
+      [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Edit me", width: 150, height: 50 }]
     }));
   }
 
@@ -55,6 +55,22 @@ export default function PDFEditor() {
       ...prev,
       [page]: (prev[page] || []).map(f => f.id === id ? { ...f, ...updates } : f)
     }));
+  }
+
+  function autoResizeText(text: string, fontSize: number = 12) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return { width: 150, height: 50 };
+    
+    context.font = `${fontSize}px Arial`;
+    const lines = text.split('\n');
+    const maxWidth = Math.max(...lines.map(line => context.measureText(line).width));
+    const height = lines.length * (fontSize + 4) + 16; // line height + padding
+    
+    return {
+      width: Math.max(maxWidth + 16, 80), // min width
+      height: Math.max(height, 30) // min height
+    };
   }
 
   function startDrag(e: React.MouseEvent, page: number, id: string) {
@@ -211,53 +227,46 @@ export default function PDFEditor() {
             />
             
             {/* Text fields - positioned absolutely but only where needed */}
-            {(fields[pageIndex] || []).map(field => (
-              <div
-                key={field.id}
-                ref={el => {
-                  if (el && selectedField === field.id) {
-                    const observer = new ResizeObserver(entries => {
-                      for (const entry of entries) {
-                        const { width, height } = entry.contentRect;
-                        updateField(pageIndex, field.id, { width, height });
+            {(fields[pageIndex] || []).map(field => {
+              const textSize = autoResizeText(field.text);
+              const fieldWidth = field.manualResize ? field.width : Math.max(textSize.width, field.width);
+              const fieldHeight = field.manualResize ? field.height : Math.max(textSize.height, field.height);
+              
+              return (
+                <div
+                  key={field.id}
+                  style={{
+                    position: "absolute",
+                    left: field.x,
+                    top: field.y,
+                    width: fieldWidth,
+                    height: fieldHeight,
+                    border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
+                    resize: selectedField === field.id ? "both" : "none",
+                    overflow: "visible",
+                    background: transparentField ? "transparent" : "white",
+                    zIndex: 20,
+                    cursor: isDragging ? "grabbing" : (selectedField === field.id ? "grab" : "default"),
+                    minWidth: "80px",
+                    minHeight: "30px",
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setSelectedField(field.id);
+                  }}
+                  onMouseDown={e => {
+                    if (selectedField === field.id) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
+                      
+                      if (!isResizeCorner) {
+                        startDrag(e, pageIndex, field.id);
                       }
-                    });
-                    observer.observe(el);
-                    return () => observer.disconnect();
-                  }
-                }}
-                style={{
-                  position: "absolute",
-                  left: field.x,
-                  top: field.y,
-                  width: field.width,
-                  height: field.height,
-                  border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
-                  resize: selectedField === field.id ? "both" : "none",
-                  overflow: "visible",
-                  background: transparentField ? "transparent" : "white",
-                  zIndex: 20,
-                  cursor: isDragging ? "grabbing" : (selectedField === field.id ? "grab" : "default"),
-                  minWidth: "50px",
-                  minHeight: "20px",
-                }}
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedField(field.id);
-                }}
-                onMouseDown={e => {
-                  if (selectedField === field.id) {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
-                    
-                    if (!isResizeCorner) {
-                      startDrag(e, pageIndex, field.id);
                     }
-                  }
-                }}
-              >
+                  }}
+                >
                 {/* Drag handle - only visible when selected */}
                 {selectedField === field.id && (
                   <div
@@ -282,7 +291,19 @@ export default function PDFEditor() {
                 
                 <textarea
                   value={field.text}
-                  onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
+                  onChange={e => {
+                    const newText = e.target.value;
+                    updateField(pageIndex, field.id, { text: newText });
+                    
+                    // Auto-resize based on content if not manually resized
+                    if (!field.manualResize) {
+                      const newSize = autoResizeText(newText);
+                      updateField(pageIndex, field.id, { 
+                        width: Math.max(newSize.width, 80),
+                        height: Math.max(newSize.height, 30)
+                      });
+                    }
+                  }}
                   style={{
                     width: "100%",
                     height: "100%",
@@ -295,12 +316,14 @@ export default function PDFEditor() {
                     fontSize: "12px",
                     fontFamily: "Arial, sans-serif",
                     pointerEvents: isDragging ? "none" : "auto",
+                    lineHeight: "16px",
                   }}
                   onMouseDown={e => e.stopPropagation()}
                   onFocus={() => setSelectedField(field.id)}
                 />
               </div>
-            ))}
+              );
+            })}
             
             {/* Images */}
             {(images[pageIndex] || []).map((img, idx) => (
