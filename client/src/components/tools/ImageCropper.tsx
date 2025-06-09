@@ -156,7 +156,7 @@ export default function ImageCropper() {
     const handleSize = Math.max(15, Math.min(25, scaledCropWidth * 0.08)); // Larger adaptive handle size
     const hitTolerance = Math.max(8, handleSize * 0.6); // Extra hit tolerance
     
-    // Check corner handles with expanded hit areas
+    // Check corner handles first (more precise detection)
     const corners = [
       { x: scaledCropX - handleSize/2, y: scaledCropY - handleSize/2, handle: 'nw' },
       { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY - handleSize/2, handle: 'ne' },
@@ -165,13 +165,13 @@ export default function ImageCropper() {
     ];
     
     for (const corner of corners) {
-      if (x >= corner.x - hitTolerance && x <= corner.x + handleSize + hitTolerance && 
-          y >= corner.y - hitTolerance && y <= corner.y + handleSize + hitTolerance) {
+      if (x >= corner.x && x <= corner.x + handleSize && 
+          y >= corner.y && y <= corner.y + handleSize) {
         return corner.handle;
       }
     }
     
-    // Check side handles with expanded hit areas
+    // Check side handles (more precise detection)
     const sides = [
       { x: scaledCropX + scaledCropWidth/2 - handleSize/2, y: scaledCropY - handleSize/2, handle: 'n' },
       { x: scaledCropX + scaledCropWidth/2 - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, handle: 's' },
@@ -180,8 +180,8 @@ export default function ImageCropper() {
     ];
     
     for (const side of sides) {
-      if (x >= side.x - hitTolerance && x <= side.x + handleSize + hitTolerance && 
-          y >= side.y - hitTolerance && y <= side.y + handleSize + hitTolerance) {
+      if (x >= side.x && x <= side.x + handleSize && 
+          y >= side.y && y <= side.y + handleSize) {
         return side.handle;
       }
     }
