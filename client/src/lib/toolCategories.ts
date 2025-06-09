@@ -274,12 +274,7 @@ export const toolCategories: ToolCategory[] = [
         description: 'Reverse text characters or words',
         icon: 'fa-exchange-alt'
       },
-      {
-        id: 'dummy-text-generator',
-        name: 'Dummy Text Generator',
-        description: 'Generate Lorem Ipsum placeholder text',
-        icon: 'fa-paragraph'
-      }
+
     ]
   },
   {
