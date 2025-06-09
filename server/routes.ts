@@ -1354,6 +1354,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Unlock PDF
+  app.post('/api/pdf/unlock', uploadPDF.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No PDF file provided' });
+      }
+
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ error: 'Password is required' });
+      }
+
+      const unlockedPdf = await pdfService.unlockPDF(req.file.buffer, password);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="unlocked.pdf"');
+      res.send(unlockedPdf);
+    } catch (error) {
+      console.error('PDF unlock error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to unlock PDF' });
+    }
+  });
+
   // Advanced PDF Editor with real content manipulation
   app.post('/api/pdf/advanced-edit', uploadPDF.single('pdf'), async (req, res) => {
     try {
