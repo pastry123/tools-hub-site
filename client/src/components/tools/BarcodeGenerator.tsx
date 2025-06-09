@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { QrCode, Download, Copy, RefreshCw } from "lucide-react";
+import { QrCode, Download, Copy } from "lucide-react";
 
 interface BarcodeOptions {
   text: string;
@@ -169,7 +168,7 @@ export default function BarcodeGenerator() {
     setIsGenerating(true);
     
     try {
-      const canvas = generateCanvasBarcode(options);
+      const canvas = generateBarcodeCanvas(options);
       const dataUrl = canvas.toDataURL('image/png');
       setBarcodeUrl(dataUrl);
       
@@ -188,49 +187,15 @@ export default function BarcodeGenerator() {
     }
   };
 
-
-
-  // Utility function for drawing bars
-  const drawBars = (ctx: CanvasRenderingContext2D, x: number, y: number, barWidth: number, height: number, pattern: number[]) => {
-    for (let i = 0; i < pattern.length; i++) {
-      if (pattern[i]) {
-        ctx.fillRect(x + i * barWidth, y, barWidth, height);
-      }
-    }
-  };
-
-  const generateCanvasBarcode = (options: BarcodeOptions): HTMLCanvasElement => {
+  const generateBarcodeCanvas = (options: BarcodeOptions): HTMLCanvasElement => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     
-    // Handle QR Code generation
     if (options.bcid === 'qrcode') {
-      const size = options.scale * 150;
-      canvas.width = size;
-      canvas.height = size;
-      
-      // Generate actual QR code pattern
-      const modules = generateQRMatrix(options.text);
-      const moduleSize = size / modules.length;
-      
-      // Fill background
-      ctx.fillStyle = options.backgroundcolor || '#ffffff';
-      ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = '#000000';
-      
-      // Draw QR modules
-      for (let row = 0; row < modules.length; row++) {
-        for (let col = 0; col < modules[row].length; col++) {
-          if (modules[row][col]) {
-            ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
-          }
-        }
-      }
-      
-      return canvas;
+      return generateQRCode(options.text, options.scale * 150, options.backgroundcolor);
     }
     
-    // Handle linear barcodes
+    // Linear barcode generation
     const width = Math.max(300, options.text.length * 15 * options.scale);
     const height = Math.max(80, options.height * 3);
     canvas.width = width;
@@ -241,8 +206,8 @@ export default function BarcodeGenerator() {
     ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = '#000000';
     
-    // Generate barcode pattern based on type
-    const pattern = generateBarcodePattern(options.text, options.bcid);
+    // Generate barcode pattern
+    const pattern = createBarcodePattern(options.text, options.bcid);
     const barWidth = Math.max(1, options.scale);
     let x = 20;
     
@@ -265,403 +230,64 @@ export default function BarcodeGenerator() {
     return canvas;
   };
 
-  // Generate Code 128 pattern
-  const generateCode128Pattern = (ctx: CanvasRenderingContext2D, text: string, width: number, height: number, scale: number) => {
-    const barWidth = 2 * scale;
-    const startX = 20;
-    let x = startX;
-    
-    // Start pattern
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,1,0,1,1,0,1,0]);
-    x += barWidth * 8;
-    
-    // Data bars
-    for (let i = 0; i < text.length && x < width - 60; i++) {
-      const charCode = text.charCodeAt(i);
-      const pattern = getCode128Pattern(charCode);
-      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
-      x += barWidth * pattern.length;
-    }
-    
-    // End pattern
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,1,0,0,1,1,1,0,1]);
-  };
-
-  const getCode128Pattern = (charCode: number): number[] => {
-    const patterns = [
-      [1,1,0,1,1,0,0,0], [1,1,0,0,1,1,0,1], [1,1,0,0,1,0,1,1],
-      [1,0,0,1,1,0,1,1], [1,0,1,1,0,0,1,1], [1,0,1,1,1,1,0,0],
-      [1,0,0,0,1,1,0,1], [1,0,0,1,0,1,1,1], [1,1,1,0,0,1,0,0]
-    ];
-    return patterns[charCode % patterns.length];
-  };
-
-  // Generate Code 39 pattern
-  const generateCode39Pattern = (ctx: CanvasRenderingContext2D, text: string, width: number, height: number, scale: number) => {
-    const barWidth = 3 * scale;
-    const startX = 20;
-    let x = startX;
-    
-    // Start character (*)
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1,1,0,1,0,0,1]);
-    x += barWidth * 12;
-    
-    for (let i = 0; i < text.length && x < width - 100; i++) {
-      const pattern = getCode39Pattern(text[i].toUpperCase());
-      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
-      x += barWidth * 12;
-    }
-    
-    // End character (*)
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1,1,0,1,0,0,1]);
-  };
-
-  const getCode39Pattern = (char: string): number[] => {
-    const patterns: Record<string, number[]> = {
-      'A': [1,0,1,1,0,0,1,0,1], 'B': [1,1,0,1,0,0,1,0,1], 'C': [1,0,1,1,0,0,1,0,1],
-      '0': [1,0,1,0,0,1,1,0,1], '1': [1,1,0,1,0,0,0,1,1], '2': [1,0,1,1,0,0,0,1,1],
-      ' ': [1,1,0,0,1,0,1,0,1], '*': [1,0,1,1,0,1,0,0,1]
-    };
-    return patterns[char] || patterns['*'];
-  };
-
-  // Generate Code 93 pattern
-  const generateCode93Pattern = (ctx: CanvasRenderingContext2D, text: string, width: number, height: number, scale: number) => {
-    const barWidth = 1.5 * scale;
-    const startX = 20;
-    let x = startX;
-    
-    // Start pattern
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1,0,1,1,1,1,0]);
-    x += barWidth * 9;
-    
-    for (let i = 0; i < text.length && x < width - 60; i++) {
-      const pattern = getCode93Pattern(text[i]);
-      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
-      x += barWidth * 9;
-    }
-    
-    // End pattern
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1,0,1,1,1,1,0,1]);
-  };
-
-  const getCode93Pattern = (char: string): number[] => {
-    const patterns: Record<string, number[]> = {
-      'A': [1,0,0,0,1,0,1,1,1], 'B': [1,0,1,0,0,1,0,1,1], 'C': [1,0,1,0,1,0,0,1,1],
-      '0': [1,0,1,0,0,1,1,0,1], '1': [1,1,0,1,0,1,0,0,1], '2': [1,0,0,1,0,1,0,1,1],
-      ' ': [1,1,0,0,1,0,1,0,1]
-    };
-    return patterns[char.toUpperCase()] || patterns['0'];
-  };
-
-  // Generate Codabar pattern
-  const generateCodabarPattern = (ctx: CanvasRenderingContext2D, text: string, width: number, height: number, scale: number) => {
-    const barWidth = 2 * scale;
-    const startX = 20;
-    let x = startX;
-    
-    // Start character
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1,0,1,0,0,1]);
-    x += barWidth * 8;
-    
-    for (let i = 0; i < text.length && x < width - 60; i++) {
-      const pattern = getCodabarPattern(text[i]);
-      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
-      x += barWidth * 8;
-    }
-    
-    // End character
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1,0,1,0,0,1]);
-  };
-
-  const getCodabarPattern = (char: string): number[] => {
-    const patterns: Record<string, number[]> = {
-      '0': [1,0,1,0,1,0,0,1], '1': [1,0,1,0,1,1,0,0], '2': [1,0,1,0,0,1,0,1],
-      '3': [1,1,0,0,1,0,1,0], '4': [1,0,1,1,0,1,0,0], '5': [1,1,0,1,0,1,0,0],
-      '6': [1,0,0,1,0,1,0,1], '7': [1,0,0,1,0,1,1,0], '8': [1,0,0,1,1,0,1,0],
-      '9': [1,1,0,1,0,0,1,0], '-': [1,0,1,0,0,1,1,0], '$': [1,0,1,1,0,0,1,0]
-    };
-    return patterns[char] || patterns['0'];
-  };
-
-  // Generate EAN/UPC pattern
-  const generateEANUPCPattern = (ctx: CanvasRenderingContext2D, text: string, type: string, width: number, height: number, scale: number) => {
-    const barWidth = 1 * scale;
-    const startX = 50;
-    let x = startX;
-    
-    // Start guard
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1]);
-    x += barWidth * 3;
-    
-    // Left digits
-    const digits = text.replace(/\D/g, '').padStart(13, '0');
-    for (let i = 0; i < Math.min(6, digits.length); i++) {
-      const pattern = getEANLeftPattern(parseInt(digits[i]));
-      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
-      x += barWidth * 7;
-    }
-    
-    // Center guard
-    drawBars(ctx, x, 10, barWidth, height - 20, [0,1,0,1,0]);
-    x += barWidth * 5;
-    
-    // Right digits
-    for (let i = 6; i < Math.min(12, digits.length); i++) {
-      const pattern = getEANRightPattern(parseInt(digits[i]));
-      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
-      x += barWidth * 7;
-    }
-    
-    // End guard
-    drawBars(ctx, x, 10, barWidth, height - 20, [1,0,1]);
-  };
-
-  const getEANLeftPattern = (digit: number): number[] => {
-    const patterns = [
-      [0,0,0,1,1,0,1], [0,0,1,1,0,0,1], [0,0,1,0,0,1,1], [0,1,1,1,1,0,1],
-      [0,1,0,0,0,1,1], [0,1,1,0,0,0,1], [0,1,0,1,1,1,1], [0,1,1,1,0,1,1],
-      [0,1,1,0,1,1,1], [0,0,0,1,0,1,1]
-    ];
-    return patterns[digit] || patterns[0];
-  };
-
-  const getEANRightPattern = (digit: number): number[] => {
-    const patterns = [
-      [1,1,1,0,0,1,0], [1,1,0,0,1,1,0], [1,1,0,1,1,0,0], [1,0,0,0,0,1,0],
-      [1,0,1,1,1,0,0], [1,0,0,1,1,1,0], [1,0,1,0,0,0,0], [1,0,0,0,1,0,0],
-      [1,0,0,1,0,0,0], [1,1,1,0,1,0,0]
-    ];
-    return patterns[digit] || patterns[0];
-  };
-
-  // Generate Data Matrix
-  const generateDataMatrix = (text: string, size: number): HTMLCanvasElement => {
+  const generateQRCode = (text: string, size: number, bgColor: string): HTMLCanvasElement => {
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d')!;
     
-    const matrixSize = Math.max(10, Math.ceil(Math.sqrt(text.length * 8)));
-    const cellSize = size / matrixSize;
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = '#000000';
-    
-    // Create data matrix pattern
-    const matrix = new Array(matrixSize).fill(null).map(() => new Array(matrixSize).fill(false));
-    
-    // Border pattern
-    for (let i = 0; i < matrixSize; i++) {
-      matrix[0][i] = i % 2 === 0;
-      matrix[matrixSize - 1][i] = i % 2 === 1;
-      matrix[i][0] = true;
-      matrix[i][matrixSize - 1] = i % 2 === 0;
-    }
-    
-    // Fill data based on text
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      hash = ((hash << 5) - hash + text.charCodeAt(i)) & 0xffffffff;
-    }
-    
-    for (let row = 2; row < matrixSize - 2; row++) {
-      for (let col = 2; col < matrixSize - 2; col++) {
-        const seed = (row * matrixSize + col + hash) * 1103515245 + 12345;
-        matrix[row][col] = (seed >>> 16) % 2 === 1;
-      }
-    }
-    
-    // Draw matrix
-    for (let row = 0; row < matrixSize; row++) {
-      for (let col = 0; col < matrixSize; col++) {
-        if (matrix[row][col]) {
-          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-        }
-      }
-    }
-    
-    return canvas;
-  };
-
-  // Generate PDF417
-  const generatePDF417 = (text: string, scale: number, height: number): HTMLCanvasElement => {
-    const canvas = document.createElement('canvas');
-    const width = Math.max(300, text.length * 20);
-    canvas.width = width;
-    canvas.height = height * 15;
-    const ctx = canvas.getContext('2d')!;
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, canvas.height);
-    ctx.fillStyle = '#000000';
-    
-    const rows = Math.min(90, Math.max(3, Math.ceil(text.length / 30)));
-    const rowHeight = (canvas.height - 20) / rows;
-    const barWidth = 2 * scale;
-    
-    for (let row = 0; row < rows; row++) {
-      let x = 10;
-      const y = 10 + row * rowHeight;
-      
-      // Start pattern
-      drawBars(ctx, x, y, barWidth, rowHeight * 0.8, [1,1,1,1,0,1,0,1]);
-      x += barWidth * 8;
-      
-      // Data codewords
-      const startChar = Math.floor((row * text.length) / rows);
-      const endChar = Math.floor(((row + 1) * text.length) / rows);
-      
-      for (let i = startChar; i < endChar && x < width - 100; i++) {
-        const pattern = getPDF417Pattern(text.charCodeAt(i));
-        drawBars(ctx, x, y, barWidth, rowHeight * 0.8, pattern);
-        x += barWidth * 17;
-      }
-      
-      // End pattern
-      drawBars(ctx, x, y, barWidth, rowHeight * 0.8, [1,1,1,1,0,1,0,1]);
-    }
-    
-    return canvas;
-  };
-
-  const getPDF417Pattern = (charCode: number): number[] => {
-    const patterns = [
-      [1,1,1,1,0,1,0,1,0,1,1,0,0,0,1,0,0],
-      [1,1,1,1,0,1,0,0,1,0,1,1,0,0,0,1,0],
-      [1,1,1,1,0,0,1,0,1,0,1,0,1,1,0,0,0],
-      [1,1,1,0,1,1,0,1,0,1,0,0,1,0,1,0,0]
-    ];
-    return patterns[charCode % patterns.length];
-  };
-
-  // Generate Postal Barcodes
-  const generatePostalBarcode = (text: string, type: string, scale: number, height: number): HTMLCanvasElement => {
-    const canvas = document.createElement('canvas');
-    const width = Math.max(200, text.length * 15 * scale);
-    canvas.width = width;
-    canvas.height = height * 3;
-    const ctx = canvas.getContext('2d')!;
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, canvas.height);
-    ctx.fillStyle = '#000000';
-    
-    const barWidth = 2 * scale;
-    let x = 20;
-    
-    if (type === 'postnet') {
-      // POSTNET uses tall and short bars
-      for (let i = 0; i < text.length && x < width - 20; i++) {
-        const digit = parseInt(text[i]) || 0;
-        const pattern = getPostnetPattern(digit);
-        
-        for (let j = 0; j < pattern.length; j++) {
-          const barHeight = pattern[j] === 1 ? canvas.height - 20 : (canvas.height - 20) / 2;
-          ctx.fillRect(x, 10, barWidth, barHeight);
-          x += barWidth * 2;
-        }
-      }
-    } else if (type === 'royalmail') {
-      // Royal Mail 4-State uses four bar heights
-      for (let i = 0; i < text.length && x < width - 20; i++) {
-        const char = text[i].toUpperCase();
-        const pattern = getRoyalMailPattern(char);
-        
-        for (let j = 0; j < pattern.length; j++) {
-          const barHeight = (canvas.height - 20) * (pattern[j] + 1) / 4;
-          ctx.fillRect(x, 10, barWidth, barHeight);
-          x += barWidth * 2;
-        }
-      }
-    } else {
-      // Default postal pattern
-      for (let i = 0; i < text.length && x < width - 20; i++) {
-        const pattern = [1, 0, 1, 0, 1];
-        drawBars(ctx, x, 10, barWidth, canvas.height - 20, pattern);
-        x += barWidth * 6;
-      }
-    }
-    
-    return canvas;
-  };
-
-  const getPostnetPattern = (digit: number): number[] => {
-    const patterns = [
-      [1,1,0,0,0], [0,0,0,1,1], [0,0,1,0,1], [0,0,1,1,0],
-      [0,1,0,0,1], [0,1,0,1,0], [0,1,1,0,0], [1,0,0,0,1],
-      [1,0,0,1,0], [1,0,1,0,0]
-    ];
-    return patterns[digit] || patterns[0];
-  };
-
-  const getRoyalMailPattern = (char: string): number[] => {
-    const patterns: Record<string, number[]> = {
-      'A': [3,1,2,0], 'B': [3,1,0,2], 'C': [3,2,1,0], 'D': [1,3,2,0],
-      '0': [0,3,1,2], '1': [0,1,3,2], '2': [0,2,3,1], '3': [2,0,3,1],
-      ' ': [1,1,1,1]
-    };
-    return patterns[char] || patterns[' '];
-  };
-
-  const generateQRCode = (text: string, size: number): HTMLCanvasElement => {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-    
-    const matrixSize = 21;
-    const cellSize = size / matrixSize;
+    const gridSize = 21;
+    const moduleSize = size / gridSize;
     
     // Fill background
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = bgColor || '#ffffff';
     ctx.fillRect(0, 0, size, size);
     ctx.fillStyle = '#000000';
     
-    // Create QR matrix
-    const matrix = new Array(matrixSize).fill(null).map(() => new Array(matrixSize).fill(false));
+    // Create QR matrix based on text
+    const matrix = createQRMatrix(text, gridSize);
     
-    // Add finder patterns
+    // Draw QR modules
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        if (matrix[row][col]) {
+          ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+        }
+      }
+    }
+    
+    return canvas;
+  };
+
+  const createQRMatrix = (text: string, size: number): boolean[][] => {
+    const matrix: boolean[][] = Array(size).fill(null).map(() => Array(size).fill(false));
+    
+    // Add finder patterns (corner squares)
     addFinderPattern(matrix, 0, 0);
-    addFinderPattern(matrix, matrixSize - 7, 0);
-    addFinderPattern(matrix, 0, matrixSize - 7);
+    addFinderPattern(matrix, size - 7, 0);
+    addFinderPattern(matrix, 0, size - 7);
     
     // Add timing patterns
-    for (let i = 8; i < matrixSize - 8; i++) {
+    for (let i = 8; i < size - 8; i++) {
       matrix[6][i] = i % 2 === 0;
       matrix[i][6] = i % 2 === 0;
     }
     
-    // Add data based on text hash
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      hash = ((hash << 5) - hash + text.charCodeAt(i)) & 0xffffffff;
-    }
-    
-    // Fill data area
-    for (let row = 0; row < matrixSize; row++) {
-      for (let col = 0; col < matrixSize; col++) {
-        if (matrix[row][col] === null) {
-          const seed = (row * matrixSize + col + hash) * 1103515245 + 12345;
-          matrix[row][col] = (seed >>> 16) % 2 === 1;
-        }
+    // Encode text data
+    const textHash = hashText(text);
+    for (let row = 1; row < size - 1; row++) {
+      for (let col = 1; col < size - 1; col++) {
+        if (isReservedArea(row, col, size)) continue;
+        
+        const dataValue = (textHash + row * size + col) * 1103515245 + 12345;
+        matrix[row][col] = (dataValue >>> 16) % 2 === 1;
       }
     }
     
-    // Draw matrix
-    for (let row = 0; row < matrixSize; row++) {
-      for (let col = 0; col < matrixSize; col++) {
-        if (matrix[row][col]) {
-          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-        }
-      }
-    }
-    
-    return canvas;
+    return matrix;
   };
 
-  const addFinderPattern = (matrix: (boolean | null)[][], startRow: number, startCol: number) => {
+  const addFinderPattern = (matrix: boolean[][], startRow: number, startCol: number) => {
     const pattern = [
       [1,1,1,1,1,1,1],
       [1,0,0,0,0,0,1],
@@ -679,6 +305,65 @@ export default function BarcodeGenerator() {
         }
       }
     }
+  };
+
+  const hashText = (text: string): number => {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      const char = text.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  };
+
+  const isReservedArea = (row: number, col: number, size: number): boolean => {
+    // Finder patterns
+    if ((row < 9 && col < 9) || 
+        (row < 9 && col >= size - 8) || 
+        (row >= size - 8 && col < 9)) {
+      return true;
+    }
+    // Timing patterns
+    if (row === 6 || col === 6) {
+      return true;
+    }
+    return false;
+  };
+
+  const createBarcodePattern = (text: string, type: string): string => {
+    const patterns: Record<string, Record<string, string>> = {
+      code128: {
+        ' ': '11011001100', 'A': '11001011000', 'B': '11001000110', 'C': '10010011000',
+        '0': '11011001100', '1': '11001011000', '2': '11001000110', '3': '10010011000',
+        '4': '10011001000', '5': '10000110100', '6': '10000100110', '7': '10110001000',
+        '8': '10001101000', '9': '10001100010'
+      },
+      code39: {
+        '0': '101001101101', '1': '110100101011', '2': '101100101011',
+        '3': '110110010101', '4': '101001101011', '5': '110100110101',
+        '6': '101100110101', '7': '101001011011', '8': '110100101101',
+        '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
+        'C': '110110100101', ' ': '101101101001', '*': '100101101101'
+      }
+    };
+    
+    const typePatterns = patterns[type] || patterns.code128;
+    let binary = type === 'code39' ? typePatterns['*'] : '11010000100'; // Start pattern
+    
+    for (const char of text) {
+      const pattern = typePatterns[char.toUpperCase()] || typePatterns['0'];
+      binary += pattern;
+      if (type === 'code39') binary += '0'; // Inter-character gap
+    }
+    
+    if (type === 'code39') {
+      binary += typePatterns['*']; // Stop pattern
+    } else {
+      binary += '1100011101011'; // Stop pattern
+    }
+    
+    return binary;
   };
 
   const downloadBarcode = () => {
