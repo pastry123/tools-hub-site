@@ -182,15 +182,18 @@ export default function AdvancedESign() {
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
     
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    // Calculate actual coordinates within the canvas
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert to PDF coordinates (PDF coordinate system has origin at bottom-left)
+    const pdfX = (x / rect.width) * canvas.width;
+    const pdfY = canvas.height - ((y / rect.height) * canvas.height);
     
     const newPosition = {
-      x: Math.round(x),
-      y: Math.round(y),
+      x: Math.round(pdfX),
+      y: Math.round(pdfY),
       page: currentPage,
       width: 150,
       height: 50,
@@ -203,7 +206,7 @@ export default function AdvancedESign() {
     
     toast({
       title: "Signature Placed",
-      description: `Signature positioned at (${Math.round(x)}, ${Math.round(y)}) on page ${currentPage}`,
+      description: `Signature positioned at (${Math.round(pdfX)}, ${Math.round(pdfY)}) on page ${currentPage}`,
     });
   };
 
