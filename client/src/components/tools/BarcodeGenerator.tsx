@@ -499,7 +499,7 @@ export default function BarcodeGenerator() {
                               <span className="text-xs text-gray-500 truncate">{typeData.hint}</span>
                             </div>
                             <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded ml-2 flex-shrink-0">
-                              ✓ Real
+                              ✓ Professional
                             </span>
                           </div>
                         </SelectItem>
@@ -527,11 +527,11 @@ export default function BarcodeGenerator() {
                       </span>
                     </div>
                     <span className="text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
-                      ✓ bwip-js Authentic
+                      ✓ Professional
                     </span>
                   </div>
                   <div className="text-xs mt-2 text-green-600 dark:text-green-300">
-                    {currentBarcodeDef.hint} - Generates real, scannable barcodes
+                    {currentBarcodeDef.hint} - Generates professional-grade, scannable barcodes
                   </div>
                 </div>
               )}
