@@ -3,17 +3,19 @@ import { PDFDocument, rgb } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 
 export default function PDFEditor() {
-  const [pdfDoc, setPdfDoc] = useState(null);
-  const [pdfPages, setPdfPages] = useState([]);
-  const [pdfBlobs, setPdfBlobs] = useState([]);
-  const fileInputRef = useRef(null);
+  const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
+  const [pdfPages, setPdfPages] = useState<number[]>([]);
+  const [pdfBlobs, setPdfBlobs] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [transparentField, setTransparentField] = useState(false);
-  const [fields, setFields] = useState({});
-  const [images, setImages] = useState({});
-  const [selectedField, setSelectedField] = useState(null);
+  const [fields, setFields] = useState<Record<number, any[]>>({});
+  const [images, setImages] = useState<Record<number, any[]>>({});
+  const [selectedField, setSelectedField] = useState<string | null>(null);
 
-  async function loadPdf(e) {
-    const file = e.target.files[0];
+  async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
     const arrayBuffer = await file.arrayBuffer();
     const loadedPdf = await PDFDocument.load(arrayBuffer, {
       updateMetadata: true,
@@ -39,45 +41,34 @@ export default function PDFEditor() {
     setImages({});
   }
 
-  function addDraggableText(page) {
-    const id = Date.now();
+  function addDraggableText(page: number) {
+    const id = Date.now().toString();
     setFields(prev => ({
       ...prev,
       [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Edit me", width: 150, height: 30 }]
     }));
   }
 
-  function updateField(page, id, updates) {
+  function updateField(page: number, id: string, updates: any) {
     setFields(prev => ({
       ...prev,
-      [page]: prev[page].map(f => f.id === id ? { ...f, ...updates } : f)
+      [page]: (prev[page] || []).map(f => f.id === id ? { ...f, ...updates } : f)
     }));
   }
 
-  function startDrag(e, page, id) {
-    // Only start drag if not clicking on resize corner
-    const rect = e.target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const isResizeCorner = x > rect.width - 20 && y > rect.height - 20;
-    
-    if (isResizeCorner) return; // Let browser handle resize
-    
+  function startDrag(e: React.MouseEvent, page: number, id: string) {
     e.preventDefault();
-    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
     
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const field = (fields[page] || []).find(f => f.id === id);
-    const startFieldX = field.x;
-    const startFieldY = field.y;
-    
-    const onMove = moveEvent => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
+    const onMove = (moveEvent: MouseEvent) => {
+      const container = e.currentTarget.parentElement?.getBoundingClientRect();
+      if (!container) return;
+      
       updateField(page, id, {
-        x: startFieldX + dx,
-        y: startFieldY + dy,
+        x: moveEvent.clientX - container.left - offsetX,
+        y: moveEvent.clientY - container.top - offsetY,
       });
     };
     
@@ -90,7 +81,8 @@ export default function PDFEditor() {
     document.addEventListener("mouseup", onUp);
   }
 
-  function addImageOverlay(page, file) {
+  function addImageOverlay(page: number, file: File) {
+    if (!file) return;
     const url = URL.createObjectURL(file);
     setImages(prev => ({
       ...prev,
@@ -105,7 +97,7 @@ export default function PDFEditor() {
     }));
   }
 
-  function updateImage(page, idx, updates) {
+  function updateImage(page: number, idx: number, updates: any) {
     setImages(prev => {
       const updated = [...(prev[page] || [])];
       updated[idx] = { ...updated[idx], ...updates };
@@ -113,19 +105,22 @@ export default function PDFEditor() {
     });
   }
 
-  function startImageDrag(e, page, idx) {
+  function startImageDrag(e: React.MouseEvent, page: number, idx: number) {
     const offsetX = e.nativeEvent.offsetX;
     const offsetY = e.nativeEvent.offsetY;
-    const onMove = moveEvent => {
+    
+    const onMove = (moveEvent: MouseEvent) => {
       updateImage(page, idx, {
         x: moveEvent.clientX - offsetX,
         y: moveEvent.clientY - offsetY,
       });
     };
+    
     const onUp = () => {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
     };
+    
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
   }
@@ -169,13 +164,13 @@ export default function PDFEditor() {
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const newUrl = URL.createObjectURL(blob);
-    setPdfBlobs([newUrl]); // Preview all in single iframe again if needed
+    setPdfBlobs([newUrl]);
   }
 
   async function downloadPdf() {
     if (!pdfDoc) return;
     
-    // Apply all changes to the PDF first
+    // Apply all changes to PDF first
     await renderToPdf();
     
     const pdfBytes = await pdfDoc.save();
@@ -189,7 +184,12 @@ export default function PDFEditor() {
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">ToolHub PDF Editor</h1>
-      <input type="file" accept="application/pdf" onChange={loadPdf} ref={fileInputRef} />
+      <input 
+        type="file" 
+        accept="application/pdf" 
+        onChange={loadPdf} 
+        ref={fileInputRef} 
+      />
 
       <div className="space-y-8">
         {pdfBlobs.map((blobUrl, pageIndex) => (
@@ -198,81 +198,84 @@ export default function PDFEditor() {
               src={blobUrl}
               className="w-full h-full absolute z-0"
               title={`Page ${pageIndex + 1}`}
-            ></iframe>
-            <div 
-              className="absolute inset-0 z-10"
-              onClick={() => setSelectedField(null)}
-            >
-              {(fields[pageIndex] || []).map(field => (
-                <div
-                  key={field.id}
+            />
+            
+            {/* Text fields - positioned absolutely but only where needed */}
+            {(fields[pageIndex] || []).map(field => (
+              <div
+                key={field.id}
+                style={{
+                  position: "absolute",
+                  left: field.x,
+                  top: field.y,
+                  width: field.width,
+                  height: field.height,
+                  border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
+                  resize: selectedField === field.id ? "both" : "none",
+                  overflow: "hidden",
+                  background: transparentField ? "transparent" : "white",
+                  zIndex: 20,
+                }}
+                onMouseDown={e => {
+                  e.stopPropagation();
+                  setSelectedField(field.id);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
+                  
+                  if (!isResizeCorner) {
+                    startDrag(e, pageIndex, field.id);
+                  }
+                }}
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedField(field.id);
+                }}
+              >
+                <textarea
+                  value={field.text}
+                  onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
                   style={{
-                    position: "absolute",
-                    left: field.x,
-                    top: field.y,
-                    width: field.width,
-                    height: field.height,
-                    border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
-                    resize: "both",
-                    overflow: "hidden",
-                    background: transparentField ? "transparent" : "white",
+                    width: "100%",
+                    height: "100%",
+                    border: "none",
+                    background: "transparent",
+                    resize: "none",
+                    outline: "none",
+                    padding: "4px",
+                    color: "#000000",
+                    fontSize: "12px",
+                    fontFamily: "Arial, sans-serif",
                   }}
-                  onMouseDown={e => {
-                    setSelectedField(field.id);
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
-                    
-                    if (!isResizeCorner) {
-                      startDrag(e, pageIndex, field.id);
-                    }
-                  }}
-                  onClick={e => {
-                    e.stopPropagation();
-                    setSelectedField(field.id);
-                  }}
-                >
-                  <textarea
-                    value={field.text}
-                    onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      border: "none",
-                      background: "transparent",
-                      resize: "none",
-                      outline: "none",
-                      padding: "4px",
-                      pointerEvents: "auto",
-                      color: "#000000",
-                      fontSize: "12px",
-                      fontFamily: "Arial, sans-serif",
-                    }}
-                    onMouseDown={e => e.stopPropagation()}
-                    onFocus={e => e.target.style.border = "1px solid #007acc"}
-                    onBlur={e => e.target.style.border = "none"}
-                  />
-                </div>
-              ))}
-              {(images[pageIndex] || []).map((img, idx) => (
-                <img
-                  key={idx}
-                  src={img.url}
-                  onMouseDown={e => startImageDrag(e, pageIndex, idx)}
-                  style={{
-                    position: "absolute",
-                    left: img.x,
-                    top: img.y,
-                    width: img.width,
-                    height: img.height,
-                    cursor: "move",
-                  }}
-                  draggable={false}
+                  onMouseDown={e => e.stopPropagation()}
+                  onFocus={() => setSelectedField(field.id)}
+                  onBlur={() => setSelectedField(null)}
                 />
-              ))}
-            </div>
-            <div className="absolute bottom-2 left-2 z-20 space-x-2 bg-white bg-opacity-80 p-1 rounded">
+              </div>
+            ))}
+            
+            {/* Images */}
+            {(images[pageIndex] || []).map((img, idx) => (
+              <img
+                key={idx}
+                src={img.url}
+                onMouseDown={e => startImageDrag(e, pageIndex, idx)}
+                style={{
+                  position: "absolute",
+                  left: img.x,
+                  top: img.y,
+                  width: img.width,
+                  height: img.height,
+                  cursor: "move",
+                  zIndex: 20,
+                }}
+                draggable={false}
+              />
+            ))}
+            
+            {/* Controls */}
+            <div className="absolute bottom-2 left-2 z-30 space-x-2 bg-white bg-opacity-80 p-1 rounded">
               <Button size="sm" onClick={() => addDraggableText(pageIndex)}>
                 Add Text to Page {pageIndex + 1}
               </Button>
@@ -282,7 +285,7 @@ export default function PDFEditor() {
                   type="file"
                   accept="image/png, image/jpeg"
                   className="hidden"
-                  onChange={e => addImageOverlay(pageIndex, e.target.files[0])}
+                  onChange={e => addImageOverlay(pageIndex, e.target.files?.[0]!)}
                 />
               </label>
             </div>
