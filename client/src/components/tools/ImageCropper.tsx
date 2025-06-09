@@ -19,7 +19,10 @@ export default function ImageCropper() {
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 200, height: 200 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<string>('');
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [cropStart, setCropStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
@@ -87,13 +90,52 @@ export default function ImageCropper() {
     ctx.lineWidth = 2;
     ctx.strokeRect(scaledCropX, scaledCropY, scaledCropWidth, scaledCropHeight);
     
-    // Draw corner handles
-    const handleSize = 8;
+    // Draw resize handles
+    const handleSize = 10;
     ctx.fillStyle = '#3b82f6';
-    ctx.fillRect(scaledCropX - handleSize/2, scaledCropY - handleSize/2, handleSize, handleSize);
-    ctx.fillRect(scaledCropX + scaledCropWidth - handleSize/2, scaledCropY - handleSize/2, handleSize, handleSize);
-    ctx.fillRect(scaledCropX - handleSize/2, scaledCropY + scaledCropHeight - handleSize/2, handleSize, handleSize);
-    ctx.fillRect(scaledCropX + scaledCropWidth - handleSize/2, scaledCropY + scaledCropHeight - handleSize/2, handleSize, handleSize);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    
+    // Corner handles
+    const corners = [
+      { x: scaledCropX - handleSize/2, y: scaledCropY - handleSize/2, cursor: 'nw-resize' },
+      { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY - handleSize/2, cursor: 'ne-resize' },
+      { x: scaledCropX - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, cursor: 'sw-resize' },
+      { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, cursor: 'se-resize' }
+    ];
+    
+    corners.forEach(corner => {
+      ctx.fillRect(corner.x, corner.y, handleSize, handleSize);
+      ctx.strokeRect(corner.x, corner.y, handleSize, handleSize);
+    });
+    
+    // Side handles
+    const sides = [
+      { x: scaledCropX + scaledCropWidth/2 - handleSize/2, y: scaledCropY - handleSize/2, cursor: 'n-resize' },
+      { x: scaledCropX + scaledCropWidth/2 - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, cursor: 's-resize' },
+      { x: scaledCropX - handleSize/2, y: scaledCropY + scaledCropHeight/2 - handleSize/2, cursor: 'w-resize' },
+      { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY + scaledCropHeight/2 - handleSize/2, cursor: 'e-resize' }
+    ];
+    
+    sides.forEach(side => {
+      ctx.fillRect(side.x, side.y, handleSize, handleSize);
+      ctx.strokeRect(side.x, side.y, handleSize, handleSize);
+    });
+    
+    // Draw grid lines inside crop area
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+    const gridLines = 3;
+    for (let i = 1; i < gridLines; i++) {
+      const gridX = scaledCropX + (scaledCropWidth / gridLines) * i;
+      const gridY = scaledCropY + (scaledCropHeight / gridLines) * i;
+      ctx.beginPath();
+      ctx.moveTo(gridX, scaledCropY);
+      ctx.lineTo(gridX, scaledCropY + scaledCropHeight);
+      ctx.moveTo(scaledCropX, gridY);
+      ctx.lineTo(scaledCropX + scaledCropWidth, gridY);
+      ctx.stroke();
+    }
   };
 
   useEffect(() => {
@@ -101,6 +143,54 @@ export default function ImageCropper() {
       drawCanvas();
     }
   }, [cropArea, imagePreview]);
+
+  const getHandleAtPosition = (x: number, y: number) => {
+    if (!canvasRef.current || !imageRef.current) return null;
+    
+    const canvas = canvasRef.current;
+    const scale = canvas.width / imageRef.current.naturalWidth;
+    const scaledCropX = cropArea.x * scale;
+    const scaledCropY = cropArea.y * scale;
+    const scaledCropWidth = cropArea.width * scale;
+    const scaledCropHeight = cropArea.height * scale;
+    const handleSize = 10;
+    
+    // Check corner handles
+    const corners = [
+      { x: scaledCropX - handleSize/2, y: scaledCropY - handleSize/2, handle: 'nw' },
+      { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY - handleSize/2, handle: 'ne' },
+      { x: scaledCropX - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, handle: 'sw' },
+      { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, handle: 'se' }
+    ];
+    
+    for (const corner of corners) {
+      if (x >= corner.x && x <= corner.x + handleSize && y >= corner.y && y <= corner.y + handleSize) {
+        return corner.handle;
+      }
+    }
+    
+    // Check side handles
+    const sides = [
+      { x: scaledCropX + scaledCropWidth/2 - handleSize/2, y: scaledCropY - handleSize/2, handle: 'n' },
+      { x: scaledCropX + scaledCropWidth/2 - handleSize/2, y: scaledCropY + scaledCropHeight - handleSize/2, handle: 's' },
+      { x: scaledCropX - handleSize/2, y: scaledCropY + scaledCropHeight/2 - handleSize/2, handle: 'w' },
+      { x: scaledCropX + scaledCropWidth - handleSize/2, y: scaledCropY + scaledCropHeight/2 - handleSize/2, handle: 'e' }
+    ];
+    
+    for (const side of sides) {
+      if (x >= side.x && x <= side.x + handleSize && y >= side.y && y <= side.y + handleSize) {
+        return side.handle;
+      }
+    }
+    
+    // Check if inside crop area for moving
+    if (x >= scaledCropX && x <= scaledCropX + scaledCropWidth && 
+        y >= scaledCropY && y <= scaledCropY + scaledCropHeight) {
+      return 'move';
+    }
+    
+    return null;
+  };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return;
@@ -110,33 +200,119 @@ export default function ImageCropper() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    setIsDragging(true);
+    const handle = getHandleAtPosition(x, y);
+    
+    if (handle && handle !== 'move') {
+      setIsResizing(true);
+      setResizeHandle(handle);
+    } else if (handle === 'move') {
+      setIsDragging(true);
+    }
+    
     setDragStart({ x, y });
+    setCropStart({ ...cropArea });
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDragging || !canvasRef.current || !imageRef.current) return;
+    if (!canvasRef.current || !imageRef.current) return;
     
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
+    // Update cursor based on handle position
+    const handle = getHandleAtPosition(x, y);
+    if (handle) {
+      const cursorMap: Record<string, string> = {
+        'nw': 'nw-resize',
+        'ne': 'ne-resize',
+        'sw': 'sw-resize',
+        'se': 'se-resize',
+        'n': 'n-resize',
+        's': 's-resize',
+        'w': 'w-resize',
+        'e': 'e-resize',
+        'move': 'move'
+      };
+      canvas.style.cursor = cursorMap[handle] || 'default';
+    } else {
+      canvas.style.cursor = 'default';
+    }
+    
+    if (!isDragging && !isResizing) return;
+    
     const scale = canvas.width / imageRef.current.naturalWidth;
     const deltaX = (x - dragStart.x) / scale;
     const deltaY = (y - dragStart.y) / scale;
     
-    const newX = Math.max(0, Math.min(imageDimensions.width - cropArea.width, cropArea.x + deltaX));
-    const newY = Math.max(0, Math.min(imageDimensions.height - cropArea.height, cropArea.y + deltaY));
-    
-    setCropArea(prev => ({ ...prev, x: newX, y: newY }));
-    setX(Math.round(newX).toString());
-    setY(Math.round(newY).toString());
-    setDragStart({ x, y });
+    if (isDragging) {
+      // Move crop area
+      const newX = Math.max(0, Math.min(imageDimensions.width - cropArea.width, cropStart.x + deltaX));
+      const newY = Math.max(0, Math.min(imageDimensions.height - cropArea.height, cropStart.y + deltaY));
+      
+      setCropArea(prev => ({ ...prev, x: newX, y: newY }));
+      setX(Math.round(newX).toString());
+      setY(Math.round(newY).toString());
+    } else if (isResizing) {
+      // Resize crop area based on handle
+      let newCropArea = { ...cropStart };
+      
+      switch (resizeHandle) {
+        case 'nw':
+          newCropArea.x = Math.max(0, cropStart.x + deltaX);
+          newCropArea.y = Math.max(0, cropStart.y + deltaY);
+          newCropArea.width = Math.max(20, cropStart.width - deltaX);
+          newCropArea.height = Math.max(20, cropStart.height - deltaY);
+          break;
+        case 'ne':
+          newCropArea.y = Math.max(0, cropStart.y + deltaY);
+          newCropArea.width = Math.max(20, cropStart.width + deltaX);
+          newCropArea.height = Math.max(20, cropStart.height - deltaY);
+          break;
+        case 'sw':
+          newCropArea.x = Math.max(0, cropStart.x + deltaX);
+          newCropArea.width = Math.max(20, cropStart.width - deltaX);
+          newCropArea.height = Math.max(20, cropStart.height + deltaY);
+          break;
+        case 'se':
+          newCropArea.width = Math.max(20, cropStart.width + deltaX);
+          newCropArea.height = Math.max(20, cropStart.height + deltaY);
+          break;
+        case 'n':
+          newCropArea.y = Math.max(0, cropStart.y + deltaY);
+          newCropArea.height = Math.max(20, cropStart.height - deltaY);
+          break;
+        case 's':
+          newCropArea.height = Math.max(20, cropStart.height + deltaY);
+          break;
+        case 'w':
+          newCropArea.x = Math.max(0, cropStart.x + deltaX);
+          newCropArea.width = Math.max(20, cropStart.width - deltaX);
+          break;
+        case 'e':
+          newCropArea.width = Math.max(20, cropStart.width + deltaX);
+          break;
+      }
+      
+      // Ensure crop area stays within image bounds
+      newCropArea.x = Math.max(0, newCropArea.x);
+      newCropArea.y = Math.max(0, newCropArea.y);
+      newCropArea.width = Math.min(imageDimensions.width - newCropArea.x, newCropArea.width);
+      newCropArea.height = Math.min(imageDimensions.height - newCropArea.y, newCropArea.height);
+      
+      setCropArea(newCropArea);
+      setX(Math.round(newCropArea.x).toString());
+      setY(Math.round(newCropArea.y).toString());
+      setWidth(Math.round(newCropArea.width).toString());
+      setHeight(Math.round(newCropArea.height).toString());
+    }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle('');
   };
 
   const handleCrop = async () => {
@@ -267,9 +443,16 @@ export default function ImageCropper() {
                       className="max-w-full border border-gray-300 rounded cursor-move"
                       style={{ display: imagePreview ? 'block' : 'none' }}
                     />
-                    <div className="mt-2 text-sm text-gray-600 flex items-center gap-2">
-                      <Move className="w-4 h-4" />
-                      Drag to reposition crop area
+                    <div className="mt-2 text-sm text-gray-600 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Move className="w-4 h-4" />
+                        Drag inside crop area to move
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        • Drag corners/sides to resize
+                        • Visual grid guides alignment
+                        • Real-time dimension updates
+                      </div>
                     </div>
                   </div>
                 </div>
