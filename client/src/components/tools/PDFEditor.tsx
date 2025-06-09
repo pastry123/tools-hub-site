@@ -58,17 +58,19 @@ export default function PDFEditor() {
 
   function startDrag(e: React.MouseEvent, page: number, id: string) {
     e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
+    const element = e.currentTarget as HTMLElement;
+    const container = element.parentElement;
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
     
     const onMove = (moveEvent: MouseEvent) => {
-      const container = e.currentTarget.parentElement?.getBoundingClientRect();
-      if (!container) return;
-      
       updateField(page, id, {
-        x: moveEvent.clientX - container.left - offsetX,
-        y: moveEvent.clientY - container.top - offsetY,
+        x: moveEvent.clientX - containerRect.left - offsetX,
+        y: moveEvent.clientY - containerRect.top - offsetY,
       });
     };
     
@@ -215,24 +217,34 @@ export default function PDFEditor() {
                   overflow: "hidden",
                   background: transparentField ? "transparent" : "white",
                   zIndex: 20,
-                }}
-                onMouseDown={e => {
-                  e.stopPropagation();
-                  setSelectedField(field.id);
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = e.clientX - rect.left;
-                  const y = e.clientY - rect.top;
-                  const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
-                  
-                  if (!isResizeCorner) {
-                    startDrag(e, pageIndex, field.id);
-                  }
+                  cursor: selectedField === field.id ? "move" : "default",
                 }}
                 onClick={e => {
                   e.stopPropagation();
                   setSelectedField(field.id);
                 }}
               >
+                {/* Drag handle - only visible when selected */}
+                {selectedField === field.id && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -8,
+                      left: -8,
+                      width: 16,
+                      height: 16,
+                      background: "#007acc",
+                      cursor: "move",
+                      borderRadius: "50%",
+                      zIndex: 25,
+                    }}
+                    onMouseDown={e => {
+                      e.stopPropagation();
+                      startDrag(e, pageIndex, field.id);
+                    }}
+                  />
+                )}
+                
                 <textarea
                   value={field.text}
                   onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
@@ -250,7 +262,6 @@ export default function PDFEditor() {
                   }}
                   onMouseDown={e => e.stopPropagation()}
                   onFocus={() => setSelectedField(field.id)}
-                  onBlur={() => setSelectedField(null)}
                 />
               </div>
             ))}
