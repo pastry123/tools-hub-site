@@ -54,18 +54,37 @@ export default function PDFEditor() {
   }
 
   function startDrag(e, page, id) {
-    const offsetX = e.nativeEvent.offsetX;
-    const offsetY = e.nativeEvent.offsetY;
+    // Only start drag if not clicking on resize corner
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const isResizeCorner = x > rect.width - 20 && y > rect.height - 20;
+    
+    if (isResizeCorner) return; // Let browser handle resize
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const field = (fields[page] || []).find(f => f.id === id);
+    const startFieldX = field.x;
+    const startFieldY = field.y;
+    
     const onMove = moveEvent => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
       updateField(page, id, {
-        x: moveEvent.clientX - offsetX,
-        y: moveEvent.clientY - offsetY,
+        x: startFieldX + dx,
+        y: startFieldY + dy,
       });
     };
+    
     const onUp = () => {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
     };
+    
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
   }
@@ -177,22 +196,46 @@ export default function PDFEditor() {
             ></iframe>
             <div className="absolute inset-0 z-10">
               {(fields[pageIndex] || []).map(field => (
-                <textarea
+                <div
                   key={field.id}
-                  value={field.text}
-                  onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
-                  onMouseDown={e => startDrag(e, pageIndex, field.id)}
                   style={{
                     position: "absolute",
                     left: field.x,
                     top: field.y,
                     width: field.width,
                     height: field.height,
-                    background: transparentField ? "transparent" : "white",
                     border: "1px solid #aaa",
                     resize: "both",
+                    overflow: "hidden",
+                    background: transparentField ? "transparent" : "white",
                   }}
-                />
+                  onMouseDown={e => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
+                    
+                    if (!isResizeCorner) {
+                      startDrag(e, pageIndex, field.id);
+                    }
+                  }}
+                >
+                  <textarea
+                    value={field.text}
+                    onChange={e => updateField(pageIndex, field.id, { text: e.target.value })}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      border: "none",
+                      background: "transparent",
+                      resize: "none",
+                      outline: "none",
+                      padding: "4px",
+                      pointerEvents: "auto",
+                    }}
+                    onMouseDown={e => e.stopPropagation()}
+                  />
+                </div>
               ))}
               {(images[pageIndex] || []).map((img, idx) => (
                 <img
