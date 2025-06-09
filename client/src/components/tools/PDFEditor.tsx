@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { PDFDocument, rgb } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,7 @@ export default function PDFEditor() {
   const [fields, setFields] = useState<Record<number, any[]>>({});
   const [images, setImages] = useState<Record<number, any[]>>({});
   const [selectedField, setSelectedField] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   async function loadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -58,23 +59,30 @@ export default function PDFEditor() {
 
   function startDrag(e: React.MouseEvent, page: number, id: string) {
     e.preventDefault();
-    const element = e.currentTarget as HTMLElement;
-    const container = element.parentElement;
-    if (!container) return;
+    e.stopPropagation();
+    setIsDragging(true);
     
-    const containerRect = container.getBoundingClientRect();
-    const rect = element.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const field = fields[page]?.find(f => f.id === id);
+    if (!field) return;
+    
+    const startFieldX = field.x;
+    const startFieldY = field.y;
     
     const onMove = (moveEvent: MouseEvent) => {
+      moveEvent.preventDefault();
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
       updateField(page, id, {
-        x: moveEvent.clientX - containerRect.left - offsetX,
-        y: moveEvent.clientY - containerRect.top - offsetY,
+        x: Math.max(0, startFieldX + deltaX),
+        y: Math.max(0, startFieldY + deltaY),
       });
     };
     
     const onUp = () => {
+      setIsDragging(false);
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
     };
@@ -206,6 +214,18 @@ export default function PDFEditor() {
             {(fields[pageIndex] || []).map(field => (
               <div
                 key={field.id}
+                ref={el => {
+                  if (el && selectedField === field.id) {
+                    const observer = new ResizeObserver(entries => {
+                      for (const entry of entries) {
+                        const { width, height } = entry.contentRect;
+                        updateField(pageIndex, field.id, { width, height });
+                      }
+                    });
+                    observer.observe(el);
+                    return () => observer.disconnect();
+                  }
+                }}
                 style={{
                   position: "absolute",
                   left: field.x,
@@ -214,14 +234,28 @@ export default function PDFEditor() {
                   height: field.height,
                   border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
                   resize: selectedField === field.id ? "both" : "none",
-                  overflow: "hidden",
+                  overflow: "visible",
                   background: transparentField ? "transparent" : "white",
                   zIndex: 20,
-                  cursor: selectedField === field.id ? "move" : "default",
+                  cursor: isDragging ? "grabbing" : (selectedField === field.id ? "grab" : "default"),
+                  minWidth: "50px",
+                  minHeight: "20px",
                 }}
                 onClick={e => {
                   e.stopPropagation();
                   setSelectedField(field.id);
+                }}
+                onMouseDown={e => {
+                  if (selectedField === field.id) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const isResizeCorner = x > rect.width - 15 && y > rect.height - 15;
+                    
+                    if (!isResizeCorner) {
+                      startDrag(e, pageIndex, field.id);
+                    }
+                  }
                 }}
               >
                 {/* Drag handle - only visible when selected */}
@@ -237,6 +271,7 @@ export default function PDFEditor() {
                       cursor: "move",
                       borderRadius: "50%",
                       zIndex: 25,
+                      border: "2px solid white",
                     }}
                     onMouseDown={e => {
                       e.stopPropagation();
@@ -259,6 +294,7 @@ export default function PDFEditor() {
                     color: "#000000",
                     fontSize: "12px",
                     fontFamily: "Arial, sans-serif",
+                    pointerEvents: isDragging ? "none" : "auto",
                   }}
                   onMouseDown={e => e.stopPropagation()}
                   onFocus={() => setSelectedField(field.id)}
