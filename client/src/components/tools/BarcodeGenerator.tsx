@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,8 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy } from "lucide-react";
-import JsBarcode from "jsbarcode";
-import QRCode from "qrcode";
+import bwipjs from "bwip-js";
 
 interface BarcodeOptions {
   text: string;
@@ -29,109 +28,137 @@ interface BarcodeOptions {
   paddingbottom: number;
 }
 
-// JsBarcode supported formats mapped to our comprehensive list
-const BARCODE_TYPES: Record<string, { name: string; description: string; category: string; jsFormat?: string }> = {
-  // JsBarcode native support - Linear Codes
-  'CODE128': { name: 'Code 128', description: 'High-density linear barcode', category: 'Linear', jsFormat: 'CODE128' },
-  'CODE128A': { name: 'Code 128A', description: 'Code 128 subset A', category: 'Linear', jsFormat: 'CODE128A' },
-  'CODE128B': { name: 'Code 128B', description: 'Code 128 subset B', category: 'Linear', jsFormat: 'CODE128B' },
-  'CODE128C': { name: 'Code 128C', description: 'Code 128 subset C', category: 'Linear', jsFormat: 'CODE128C' },
-  'CODE39': { name: 'Code 39', description: 'Alphanumeric barcode', category: 'Linear', jsFormat: 'CODE39' },
-  'CODE93': { name: 'Code 93', description: 'Compact alphanumeric barcode', category: 'Linear', jsFormat: 'CODE93' },
-  'CODABAR': { name: 'Codabar', description: 'Numeric barcode for libraries/blood banks', category: 'Linear', jsFormat: 'codabar' },
-  'MSI': { name: 'MSI Plessey', description: 'Numeric barcode for inventory', category: 'Linear', jsFormat: 'MSI' },
-  'MSI10': { name: 'MSI Mod 10', description: 'MSI with Mod 10 checksum', category: 'Linear', jsFormat: 'MSI10' },
-  'MSI11': { name: 'MSI Mod 11', description: 'MSI with Mod 11 checksum', category: 'Linear', jsFormat: 'MSI11' },
-  'MSI1010': { name: 'MSI Mod 1010', description: 'MSI with Mod 1010 checksum', category: 'Linear', jsFormat: 'MSI1010' },
-  'MSI1110': { name: 'MSI Mod 1110', description: 'MSI with Mod 1110 checksum', category: 'Linear', jsFormat: 'MSI1110' },
-  
-  // EAN/UPC Codes
-  'EAN13': { name: 'EAN-13', description: '13-digit European Article Number', category: 'EAN/UPC', jsFormat: 'EAN13' },
-  'EAN8': { name: 'EAN-8', description: '8-digit European Article Number', category: 'EAN/UPC', jsFormat: 'EAN8' },
-  'EAN5': { name: 'EAN-5', description: '5-digit EAN add-on', category: 'EAN/UPC', jsFormat: 'EAN5' },
-  'EAN2': { name: 'EAN-2', description: '2-digit EAN add-on', category: 'EAN/UPC', jsFormat: 'EAN2' },
-  'UPC': { name: 'UPC-A', description: 'Universal Product Code A', category: 'EAN/UPC', jsFormat: 'UPC' },
-  'UPCE': { name: 'UPC-E', description: 'Universal Product Code E', category: 'EAN/UPC', jsFormat: 'UPCE' },
-  
-  // ITF Codes  
-  'ITF14': { name: 'ITF-14', description: '14-digit Interleaved 2 of 5', category: 'EAN/UPC', jsFormat: 'ITF14' },
-  'ITF': { name: 'ITF', description: 'Interleaved 2 of 5', category: 'Linear', jsFormat: 'ITF' },
-  
-  // Pharmacode
-  'pharmacode': { name: 'Pharmacode', description: 'Pharmaceutical barcode', category: 'Healthcare', jsFormat: 'pharmacode' },
-  
-  // QR Code (requires separate library)
-  'qrcode': { name: 'QR Code', description: 'Quick Response Code', category: '2D Codes' },
-  
-  // Additional formats with custom implementation
-  'code11': { name: 'Code 11', description: 'Numeric barcode for telecommunications', category: 'Linear' },
-  'code25': { name: 'Code 25', description: 'Standard Code 25', category: 'Linear' },
-  'code25iata': { name: 'Code 25 IATA', description: 'IATA 2 of 5', category: 'Linear' },
-  'plessey': { name: 'Plessey', description: 'Plessey barcode', category: 'Linear' },
-  'telepen': { name: 'Telepen', description: 'Alphanumeric Telepen', category: 'Linear' },
-  'telepennumeric': { name: 'Telepen Numeric', description: 'Numeric Telepen', category: 'Linear' },
-  'fim': { name: 'FIM', description: 'Facing Identification Mark', category: 'Linear' },
-  
-  // 2D Codes (would need additional libraries)
-  'datamatrix': { name: 'Data Matrix', description: '2D matrix barcode', category: '2D Codes' },
-  'pdf417': { name: 'PDF417', description: 'Portable Data File barcode', category: '2D Codes' },
-  'micropdf417': { name: 'Micro PDF417', description: 'Compact PDF417', category: '2D Codes' },
-  'azteccode': { name: 'Aztec Code', description: 'High capacity 2D barcode', category: '2D Codes' },
-  'maxicode': { name: 'MaxiCode', description: 'UPS shipping barcode', category: '2D Codes' },
-  'dotcode': { name: 'DotCode', description: 'High-speed 2D matrix code', category: '2D Codes' },
-  'hanxin': { name: 'Han Xin Code', description: 'Chinese national 2D barcode', category: '2D Codes' },
-  
-  // Postal Codes (would need custom implementation)
-  'postnet': { name: 'POSTNET', description: 'USPS Postal Numeric Encoding', category: 'Postal' },
-  'planet': { name: 'PLANET', description: 'USPS PLANET barcode', category: 'Postal' },
-  'royalmail': { name: 'Royal Mail 4-State', description: 'UK postal barcode', category: 'Postal' },
-  'kix': { name: 'KIX', description: 'Netherlands postal barcode', category: 'Postal' },
-  'japanpost': { name: 'Japan Post', description: 'Japanese postal barcode', category: 'Postal' },
-  'auspost': { name: 'Australia Post', description: 'Australian postal barcode', category: 'Postal' },
-  'identcode': { name: 'Deutsche Post Identcode', description: 'German postal identcode', category: 'Postal' },
-  'leitcode': { name: 'Deutsche Post Leitcode', description: 'German postal leitcode', category: 'Postal' },
-  'onecode': { name: 'USPS Intelligent Mail', description: 'USPS OneCode', category: 'Postal' },
-  
-  // GS1 DataBar (would need custom implementation)
-  'gs1databar': { name: 'GS1 DataBar Omnidirectional', description: 'Omnidirectional DataBar', category: 'GS1 DataBar' },
-  'gs1databarstacked': { name: 'GS1 DataBar Stacked', description: 'Stacked DataBar', category: 'GS1 DataBar' },
-  'gs1databarstackedomni': { name: 'GS1 DataBar Stacked Omnidirectional', description: 'Stacked Omnidirectional DataBar', category: 'GS1 DataBar' },
-  'gs1databartruncated': { name: 'GS1 DataBar Truncated', description: 'Truncated DataBar', category: 'GS1 DataBar' },
-  'gs1databarlimited': { name: 'GS1 DataBar Limited', description: 'Limited DataBar', category: 'GS1 DataBar' },
-  'gs1databarexpanded': { name: 'GS1 DataBar Expanded', description: 'Expanded DataBar', category: 'GS1 DataBar' },
-  'gs1databarexpandedstacked': { name: 'GS1 DataBar Expanded Stacked', description: 'Expanded Stacked DataBar', category: 'GS1 DataBar' },
-  'gs1-128': { name: 'GS1-128', description: 'Application identifier barcode', category: 'GS1 DataBar' },
-  
-  // Healthcare Codes  
-  'code32': { name: 'Code32', description: 'Italian pharmacode', category: 'Healthcare' },
-  'pharmacode2': { name: 'Pharmacode Two-Track', description: 'Two-track pharmaceutical barcode', category: 'Healthcare' },
-  'pzn': { name: 'PZN', description: 'German pharmaceutical number', category: 'Healthcare' },
-  'hibccode128': { name: 'HIBC Code 128', description: 'Healthcare Industry Bar Code 128', category: 'Healthcare' },
-  'hibccode39': { name: 'HIBC Code 39', description: 'HIBC with Code 39', category: 'Healthcare' },
-  'hibcdatamatrix': { name: 'HIBC Data Matrix', description: 'HIBC with Data Matrix', category: 'Healthcare' },
-  'hibcqrcode': { name: 'HIBC QR Code', description: 'HIBC with QR Code', category: 'Healthcare' },
-  
-  // Banking & Finance
-  'swissqrcode': { name: 'Swiss QR Code', description: 'Swiss payment QR code', category: 'Banking' },
-  'epcqr': { name: 'EPC QR Code', description: 'European Payments Council QR', category: 'Banking' },
-  
-  // ISBN Codes
-  'isbn': { name: 'ISBN', description: 'International Standard Book Number', category: 'ISBN' },
-  'ismn': { name: 'ISMN', description: 'International Standard Music Number', category: 'ISBN' },
-  'issn': { name: 'ISSN', description: 'International Standard Serial Number', category: 'ISBN' },
-  
-  // Specialty Codes
-  'bc412': { name: 'BC412', description: 'Semi-Automatic Ground Environment', category: 'Specialty' },
-  'channelcode': { name: 'Channel Code', description: 'Space-efficient barcode', category: 'Specialty' },
-  'flattermarken': { name: 'Flattermarken', description: 'German machine-readable code', category: 'Specialty' },
-  'raw': { name: 'Raw', description: 'Raw barcode format', category: 'Specialty' },
-  'daft': { name: 'DAFT', description: 'Descender-Ascender-Full-Tall', category: 'Specialty' }
+// Complete bwip-js supported barcode categories - all authentic encoding
+const barcodeCategories: Record<string, Record<string, { bcid: string; hint: string; options?: any; ccSupport?: boolean }>> = {
+  "Linear Codes": {
+    "Code-128": { bcid: "code128", hint: "Alphanumeric or all numeric." },
+    "Code-11": { bcid: "code11", hint: "Numeric (0-9) and hyphen (-)." },
+    "Code-2of5 Interleaved": { bcid: "interleaved2of5", hint: "Numeric (0-9), even number of digits." },
+    "Code-39": { bcid: "code39", hint: "Alphanumeric (A-Z, 0-9) and symbols (- . $ / + % SPACE)." },
+    "Code-39 Full ASCII": { bcid: "code39ext", hint: "Full ASCII character set." },
+    "Code-93": { bcid: "code93", hint: "Full ASCII character set." },
+    "Flattermarken": { bcid: "flattermarken", hint: "Specialized code." },
+    "GS1-128 (UCC/EAN-128)": { bcid: "gs1-128", hint: "GS1 standard, uses Application Identifiers. E.g., (01)12345..." },
+    "MSI": { bcid: "msicode", hint: "Numeric (0-9)." },
+    "Pharmacode One-Track": { bcid: "pharmacode", hint: "Numeric, for pharmaceutical packaging." },
+    "Pharmacode Two-Track": { bcid: "pharmacode2", hint: "Numeric, two-track version." },
+    "Telepen Alpha": { bcid: "telepen", hint: "Full ASCII." }
+  },
+  "Postal Codes": {
+    "Australian Post Standard Customer": { bcid: "auspost", hint: "Format: NNNN or NNNNNNNN (FCC+Sort+DPID)" },
+    "DAFT": { bcid: "daft", hint: "Used by some European postal services." },
+    "DPD Barcode (DPD Parcel Label)": { bcid: "dpd", hint: "Parcel identification." },
+    "Japanese Postal (Customer) Code": { bcid: "japanpost", hint: "Numeric and hyphen." },
+    "KIX (TNT Post Netherlands)": { bcid: "kix", hint: "Alphanumeric, Dutch postal code." },
+    "Planet Code 12": { bcid: "planet", hint: "12 or 14 digits. USPS Marketing Mail." },
+    "Royal Mail 4-State (RM4SCC)": { bcid: "royalmail", hint: "Alphanumeric, UK postal." },
+    "Royal Mail Mailmark 4-State": { bcid: "mailmark", hint: "Complex, requires specific data structure." },
+    "USPS PostNet 5": { bcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "5-digit ZIP." },
+    "USPS PostNet 9": { bcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "9-digit ZIP (ZIP+4)." },
+    "USPS PostNet 11": { bcid: "postnet", options: { "includetext": true, "textyoffset": -5 }, hint: "11-digit Delivery Point." },
+    "USPS IM Package (IMpb)": { bcid: "gs1-128", hint: "GS1-128 with specific AIs for USPS Intelligent Mail Package Barcode." },
+    "UPU S10": { bcid: "gs1-128", hint: "International postal items, often GS1-128. Format: (420)ZIP(92)COUNTRY(01)ITEM_ID" }
+  },
+  "GS1 DataBar": {
+    "GS1-DataBar Omnidirectional": { bcid: "gs1databaromni", hint: "14 digits, typically GTIN." },
+    "GS1-DataBar Stacked": { bcid: "gs1databarstacked", hint: "14 digits, for smaller items." },
+    "GS1-DataBar Stacked Omni": { bcid: "gs1databarstackedomni", hint: "14 digits." },
+    "GS1-DataBar Limited": { bcid: "gs1databarlimited", hint: "14 digits, leading (0) or (1)." },
+    "GS1-DataBar Expanded": { bcid: "gs1databarexpanded", hint: "Up to 74 numeric or 41 alphabetic chars. Uses AIs." },
+    "GS1-DataBar Expanded Stacked": { bcid: "gs1databarexpandedstacked", hint: "Multi-row version of Expanded." },
+    "GS1-128 Composite Symbology": { bcid: "gs1-128", ccSupport: true, hint: "GS1-128 with 2D component. Data | CC_Data" },
+    "GS1-DataBar Composite": { bcid: "gs1databaromni", ccSupport: true, hint: "DataBar Omni with 2D component. Data | CC_Data" },
+    "GS1-DataBar Stacked Composite": { bcid: "gs1databarstacked", ccSupport: true, hint: "DataBar Stacked with 2D. Data | CC_Data" },
+    "GS1-DataBar Stacked Omni Composite": { bcid: "gs1databarstackedomni", ccSupport: true, hint: "Stacked Omni with 2D. Data | CC_Data" },
+    "GS1-DataBar Limited Composite": { bcid: "gs1databarlimited", ccSupport: true, hint: "Limited with 2D. Data | CC_Data" },
+    "GS1-DataBar Expanded Composite": { bcid: "gs1databarexpanded", ccSupport: true, hint: "Expanded with 2D. Data | CC_Data" },
+    "GS1-DataBar Expanded Stacked Composite": { bcid: "gs1databarexpandedstacked", ccSupport: true, hint: "Expanded Stacked with 2D. Data | CC_Data" }
+  },
+  "EAN / UPC": {
+    "EAN-8": { bcid: "ean8", hint: "8 digits." },
+    "EAN-13": { bcid: "ean13", hint: "13 digits (12 data + 1 check)." },
+    "EAN-14": { bcid: "ean14", hint: "14 digits (GTIN-14), often represented as GS1-128 (01) or DataMatrix." },
+    "EAN-8 Composite Symbology": { bcid: "ean8", ccSupport: true, hint: "EAN-8 with 2D component. Data | CC_Data" },
+    "EAN-13 Composite Symbology": { bcid: "ean13", ccSupport: true, hint: "EAN-13 with 2D component. Data | CC_Data" },
+    "UPC-A": { bcid: "upca", hint: "12 digits (11 data + 1 check)." },
+    "UPC-E": { bcid: "upce", hint: "8 digits (compressed from UPC-A)." },
+    "UPC-A Composite Symbology": { bcid: "upca", ccSupport: true, hint: "UPC-A with 2D component. Data | CC_Data" },
+    "UPC-E Composite Symbology": { bcid: "upce", ccSupport: true, hint: "UPC-E with 2D component. Data | CC_Data" }
+  },
+  "2D Codes": {
+    "QR Code": { bcid: "qrcode", hint: "Alphanumeric data, URLs, etc." },
+    "Data Matrix": { bcid: "datamatrix", hint: "Alphanumeric, high density." },
+    "Data Matrix Rectangular": { bcid: "datamatrixrectangular", hint: "Rectangular version of Data Matrix." },
+    "Aztec": { bcid: "azteccode", hint: "Alphanumeric, robust." },
+    "Codablock-F": { bcid: "codablockf", hint: "Stacked linear code." },
+    "MaxiCode": { bcid: "maxicode", hint: "Fixed size, used by UPS." },
+    "MicroPDF417": { bcid: "micropdf417", hint: "Smaller version of PDF417." },
+    "PDF417": { bcid: "pdf417", hint: "Stacked linear, can hold large amounts of data." },
+    "Micro QR Code": { bcid: "microqrcode", hint: "Smaller version of QR Code." },
+    "Han Xin": { bcid: "hanxin", hint: "Chinese 2D code." },
+    "DotCode": { bcid: "dotcode", hint: "For high-speed industrial printing." },
+    "Royal Mail Mailmark 2D": { bcid: "datamatrix", options: { "mailmark": true }, hint: "Data Matrix for Royal Mail Mailmark. Specific data structure." },
+    "NTIN Code": { bcid: "datamatrix", hint: "German PPN system, uses Data Matrix. Data: PPN_Data" },
+    "PPN Code": { bcid: "datamatrix", hint: "Pharmacy Product Number, uses Data Matrix. Data: PPN_Data" }
+  },
+  "GS1 2D Barcodes": {
+    "GS1 QR Code": { bcid: "gs1qrcode", hint: "QR Code with GS1 data structure (FNC1)." },
+    "GS1 DataMatrix": { bcid: "gs1datamatrix", hint: "Data Matrix with GS1 data structure (FNC1)." },
+    "GS1 Digital Link QR code": { bcid: "qrcode", hint: "URL using GS1 Digital Link syntax. e.g. https://d.gs1.org/gtin/..." },
+    "GS1 Digital Link Data Matrix": { bcid: "datamatrix", hint: "URL using GS1 Digital Link syntax. e.g. https://d.gs1.org/gtin/..." }
+  },
+  "Banking and Payments": {
+    "EPC QR Code V2": { bcid: "qrcode", hint: "SEPA Credit Transfer QR. Structured data: BCD\\n002\\n1\\nSCT\\n..." },
+    "Swiss QR Code v.1.0/v.2.2": { bcid: "swissqrcode", hint: "Highly structured data for Swiss payments. Refer to Swiss QR standards for data format." },
+    "ZATCA QR Code (Saudi Arabia)": { bcid: "qrcode", hint: "Base64 encoded TLV for ZATCA e-invoicing. Complex data structure." }
+  },
+  "Healthcare Codes": {
+    "Code32 (Italian Pharmacode)": { bcid: "code32", hint: "Italian pharmaceutical code." },
+    "HIBC LIC 128": { bcid: "hibccode128", hint: "HIBC with Code 128. Data: +LIC_Data" },
+    "HIBC LIC 39": { bcid: "hibccode39", hint: "HIBC with Code 39. Data: +LIC_Data" },
+    "HIBC LIC Aztec": { bcid: "hibcazteccode", hint: "HIBC with Aztec. Data: +LIC_Data" },
+    "HIBC LIC Codablock-F": { bcid: "hibccodablockf", hint: "HIBC with Codablock F. Data: +LIC_Data" },
+    "HIBC LIC Data Matrix": { bcid: "hibcdatamatrix", hint: "HIBC with Data Matrix. Data: +LIC_Data" },
+    "HIBC LIC Micro PDF 417": { bcid: "hibcmicropdf417", hint: "HIBC with MicroPDF417. Data: +LIC_Data" },
+    "HIBC LIC PDF417": { bcid: "hibcpdf417", hint: "HIBC with PDF417. Data: +LIC_Data" },
+    "HIBC LIC QR-Code": { bcid: "hibcqrcode", hint: "HIBC with QR Code. Data: +LIC_Data" },
+    "HIBC PAS 128": { bcid: "hibcpascode128", hint: "HIBC PAS with Code 128. Data: +PAS_Data" },
+    "HIBC PAS 39": { bcid: "hibcpascode39", hint: "HIBC PAS with Code 39. Data: +PAS_Data" },
+    "NTIN (Data Matrix)": { bcid: "datamatrix", hint: "German PPN system, uses Data Matrix. Data: PPN_Data" },
+    "PPN (Pharmacy Product Number)": { bcid: "datamatrix", hint: "Data Matrix. Data: PPN_Data (typically starts with //S)" },
+    "PZN7": { bcid: "code39", options: { "pzn": true }, hint: "German pharma number (old). Usually Code 39 based." },
+    "PZN8": { bcid: "pzn8", hint: "German pharma number (new)." }
+  },
+  "ISBN Codes": {
+    "ISBN 13": { bcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "13 digits (usually starts 978/979). Can add price addon: ISBN|Price (e.g. 9781234567890|51299)" },
+    "ISBN 13 + 5 Digits": { bcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISBN with 5-digit price addon. Format: ISBN_Number|Addon_Digits" },
+    "ISMN": { bcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Music Number (EAN-13 format, starts 979-0). Can have addon." },
+    "ISSN": { bcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Serial Number (EAN-13 format, starts 977). Can have addon." },
+    "ISSN + 2 Digits": { bcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISSN with 2-digit issue addon. Format: ISSN_Number|Addon_Digits" }
+  }
 };
+
+// Flatten all barcode types for easier access
+const BARCODE_TYPES: Record<string, { name: string; description: string; category: string; bcid: string; hint: string; options?: any; ccSupport?: boolean }> = {};
+
+Object.entries(barcodeCategories).forEach(([categoryName, types]) => {
+  Object.entries(types).forEach(([typeName, typeData]) => {
+    BARCODE_TYPES[typeData.bcid] = {
+      name: typeName,
+      description: typeData.hint,
+      category: categoryName,
+      bcid: typeData.bcid,
+      hint: typeData.hint,
+      options: typeData.options,
+      ccSupport: typeData.ccSupport
+    };
+  });
+});
 
 export default function BarcodeGenerator() {
   const [options, setOptions] = useState<BarcodeOptions>({
     text: "Hello World",
-    bcid: "CODE128",
+    bcid: "code128",
     scale: 3,
     height: 10,
     includetext: true,
@@ -150,33 +177,47 @@ export default function BarcodeGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentBarcodeDef, setCurrentBarcodeDef] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   // Get unique categories
-  const categories = ["all", ...Array.from(new Set(Object.values(BARCODE_TYPES).map(type => type.category)))];
+  const categories = ["all", ...Object.keys(barcodeCategories)];
 
   // Filter barcode types based on search and category
-  const filteredBarcodeTypes = Object.entries(BARCODE_TYPES).filter(([key, type]) => {
-    const matchesSearch = searchTerm === "" || 
-      type.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      type.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      key.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredBarcodeTypes = useMemo(() => {
+    let allTypes: Array<[string, any]> = [];
     
-    const matchesCategory = selectedCategory === "all" || type.category === selectedCategory;
+    if (selectedCategory === "all") {
+      Object.entries(barcodeCategories).forEach(([categoryName, types]) => {
+        Object.entries(types).forEach(([typeName, typeData]) => {
+          allTypes.push([typeName, { ...typeData, category: categoryName, name: typeName }]);
+        });
+      });
+    } else {
+      const categoryTypes = barcodeCategories[selectedCategory] || {};
+      Object.entries(categoryTypes).forEach(([typeName, typeData]) => {
+        allTypes.push([typeName, { ...typeData, category: selectedCategory, name: typeName }]);
+      });
+    }
     
-    return matchesSearch && matchesCategory;
-  });
+    return allTypes.filter(([typeName, typeData]) => {
+      return searchTerm === "" || 
+        typeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        typeData.hint.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        typeData.bcid.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [searchTerm, selectedCategory]);
 
   const updateOption = (key: keyof BarcodeOptions, value: any) => {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
   const generateBarcode = async () => {
-    if (!options.text.trim()) {
+    if (!currentBarcodeDef || !options.text.trim()) {
       toast({
         title: "Invalid Input",
-        description: "Please enter text to encode",
+        description: "Please select a barcode type and enter data",
         variant: "destructive",
       });
       return;
@@ -185,55 +226,83 @@ export default function BarcodeGenerator() {
     setIsGenerating(true);
     
     try {
-      let dataUrl: string;
-      
-      if (options.bcid === 'qrcode') {
-        // Generate real QR code using QRCode library
-        dataUrl = await QRCode.toDataURL(options.text, {
-          width: options.scale * 150,
-          margin: 2,
-          color: {
-            dark: '#000000',
-            light: options.backgroundcolor || '#ffffff'
-          }
-        });
-      } else {
-        // Generate real barcode using JsBarcode library
-        const barcodeType = BARCODE_TYPES[options.bcid];
-        if (!barcodeType?.jsFormat) {
-          throw new Error(`Barcode type ${options.bcid} is not yet supported with real encoding. Please select a supported type like CODE128, CODE39, EAN13, UPC, etc.`);
-        }
-        
-        const canvas = document.createElement('canvas');
-        
-        try {
-          JsBarcode(canvas, options.text, {
-            format: barcodeType.jsFormat,
-            width: options.scale,
-            height: options.height * 10,
-            displayValue: options.includetext,
-            fontSize: options.textsize,
-            background: options.backgroundcolor || '#ffffff',
-            lineColor: '#000000',
-            margin: 10
-          });
-          
-          dataUrl = canvas.toDataURL('image/png');
-        } catch (barcodeError) {
-          throw new Error(`Failed to generate ${barcodeType.name}: ${barcodeError instanceof Error ? barcodeError.message : 'Invalid data for this barcode type'}`);
+      const text = options.text;
+      let bcid = currentBarcodeDef.bcid;
+      let mainData = text;
+      let ccData = null;
+
+      // Handle composite codes (linear + 2D component)
+      if (currentBarcodeDef.ccSupport && text.includes('|')) {
+        const parts = text.split('|').map((s: string) => s.trim());
+        mainData = parts[0];
+        if (parts.length > 1 && parts[1]) {
+          ccData = parts[1];
         }
       }
-      
+
+      let bwipOptions: any = {
+        bcid: bcid,
+        text: mainData,
+        scale: parseInt(options.scale.toString()) || 3,
+        height: 10,
+        includetext: options.includetext,
+        textxalign: 'center',
+        barcolor: options.backgroundcolor === '#ffffff' ? '000000' : '000000',
+        backgroundcolor: options.backgroundcolor.substring(1),
+        ...(currentBarcodeDef.options || {})
+      };
+
+      // Add composite component data if present
+      if (ccData) {
+        bwipOptions.ccdata = ccData;
+        bwipOptions.ccversion = 'cca';
+      }
+
+      // Special handling for EAN/UPC with addon
+      if ((bcid === 'ean13' || bcid === 'upca' || bcid === 'upce') && mainData.includes('|')) {
+        const parts = mainData.split('|');
+        bwipOptions.text = parts[0];
+        bwipOptions.addon = parts[1];
+      }
+
+      // Special handling for Swiss QR Code
+      if (bcid === 'swissqrcode') {
+        bwipOptions.text = mainData;
+      }
+
+      // Create canvas and generate barcode using bwip-js
+      const canvas = document.createElement('canvas');
+      bwipjs.toCanvas(canvas, bwipOptions);
+
+      // Copy to display canvas
+      if (canvasRef.current) {
+        canvasRef.current.width = canvas.width;
+        canvasRef.current.height = canvas.height;
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(canvas, 0, 0);
+        }
+      }
+
+      const dataUrl = canvas.toDataURL('image/png');
       setBarcodeUrl(dataUrl);
       
       toast({
         title: "Barcode Generated",
         description: "Your authentic, scannable barcode has been generated!",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("bwip-js error:", error);
+      let userMessage = "Error generating barcode.";
+      if (typeof error === 'string') {
+        userMessage += ` ${error.replace(/^Error: /, '')}`;
+      } else if (error.message) {
+        userMessage += ` ${error.message.replace(/^Error: /, '')}`;
+      }
+      
       toast({
         title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Unable to generate barcode",
+        description: userMessage,
         variant: "destructive",
       });
     } finally {
@@ -322,28 +391,34 @@ export default function BarcodeGenerator() {
                 </Select>
               </div>
 
-              <Select value={options.bcid} onValueChange={(value) => updateOption('bcid', value)}>
+              <Select value={options.bcid} onValueChange={(value) => {
+                updateOption('bcid', value);
+                // Find the barcode definition for the selected value
+                let foundDef = null;
+                Object.entries(barcodeCategories).forEach(([categoryName, types]) => {
+                  Object.entries(types).forEach(([typeName, typeData]) => {
+                    if (typeData.bcid === value) {
+                      foundDef = { ...typeData, name: typeName, category: categoryName };
+                    }
+                  });
+                });
+                setCurrentBarcodeDef(foundDef);
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
                   {filteredBarcodeTypes.length > 0 ? (
-                    filteredBarcodeTypes.map(([key, type]) => (
-                      <SelectItem key={key} value={key}>
+                    filteredBarcodeTypes.map(([typeName, typeData]) => (
+                      <SelectItem key={typeData.bcid} value={typeData.bcid}>
                         <div className="flex items-center justify-between w-full">
                           <div className="flex flex-col">
-                            <span className="font-medium">{type.name}</span>
-                            <span className="text-xs text-gray-500">{type.description}</span>
+                            <span className="font-medium">{typeName}</span>
+                            <span className="text-xs text-gray-500">{typeData.hint}</span>
                           </div>
-                          {type.jsFormat || key === 'qrcode' ? (
-                            <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1 rounded">
-                              ✓ Real
-                            </span>
-                          ) : (
-                            <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-1 rounded">
-                              Coming Soon
-                            </span>
-                          )}
+                          <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1 rounded">
+                            ✓ Real
+                          </span>
                         </div>
                       </SelectItem>
                     ))
