@@ -227,7 +227,7 @@ export default function BarcodeGenerator() {
     
     try {
       const text = options.text;
-      let bcid = currentBarcodeDef.bcid;
+      let bcid = currentBarcodeDef.actualBcid || currentBarcodeDef.bcid;
       let mainData = text;
       let ccData = null;
 
