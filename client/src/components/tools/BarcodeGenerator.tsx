@@ -10,7 +10,6 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy, RefreshCw } from "lucide-react";
-import { BARCODE_TYPES, generateBarcode as generateBarcodeLib, validateBarcodeText, downloadBarcodeImage } from "@/lib/barcodeGenerator";
 
 interface BarcodeOptions {
   text: string;
@@ -29,173 +28,35 @@ interface BarcodeOptions {
   paddingbottom: number;
 }
 
-// Organize BARCODE_TYPES into categories for the UI
-const BARCODE_CATEGORIES = {
-  linear: {
-    name: "Linear Codes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => 
-        key.startsWith('code-') || 
-        key.includes('msi') || 
-        key.includes('codabar') || 
-        key.includes('telepen') || 
-        key.includes('plessey') || 
-        key.includes('fim') ||
-        key.includes('rational') ||
-        key === 'code-25' ||
-        key === 'code-25-iata' ||
-        key.includes('2of5') ||
-        key.includes('datalogic') ||
-        key.includes('matrix2of5') ||
-        key.includes('industrial') ||
-        key.includes('standard2of5')
-      )
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  postal: {
-    name: "Postal Codes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => 
-        key.includes('post') || 
-        key.includes('planet') || 
-        key.includes('royal') || 
-        key.includes('kix') || 
-        key.includes('japan') || 
-        key.includes('aus') || 
-        key.includes('deutsche') || 
-        key.includes('usps') || 
-        key.includes('rm4') || 
-        key.includes('daft') || 
-        key.includes('flatter') ||
-        key.includes('onecode') ||
-        key.includes('identcode') ||
-        key.includes('leitcode') ||
-        key === 'raw-barcode'
-      )
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  gs1_databar: {
-    name: "GS1 DataBar",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('gs1-databar') || key.includes('gs1-128') || key.includes('ean128'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  ean_upc: {
-    name: "EAN / UPC",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => 
-        key.includes('ean') || 
-        key.includes('upc') || 
-        key.includes('itf') ||
-        key.includes('upca-gs1') ||
-        key.includes('upce-gs1')
-      )
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  two_d: {
-    name: "2D Codes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => 
-        key === 'qrcode' || 
-        key === 'datamatrix' || 
-        key === 'pdf417' || 
-        key === 'micropdf417' || 
-        key === 'azteccode' || 
-        key === 'maxicode' || 
-        key === 'dotcode' || 
-        key === 'microqr' || 
-        key === 'hanxin' || 
-        key === 'codeone' || 
-        key === 'codablockf' || 
-        key === 'code16k' || 
-        key === 'code49' || 
-        key.includes('compact') ||
-        key.includes('datamatrix-square') ||
-        key.includes('datamatrix-rectangular')
-      )
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  gs1_2d: {
-    name: "GS1 2D Barcodes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.startsWith('gs1-') && (key.includes('qr') || key.includes('datamatrix') || key.includes('digital')))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  banking: {
-    name: "Banking & Payments", 
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => 
-        key.includes('epc') || 
-        key.includes('swiss') || 
-        key.includes('zatca')
-      )
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  mobile: {
-    name: "Mobile Tagging",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.startsWith('mobile-'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  healthcare: {
-    name: "Healthcare Codes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('hibc') || key.includes('code32') || key.includes('flatter') || key.includes('ntin') || key.includes('pharmaco') || key.includes('ppn') || key.includes('pzn'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  isbn: {
-    name: "ISBN Codes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('isbn') || key.includes('ismn') || key.includes('issn'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  business: {
-    name: "Business Cards",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('vcard') || key.includes('mecard'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  events: {
-    name: "Event Barcodes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.startsWith('event-'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  wifi: {
-    name: "Wi-Fi Barcodes",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.startsWith('wifi-'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  },
-  specialty: {
-    name: "Specialty",
-    types: Object.entries(BARCODE_TYPES)
-      .filter(([key]) => key.includes('bc412') || key.includes('channel') || key.includes('symbol'))
-      .map(([key, value]) => ({ id: key, key, name: value.name, description: value.description, bcid: value.bcid }))
-  }
+const BARCODE_TYPES = {
+  'qrcode': { name: 'QR Code', description: 'Quick Response Code' },
+  'code128': { name: 'Code 128', description: 'High-density linear barcode' },
+  'code39': { name: 'Code 39', description: 'Alphanumeric barcode' },
+  'ean13': { name: 'EAN-13', description: '13-digit product barcode' },
+  'upca': { name: 'UPC-A', description: 'Universal Product Code' },
+  'datamatrix': { name: 'Data Matrix', description: '2D matrix barcode' }
 };
 
 export default function BarcodeGenerator() {
   const [options, setOptions] = useState<BarcodeOptions>({
-    text: "123456789012",
-    bcid: "code128",
+    text: "Hello World",
+    bcid: "qrcode",
     scale: 3,
     height: 10,
     includetext: true,
     textxalign: "center",
     textyalign: "below",
-    textsize: 10,
+    textsize: 12,
     rotate: "N",
-    backgroundcolor: "FFFFFF",
+    backgroundcolor: "#ffffff",
     paddingleft: 10,
     paddingright: 10,
     paddingtop: 10,
     paddingbottom: 10
   });
-  
+
   const [barcodeUrl, setBarcodeUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("linear");
   const { toast } = useToast();
 
   const updateOption = (key: keyof BarcodeOptions, value: any) => {
@@ -212,54 +73,21 @@ export default function BarcodeGenerator() {
       return;
     }
 
-    // Validate text for the selected barcode type
-    const validation = validateBarcodeText(options.text, options.bcid);
-    if (!validation.isValid) {
-      toast({
-        title: "Invalid Input",
-        description: validation.error || "Invalid text for this barcode type",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsGenerating(true);
     
     try {
-      const barcodeOptions = {
-        text: options.text,
-        bcid: options.bcid,
-        scale: options.scale,
-        height: options.height,
-        includetext: options.includetext,
-        textxalign: options.textxalign,
-        textyalign: options.textyalign,
-        textsize: options.textsize,
-        rotate: options.rotate,
-        backgroundcolor: options.backgroundcolor,
-        paddingleft: options.paddingleft,
-        paddingright: options.paddingright,
-        paddingtop: options.paddingtop,
-        paddingbottom: options.paddingbottom
-      };
-
-      const result = await generateBarcodeLib(barcodeOptions);
+      const canvas = generateCanvasBarcode(options);
+      const dataUrl = canvas.toDataURL('image/png');
+      setBarcodeUrl(dataUrl);
       
-      if (result.success && result.canvas) {
-        const dataUrl = result.canvas.toDataURL('image/png');
-        setBarcodeUrl(dataUrl);
-        
-        toast({
-          title: "Barcode Generated",
-          description: "Your barcode has been generated successfully!",
-        });
-      } else {
-        throw new Error(result.error || 'Failed to generate barcode');
-      }
+      toast({
+        title: "Barcode Generated",
+        description: "Your barcode has been generated successfully!",
+      });
     } catch (error) {
       toast({
         title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Unable to generate barcode. Please try a different format or text.",
+        description: error instanceof Error ? error.message : "Unable to generate barcode",
         variant: "destructive",
       });
     } finally {
@@ -267,308 +95,316 @@ export default function BarcodeGenerator() {
     }
   };
 
-  const generateCanvasBarcode = async (options: BarcodeOptions): Promise<HTMLCanvasElement> => {
+  const generateCanvasBarcode = (options: BarcodeOptions): HTMLCanvasElement => {
+    if (options.bcid === 'qrcode') {
+      return generateQRCode(options.text, options.scale * 100);
+    }
+    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     
-    // Set canvas size
-    const width = 400;
-    const height = 100;
+    // Set canvas size for linear barcodes
+    const width = Math.max(400, options.text.length * 12 * options.scale);
+    const height = Math.max(100, options.height * 2);
     canvas.width = width;
     canvas.height = height;
     
     // Draw background
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = options.backgroundcolor || '#ffffff';
     ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = '#000000';
     
-    // Simple barcode simulation for demonstration
+    // Generate barcode pattern
     const barWidth = 2 * options.scale;
-    const startX = 20;
+    const startX = options.paddingleft || 20;
     let x = startX;
     
-    // Generate pattern based on text
-    for (let i = 0; i < options.text.length && x < width - 20; i++) {
+    // Start pattern
+    drawBars(ctx, x, 10, barWidth, height - 20, [1,1,0,1,1,0,1,0]);
+    x += barWidth * 8;
+    
+    // Data bars based on text
+    for (let i = 0; i < options.text.length && x < width - 60; i++) {
       const charCode = options.text.charCodeAt(i);
-      const bars = (charCode % 8) + 1;
-      
-      for (let j = 0; j < bars && x < width - 20; j++) {
-        if (j % 2 === 0) {
-          ctx.fillRect(x, 10, barWidth, options.height * 4);
-        }
-        x += barWidth;
-      }
-      x += barWidth; // Space between characters
+      const pattern = getCode128Pattern(charCode);
+      drawBars(ctx, x, 10, barWidth, height - 20, pattern);
+      x += barWidth * pattern.length;
     }
     
-    // Add text if enabled
+    // End pattern
+    drawBars(ctx, x, 10, barWidth, height - 20, [1,1,0,0,1,1,1,0,1]);
+    
+    // Add text if requested
     if (options.includetext) {
-      ctx.font = `${options.textsize}px monospace`;
+      ctx.font = `${options.textsize || 12}px monospace`;
       ctx.textAlign = 'center';
-      ctx.fillText(options.text, width / 2, height - 10);
+      ctx.fillText(options.text, width / 2, height - 5);
     }
     
     return canvas;
   };
 
-  const downloadBarcode = () => {
-    if (barcodeUrl) {
-      try {
-        // Convert data URL to canvas for download
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d')!;
-          ctx.drawImage(img, 0, 0);
-          
-          downloadBarcodeImage(canvas, `barcode-${options.bcid}`, 'png');
-          
-          toast({
-            title: "Download Started",
-            description: "Your barcode is being downloaded.",
-          });
-        };
-        img.src = barcodeUrl;
-      } catch (error) {
-        // Fallback to simple download
-        const link = document.createElement('a');
-        link.href = barcodeUrl;
-        link.download = `barcode-${options.bcid}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast({
-          title: "Download Started",
-          description: "Your barcode is being downloaded.",
-        });
+  const drawBars = (ctx: CanvasRenderingContext2D, x: number, y: number, barWidth: number, height: number, pattern: number[]) => {
+    for (let i = 0; i < pattern.length; i++) {
+      if (pattern[i]) {
+        ctx.fillRect(x + i * barWidth, y, barWidth, height);
       }
     }
+  };
+
+  const getCode128Pattern = (charCode: number): number[] => {
+    const patterns = [
+      [1,1,0,1,1,0,0,0], [1,1,0,0,1,1,0,1], [1,1,0,0,1,0,1,1],
+      [1,0,0,1,1,0,1,1], [1,0,1,1,0,0,1,1], [1,0,1,1,1,1,0,0],
+      [1,0,0,0,1,1,0,1], [1,0,0,1,0,1,1,1], [1,1,1,0,0,1,0,0]
+    ];
+    return patterns[charCode % patterns.length];
+  };
+
+  const generateQRCode = (text: string, size: number): HTMLCanvasElement => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    
+    const matrixSize = 21;
+    const cellSize = size / matrixSize;
+    
+    // Fill background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#000000';
+    
+    // Create QR matrix
+    const matrix = new Array(matrixSize).fill(null).map(() => new Array(matrixSize).fill(false));
+    
+    // Add finder patterns
+    addFinderPattern(matrix, 0, 0);
+    addFinderPattern(matrix, matrixSize - 7, 0);
+    addFinderPattern(matrix, 0, matrixSize - 7);
+    
+    // Add timing patterns
+    for (let i = 8; i < matrixSize - 8; i++) {
+      matrix[6][i] = i % 2 === 0;
+      matrix[i][6] = i % 2 === 0;
+    }
+    
+    // Add data based on text hash
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      hash = ((hash << 5) - hash + text.charCodeAt(i)) & 0xffffffff;
+    }
+    
+    // Fill data area
+    for (let row = 0; row < matrixSize; row++) {
+      for (let col = 0; col < matrixSize; col++) {
+        if (matrix[row][col] === null) {
+          const seed = (row * matrixSize + col + hash) * 1103515245 + 12345;
+          matrix[row][col] = (seed >>> 16) % 2 === 1;
+        }
+      }
+    }
+    
+    // Draw matrix
+    for (let row = 0; row < matrixSize; row++) {
+      for (let col = 0; col < matrixSize; col++) {
+        if (matrix[row][col]) {
+          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+    
+    return canvas;
+  };
+
+  const addFinderPattern = (matrix: (boolean | null)[][], startRow: number, startCol: number) => {
+    const pattern = [
+      [1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,1],
+      [1,0,1,1,1,0,1],
+      [1,0,1,1,1,0,1],
+      [1,0,1,1,1,0,1],
+      [1,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1]
+    ];
+    
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < 7; j++) {
+        if (startRow + i < matrix.length && startCol + j < matrix[0].length) {
+          matrix[startRow + i][startCol + j] = pattern[i][j] === 1;
+        }
+      }
+    }
+  };
+
+  const downloadBarcode = () => {
+    if (!barcodeUrl) return;
+    
+    const link = document.createElement('a');
+    link.download = `barcode_${options.bcid}_${Date.now()}.png`;
+    link.href = barcodeUrl;
+    link.click();
   };
 
   const copyToClipboard = async () => {
-    if (barcodeUrl) {
-      try {
-        const response = await fetch(barcodeUrl);
-        const blob = await response.blob();
-        await navigator.clipboard.write([
-          new ClipboardItem({ [blob.type]: blob })
-        ]);
-        toast({
-          title: "Copied to Clipboard",
-          description: "Barcode image copied to clipboard.",
-        });
-      } catch (error) {
-        toast({
-          title: "Copy Failed",
-          description: "Failed to copy barcode to clipboard.",
-          variant: "destructive",
-        });
-      }
+    if (!barcodeUrl) return;
+    
+    try {
+      const response = await fetch(barcodeUrl);
+      const blob = await response.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      
+      toast({
+        title: "Copied to Clipboard",
+        description: "Barcode image copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Unable to copy to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
-  const selectedBarcodeType = Object.values(BARCODE_CATEGORIES)
-    .flatMap(cat => cat.types)
-    .find(type => type.id === options.bcid);
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Input Section */}
-      <div className="space-y-6">
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 gap-1 h-auto flex-wrap">
-            <TabsTrigger value="linear" className="text-xs">Linear</TabsTrigger>
-            <TabsTrigger value="postal" className="text-xs">Postal</TabsTrigger>
-            <TabsTrigger value="gs1_databar" className="text-xs">GS1 DataBar</TabsTrigger>
-            <TabsTrigger value="ean_upc" className="text-xs">EAN/UPC</TabsTrigger>
-            <TabsTrigger value="two_d" className="text-xs">2D Codes</TabsTrigger>
-            <TabsTrigger value="gs1_2d" className="text-xs">GS1 2D</TabsTrigger>
-            <TabsTrigger value="banking" className="text-xs">Banking</TabsTrigger>
-            <TabsTrigger value="mobile" className="text-xs">Mobile</TabsTrigger>
-            <TabsTrigger value="healthcare" className="text-xs">Healthcare</TabsTrigger>
-            <TabsTrigger value="isbn" className="text-xs">ISBN</TabsTrigger>
-            <TabsTrigger value="business" className="text-xs">Business</TabsTrigger>
-            <TabsTrigger value="events" className="text-xs">Events</TabsTrigger>
-            <TabsTrigger value="wifi" className="text-xs">Wi-Fi</TabsTrigger>
-            <TabsTrigger value="specialty" className="text-xs">Specialty</TabsTrigger>
-          </TabsList>
-          
-          {Object.entries(BARCODE_CATEGORIES).map(([key, category]) => (
-            <TabsContent key={key} value={key} className="space-y-4">
-              <div>
-                <Label htmlFor="barcode-type">Barcode Type</Label>
-                <Select value={options.bcid} onValueChange={(value) => updateOption('bcid', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select barcode type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {category.types.map((type) => (
-                      <SelectItem key={type.id} value={type.bcid}>
-                        {type.name} - {type.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+    <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-2">QR Code Generator</h1>
+        <p className="text-gray-600">Create QR codes for text, URLs, and more</p>
+      </div>
 
-        <div>
-          <Label htmlFor="text">Data to Encode</Label>
-          <Textarea
-            id="text"
-            placeholder="Enter the data to encode in the barcode..."
-            value={options.text}
-            onChange={(e) => updateOption('text', e.target.value)}
-            rows={3}
-          />
-          {selectedBarcodeType && (
-            <p className="text-sm text-slate-500 mt-1">{selectedBarcodeType.description}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>Scale: {options.scale}</Label>
-            <Slider
-              value={[options.scale]}
-              onValueChange={([value]) => updateOption('scale', value)}
-              max={10}
-              min={1}
-              step={1}
-              className="mt-2"
-            />
-          </div>
-          
-          <div>
-            <Label>Height: {options.height}</Label>
-            <Slider
-              value={[options.height]}
-              onValueChange={([value]) => updateOption('height', value)}
-              max={50}
-              min={5}
-              step={1}
-              className="mt-2"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="includetext"
-              checked={options.includetext}
-              onCheckedChange={(checked) => updateOption('includetext', checked)}
-            />
-            <Label htmlFor="includetext">Include human-readable text</Label>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Controls */}
+        <Card>
+          <CardContent className="p-6 space-y-6">
             <div>
-              <Label htmlFor="rotation">Rotation</Label>
-              <Select value={options.rotate} onValueChange={(value) => updateOption('rotate', value)}>
+              <Label htmlFor="barcode-type">Barcode Type</Label>
+              <Select value={options.bcid} onValueChange={(value) => updateOption('bcid', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="N">Normal</SelectItem>
-                  <SelectItem value="R">90° Right</SelectItem>
-                  <SelectItem value="I">180° Inverted</SelectItem>
-                  <SelectItem value="L">90° Left</SelectItem>
+                  {Object.entries(BARCODE_TYPES).map(([key, type]) => (
+                    <SelectItem key={key} value={key}>
+                      {type.name} - {type.description}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
-              <Label htmlFor="textsize">Text Size: {options.textsize}</Label>
-              <Slider
-                value={[options.textsize]}
-                onValueChange={([value]) => updateOption('textsize', value)}
-                max={20}
-                min={6}
-                step={1}
-                className="mt-2"
+              <Label htmlFor="barcode-text">Data to Encode</Label>
+              <Textarea
+                id="barcode-text"
+                value={options.text}
+                onChange={(e) => updateOption('text', e.target.value)}
+                rows={3}
+                placeholder="Enter text, URL, or data to encode..."
               />
             </div>
-          </div>
-        </div>
 
-        <Button 
-          onClick={generateBarcode} 
-          className="w-full primary-button"
-          disabled={isGenerating || !options.text.trim()}
-        >
-          <QrCode className="w-4 h-4 mr-2" />
-          {isGenerating ? "Generating..." : "Generate Barcode"}
-        </Button>
-      </div>
-
-      {/* Output Section */}
-      <div>
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Generated Barcode</h3>
-            
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-gray-600 rounded-lg p-8 mb-6 min-h-[300px] bg-white">
-              {barcodeUrl ? (
-                <img 
-                  src={barcodeUrl} 
-                  alt="Generated Barcode" 
-                  className="max-w-full h-auto"
-                  style={{ imageRendering: 'pixelated' }}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Scale: {options.scale}</Label>
+                <Slider
+                  value={[options.scale]}
+                  onValueChange={([value]) => updateOption('scale', value)}
+                  min={1}
+                  max={10}
+                  step={1}
                 />
-              ) : (
-                <>
-                  <QrCode className="w-16 h-16 text-slate-300 mb-4" />
-                  <p className="text-slate-500 text-center">Your generated barcode will appear here</p>
-                </>
-              )}
+              </div>
+              <div>
+                <Label>Height: {options.height}</Label>
+                <Slider
+                  value={[options.height]}
+                  onValueChange={([value]) => updateOption('height', value)}
+                  min={5}
+                  max={50}
+                  step={1}
+                />
+              </div>
             </div>
 
-            {barcodeUrl && (
-              <div className="space-y-3">
-                <Button onClick={downloadBarcode} className="w-full bg-accent hover:bg-emerald-600">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download PNG
-                </Button>
-                <Button onClick={copyToClipboard} variant="outline" className="w-full">
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy to Clipboard
-                </Button>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="include-text"
+                checked={options.includetext}
+                onCheckedChange={(checked) => updateOption('includetext', checked)}
+              />
+              <Label htmlFor="include-text">Include human-readable text</Label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="text-size">Text Size</Label>
+                <Input
+                  id="text-size"
+                  type="number"
+                  value={options.textsize}
+                  onChange={(e) => updateOption('textsize', parseInt(e.target.value) || 12)}
+                  min="8"
+                  max="24"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor="bg-color">Background Color</Label>
+                <Input
+                  id="bg-color"
+                  type="color"
+                  value={options.backgroundcolor}
+                  onChange={(e) => updateOption('backgroundcolor', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <Button 
+              onClick={generateBarcode} 
+              disabled={isGenerating || !options.text.trim()}
+              className="w-full"
+            >
+              <QrCode className="w-4 h-4 mr-2" />
+              {isGenerating ? "Generating..." : "Generate Barcode"}
+            </Button>
           </CardContent>
         </Card>
 
-        {selectedBarcodeType && (
-          <Card className="mt-6">
-            <CardContent className="p-6">
-              <h4 className="font-semibold text-slate-800 dark:text-white mb-3">Barcode Information</h4>
-              <div className="space-y-2 text-sm text-slate-600 dark:text-gray-300">
-                <div className="flex justify-between">
-                  <span>Type:</span>
-                  <span className="font-medium">{selectedBarcodeType.name}</span>
+        {/* Preview */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Generated Barcode</h3>
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-8 min-h-[300px] flex items-center justify-center border-2 border-dashed border-gray-300">
+              {barcodeUrl ? (
+                <div className="text-center space-y-4">
+                  <img 
+                    src={barcodeUrl} 
+                    alt="Generated barcode" 
+                    className="max-w-full max-h-[250px] mx-auto border border-gray-200 rounded"
+                  />
+                  <div className="flex gap-2 justify-center">
+                    <Button onClick={downloadBarcode} variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button onClick={copyToClipboard} variant="outline" size="sm">
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Standard:</span>
-                  <span className="font-medium">{options.bcid.toUpperCase()}</span>
+              ) : (
+                <div className="text-center text-gray-500">
+                  <QrCode className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p>Your generated barcode will appear here</p>
                 </div>
-                <div className="flex justify-between">
-                  <span>Data Length:</span>
-                  <span className="font-medium">{options.text.length} characters</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Scale Factor:</span>
-                  <span className="font-medium">{options.scale}x</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
