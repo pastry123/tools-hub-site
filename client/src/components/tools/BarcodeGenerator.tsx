@@ -386,12 +386,12 @@ export default function BarcodeGenerator() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Controls */}
         <Card>
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-6 space-y-8">
             <div>
               <Label htmlFor="barcode-type">Barcode Type ({filteredBarcodeTypes.length} available)</Label>
               
               {/* Search and Category Filter */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+              <div className="space-y-3 mb-4">
                 <Input
                   placeholder="Search barcode types..."
                   value={searchTerm}
@@ -412,48 +412,57 @@ export default function BarcodeGenerator() {
                 </Select>
               </div>
 
-              <Select value={options.bcid} onValueChange={(value) => {
-                updateOption('bcid', value);
-                // Find the barcode definition for the selected value
-                let foundDef = null;
-                Object.entries(barcodeCategories).forEach(([categoryName, types]) => {
-                  Object.entries(types).forEach(([typeName, typeData]) => {
-                    if (typeData.bcid === value) {
-                      foundDef = { ...typeData, name: typeName, category: categoryName };
-                    }
+              <div className="mt-3">
+                <Select value={options.bcid} onValueChange={(value) => {
+                  // Clear previous selection first to prevent conflicts
+                  setCurrentBarcodeDef(null);
+                  updateOption('bcid', value);
+                  
+                  // Find the barcode definition for the selected value
+                  let foundDef: any = null;
+                  Object.entries(barcodeCategories).forEach(([categoryName, types]) => {
+                    Object.entries(types).forEach(([typeName, typeData]) => {
+                      if (typeData.bcid === value) {
+                        foundDef = { ...typeData, name: typeName, category: categoryName };
+                      }
+                    });
                   });
-                });
-                setCurrentBarcodeDef(foundDef);
-              }}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {filteredBarcodeTypes.length > 0 ? (
-                    filteredBarcodeTypes.map(([typeName, typeData]) => (
-                      <SelectItem key={typeData.bcid} value={typeData.bcid}>
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex flex-col">
-                            <span className="font-medium">{typeName}</span>
-                            <span className="text-xs text-gray-500">{typeData.hint}</span>
+                  
+                  // Set the new definition after a small delay to prevent auto-selection issues
+                  setTimeout(() => {
+                    setCurrentBarcodeDef(foundDef);
+                  }, 50);
+                }}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select a barcode type..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[350px]">
+                    {filteredBarcodeTypes.length > 0 ? (
+                      filteredBarcodeTypes.map(([typeName, typeData]) => (
+                        <SelectItem key={`${typeData.bcid}-${typeName}`} value={typeData.bcid}>
+                          <div className="flex items-center justify-between w-full min-w-0">
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="font-medium truncate">{typeName}</span>
+                              <span className="text-xs text-gray-500 truncate">{typeData.hint}</span>
+                            </div>
+                            <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded ml-2 flex-shrink-0">
+                              ✓ Real
+                            </span>
                           </div>
-                          <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1 rounded">
-                            ✓ Real
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="p-2 text-center text-gray-500 text-sm">
-                      No barcode types found matching your search
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No barcode types found matching your search
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
               
               {/* Show current selection info */}
               {currentBarcodeDef && (
-                <div className="mt-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
+                <div className="mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
                       <span className="font-medium text-green-700 dark:text-green-300">
@@ -468,14 +477,14 @@ export default function BarcodeGenerator() {
                       ✓ bwip-js Authentic
                     </span>
                   </div>
-                  <div className="text-xs mt-1 text-green-600 dark:text-green-300">
+                  <div className="text-xs mt-2 text-green-600 dark:text-green-300">
                     {currentBarcodeDef.hint} - Generates real, scannable barcodes
                   </div>
                 </div>
               )}
             </div>
 
-            <div>
+            <div className="space-y-3">
               <Label htmlFor="barcode-text">Data to Encode</Label>
               <Textarea
                 id="barcode-text"
@@ -483,11 +492,12 @@ export default function BarcodeGenerator() {
                 onChange={(e) => updateOption('text', e.target.value)}
                 rows={3}
                 placeholder="Enter text, URL, or data to encode..."
+                className="resize-none"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
                 <Label>Scale: {options.scale}</Label>
                 <Slider
                   value={[options.scale]}
@@ -495,9 +505,10 @@ export default function BarcodeGenerator() {
                   min={1}
                   max={10}
                   step={1}
+                  className="mt-2"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Height: {options.height}</Label>
                 <Slider
                   value={[options.height]}
@@ -505,21 +516,22 @@ export default function BarcodeGenerator() {
                   min={5}
                   max={50}
                   step={1}
+                  className="mt-2"
                 />
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 py-2">
               <Checkbox
                 id="include-text"
                 checked={options.includetext}
                 onCheckedChange={(checked) => updateOption('includetext', checked)}
               />
-              <Label htmlFor="include-text">Include human-readable text</Label>
+              <Label htmlFor="include-text" className="text-sm font-medium">Include human-readable text</Label>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
                 <Label htmlFor="text-size">Text Size</Label>
                 <Input
                   id="text-size"
@@ -528,15 +540,17 @@ export default function BarcodeGenerator() {
                   onChange={(e) => updateOption('textsize', parseInt(e.target.value) || 12)}
                   min="8"
                   max="24"
+                  className="h-10"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="bg-color">Background Color</Label>
                 <Input
                   id="bg-color"
                   type="color"
                   value={options.backgroundcolor}
                   onChange={(e) => updateOption('backgroundcolor', e.target.value)}
+                  className="h-10 w-full"
                 />
               </div>
             </div>
