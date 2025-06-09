@@ -114,6 +114,7 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
   },
   "Healthcare Codes": {
     "Code32 (Italian Pharmacode)": { bcid: "code32", hint: "Italian pharmaceutical code." },
+    "Flattermarken": { bcid: "flattermarken", hint: "Specialized healthcare barcode for pharmaceutical tracking." },
     "HIBC LIC 128": { bcid: "hibccode128", hint: "HIBC with Code 128. Data: +LIC_Data" },
     "HIBC LIC 39": { bcid: "hibccode39", hint: "HIBC with Code 39. Data: +LIC_Data" },
     "HIBC LIC Aztec": { bcid: "hibcazteccode", hint: "HIBC with Aztec. Data: +LIC_Data" },
@@ -135,6 +136,27 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
     "ISMN": { bcid: "ismn", actualBcid: "ean13", options: { "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Music Number (EAN-13 format, starts 979-0). Can have addon." },
     "ISSN": { bcid: "issn", actualBcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "International Standard Serial Number (EAN-13 format, starts 977). Can have addon." },
     "ISSN + 2 Digits": { bcid: "issn-addon", actualBcid: "ean13", options: { "issn": true, "addontextxoffset": 5, "addontextyoffset": 0, "addontextsize": 10 }, hint: "ISSN with 2-digit issue addon. Format: ISSN_Number|Addon_Digits" }
+  },
+  "Business Cards": {
+    "QR Code vCard": { bcid: "vcard-qr", actualBcid: "qrcode", hint: "QR Code for contact information. Format: BEGIN:VCARD\\nVERSION:3.0\\nFN:John Doe\\nORG:Company\\nTEL:+1234567890\\nEMAIL:john@example.com\\nEND:VCARD" },
+    "Data Matrix vCard": { bcid: "vcard-dm", actualBcid: "datamatrix", hint: "Data Matrix for contact information. Same vCard format as QR version." },
+    "QR Code MeCard": { bcid: "mecard-qr", actualBcid: "qrcode", hint: "QR Code for Japanese mobile standard. Format: MECARD:N:Doe,John;ORG:Company;TEL:+1234567890;EMAIL:john@example.com;;" },
+    "Data Matrix MeCard": { bcid: "mecard-dm", actualBcid: "datamatrix", hint: "Data Matrix for MeCard format. Same format as QR version." }
+  },
+  "Event Barcodes": {
+    "QR Code Event": { bcid: "event-qr", actualBcid: "qrcode", hint: "QR Code for event information. Format: BEGIN:VEVENT\\nSUMMARY:Event Title\\nDTSTART:20240101T120000Z\\nDTEND:20240101T130000Z\\nLOCATION:Event Location\\nEND:VEVENT" },
+    "Data Matrix Event": { bcid: "event-dm", actualBcid: "datamatrix", hint: "Data Matrix for event information. Same vEvent format as QR version." }
+  },
+  "Wi-Fi Barcodes": {
+    "QR Code Wi-Fi": { bcid: "wifi-qr", actualBcid: "qrcode", hint: "QR Code for Wi-Fi connection. Format: WIFI:T:WPA;S:NetworkName;P:Password;H:false;;" },
+    "Data Matrix Wi-Fi": { bcid: "wifi-dm", actualBcid: "datamatrix", hint: "Data Matrix for Wi-Fi connection. Same Wi-Fi format as QR version." }
+  },
+  "Mobile Barcodes": {
+    "QR Code (Mobile/Smartphone)": { bcid: "mobile-qr", actualBcid: "qrcode", hint: "Optimized QR Code for mobile scanning. Standard QR format with mobile-friendly error correction." }
+  },
+  "Additional Postal": {
+    "Korean Postal Authority Code": { bcid: "koreapost", hint: "Korean postal barcode for domestic mail routing." },
+    "Flattermarken (Extended)": { bcid: "flattermarken-ext", actualBcid: "flattermarken", hint: "Extended Flattermarken for specialized postal applications." }
   }
 };
 
@@ -180,6 +202,37 @@ export default function BarcodeGenerator() {
   const [currentBarcodeDef, setCurrentBarcodeDef] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+
+  // Sample data for different barcode types
+  const getSampleData = (bcid: string): string => {
+    const samples: Record<string, string> = {
+      'vcard-qr': 'BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nORG:Example Company\nTEL:+1-555-123-4567\nEMAIL:john.doe@example.com\nURL:https://johndoe.com\nEND:VCARD',
+      'vcard-dm': 'BEGIN:VCARD\nVERSION:3.0\nFN:Jane Smith\nORG:Tech Corp\nTEL:+1-555-987-6543\nEMAIL:jane@techcorp.com\nEND:VCARD',
+      'mecard-qr': 'MECARD:N:Doe,John;ORG:Example Inc;TEL:+15551234567;EMAIL:john@example.com;URL:https://johndoe.com;;',
+      'mecard-dm': 'MECARD:N:Smith,Jane;ORG:Tech Solutions;TEL:+15559876543;EMAIL:jane@techsolutions.com;;',
+      'event-qr': 'BEGIN:VEVENT\nSUMMARY:Team Meeting\nDTSTART:20240615T140000Z\nDTEND:20240615T150000Z\nLOCATION:Conference Room A\nDESCRIPTION:Weekly team sync meeting\nEND:VEVENT',
+      'event-dm': 'BEGIN:VEVENT\nSUMMARY:Product Launch\nDTSTART:20240720T100000Z\nDTEND:20240720T120000Z\nLOCATION:Main Auditorium\nEND:VEVENT',
+      'wifi-qr': 'WIFI:T:WPA;S:MyNetwork;P:MyPassword123;H:false;;',
+      'wifi-dm': 'WIFI:T:WPA2;S:OfficeWiFi;P:SecurePass456;H:true;;',
+      'mobile-qr': 'https://mobile.example.com/app',
+      'epc-qr': 'BCD\n002\n1\nSCT\nBICFIRSTXXX\nJohn Doe\nDE89370400440532013000\nEUR50.00\n\n\nPayment for Invoice 123',
+      'zatca-qr': 'AQlTYW1wbGUgQ29tcGFueQIUMTIzNDU2Nzg5MDEyMzQ1NjM=',
+      'swissqrcode': 'SPC\n0200\n1\nCH4431999123000889012\nS\nSample Company Ltd\nStreet 1\n1234\nCity\nCH\n\n\n\n\n\n25.90\nCHF\nS\nJohn Doe\nMain St 5\n5678\nTown\nCH\nQRR\n123456789012345678901234567\nSample payment\nEPD'
+    };
+    return samples[bcid] || '';
+  };
+
+  const loadSampleData = () => {
+    if (!currentBarcodeDef) return;
+    const sampleData = getSampleData(currentBarcodeDef.bcid);
+    if (sampleData) {
+      updateOption('text', sampleData);
+      toast({
+        title: "Sample Data Loaded",
+        description: "Sample data has been loaded for this barcode type",
+      });
+    }
+  };
 
   // Get unique categories
   const categories = ["all", ...Object.keys(barcodeCategories)];
@@ -380,7 +433,7 @@ export default function BarcodeGenerator() {
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Barcode & QR Code Generator</h1>
-        <p className="text-gray-600">Generate 70+ barcode types including QR codes, linear barcodes, postal codes, and specialty formats</p>
+        <p className="text-gray-600">Generate 85+ barcode types including QR codes, linear barcodes, postal codes, business cards, Wi-Fi, events, and specialty formats</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -485,7 +538,19 @@ export default function BarcodeGenerator() {
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="barcode-text">Data to Encode</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="barcode-text">Data to Encode</Label>
+                {currentBarcodeDef && getSampleData(currentBarcodeDef.bcid) && (
+                  <Button 
+                    onClick={loadSampleData} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-xs"
+                  >
+                    Use Sample Data
+                  </Button>
+                )}
+              </div>
               <Textarea
                 id="barcode-text"
                 value={options.text}
