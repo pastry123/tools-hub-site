@@ -515,7 +515,7 @@ export default function ImageCropper() {
                         Drag inside crop area to move
                       </div>
                       <div className="text-xs text-gray-500">
-                        • Drag corners/sides to resize
+                        • Enter Length & Width to resize
                         • Visual grid guides alignment
                         • Real-time dimension updates
                       </div>
