@@ -10,6 +10,7 @@ export default function PDFEditor() {
   const [transparentField, setTransparentField] = useState(false);
   const [fields, setFields] = useState({});
   const [images, setImages] = useState({});
+  const [selectedField, setSelectedField] = useState(null);
 
   async function loadPdf(e) {
     const file = e.target.files[0];
@@ -173,6 +174,10 @@ export default function PDFEditor() {
 
   async function downloadPdf() {
     if (!pdfDoc) return;
+    
+    // Apply all changes to the PDF first
+    await renderToPdf();
+    
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const a = document.createElement("a");
@@ -194,7 +199,10 @@ export default function PDFEditor() {
               className="w-full h-full absolute z-0"
               title={`Page ${pageIndex + 1}`}
             ></iframe>
-            <div className="absolute inset-0 z-10">
+            <div 
+              className="absolute inset-0 z-10"
+              onClick={() => setSelectedField(null)}
+            >
               {(fields[pageIndex] || []).map(field => (
                 <div
                   key={field.id}
@@ -204,12 +212,13 @@ export default function PDFEditor() {
                     top: field.y,
                     width: field.width,
                     height: field.height,
-                    border: "1px solid #aaa",
+                    border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
                     resize: "both",
                     overflow: "hidden",
                     background: transparentField ? "transparent" : "white",
                   }}
                   onMouseDown={e => {
+                    setSelectedField(field.id);
                     const rect = e.currentTarget.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
@@ -218,6 +227,10 @@ export default function PDFEditor() {
                     if (!isResizeCorner) {
                       startDrag(e, pageIndex, field.id);
                     }
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setSelectedField(field.id);
                   }}
                 >
                   <textarea
@@ -232,8 +245,13 @@ export default function PDFEditor() {
                       outline: "none",
                       padding: "4px",
                       pointerEvents: "auto",
+                      color: "#000000",
+                      fontSize: "12px",
+                      fontFamily: "Arial, sans-serif",
                     }}
                     onMouseDown={e => e.stopPropagation()}
+                    onFocus={e => e.target.style.border = "1px solid #007acc"}
+                    onBlur={e => e.target.style.border = "none"}
                   />
                 </div>
               ))}
