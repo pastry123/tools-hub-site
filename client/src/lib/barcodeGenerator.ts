@@ -215,16 +215,36 @@ export class BarcodeGenerator {
 
   private async loadBwipjs() {
     try {
-      if (!(window as any).bwipjs) {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = '/bwip-js.min.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
+      // Wait for DOM to be ready
+      if (document.readyState === 'loading') {
+        await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
       }
-      this.bwipjs = (window as any).bwipjs;
+      
+      // Check if already loaded
+      if ((window as any).bwipjs) {
+        this.bwipjs = (window as any).bwipjs;
+        return;
+      }
+
+      // Wait a bit for script to load from HTML
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      if ((window as any).bwipjs) {
+        this.bwipjs = (window as any).bwipjs;
+        return;
+      }
+
+      // Load dynamically if not found
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/bwip-js.min.js';
+        script.onload = () => {
+          this.bwipjs = (window as any).bwipjs;
+          resolve(true);
+        };
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
     } catch (error) {
       console.error('Failed to load bwip-js library:', error);
     }
@@ -237,40 +257,51 @@ export class BarcodeGenerator {
     return BarcodeGenerator.instance;
   }
 
-  public generateToCanvas(options: BarcodeOptions): Promise<BarcodeResult> {
-    return new Promise((resolve) => {
-      try {
-        if (!this.bwipjs) {
+  public async generateToCanvas(options: BarcodeOptions): Promise<BarcodeResult> {
+    try {
+      // Ensure library is loaded
+      if (!this.bwipjs) {
+        await this.loadBwipjs();
+      }
+      
+      if (!this.bwipjs) {
+        return {
+          success: false,
+          error: 'bwip-js library not available. Please refresh the page.'
+        };
+      }
+
+      return new Promise((resolve) => {
+        try {
+          const canvas = document.createElement('canvas');
+          const opts = this.prepareOptions(options);
+        
+          this.bwipjs.toCanvas(canvas, opts, (err: any) => {
+            if (err) {
+              resolve({
+                success: false,
+                error: err.message || 'Failed to generate barcode'
+              });
+            } else {
+              resolve({
+                canvas: canvas,
+                success: true
+              });
+            }
+          });
+        } catch (error) {
           resolve({
             success: false,
-            error: 'bwip-js library not available. Please refresh the page.'
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
-          return;
         }
-
-        const canvas = document.createElement('canvas');
-        const opts = this.prepareOptions(options);
-        
-        this.bwipjs.toCanvas(canvas, opts, (err: any) => {
-          if (err) {
-            resolve({
-              success: false,
-              error: err.message || 'Failed to generate barcode'
-            });
-          } else {
-            resolve({
-              canvas: canvas,
-              success: true
-            });
-          }
-        });
-      } catch (error) {
-        resolve({
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    });
+      });
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 
   public generateToSVG(options: BarcodeOptions): Promise<BarcodeResult> {
