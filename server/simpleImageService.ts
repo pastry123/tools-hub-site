@@ -64,7 +64,12 @@ export class SimpleImageService {
 
       // Get image metadata to validate crop dimensions
       const metadata = await sharp(buffer).metadata();
-      console.log('Image metadata:', { width: metadata.width, height: metadata.height });
+      console.log('Image metadata:', { 
+        width: metadata.width, 
+        height: metadata.height,
+        format: metadata.format,
+        size: Math.round(buffer.length / 1024) + 'KB'
+      });
 
       // Validate crop bounds
       const x = Math.max(0, Math.min(Math.round(options.x), metadata.width! - 1));
@@ -74,8 +79,41 @@ export class SimpleImageService {
 
       console.log('Validated crop bounds:', { x, y, width, height });
 
-      // Extract crop region and convert to target format
-      const croppedBuffer = await sharp(buffer)
+      // Resize large images before cropping to improve performance
+      let processedImage = sharp(buffer);
+      
+      if (metadata.width! > 4000 || metadata.height! > 4000) {
+        console.log('Large image detected, resizing for performance');
+        const scale = Math.min(4000 / metadata.width!, 4000 / metadata.height!);
+        processedImage = processedImage.resize({
+          width: Math.round(metadata.width! * scale),
+          height: Math.round(metadata.height! * scale)
+        });
+        
+        // Adjust crop coordinates for scaled image
+        const scaledX = Math.round(x * scale);
+        const scaledY = Math.round(y * scale);
+        const scaledWidth = Math.round(width * scale);
+        const scaledHeight = Math.round(height * scale);
+        
+        console.log('Scaled crop bounds:', { x: scaledX, y: scaledY, width: scaledWidth, height: scaledHeight });
+        
+        const croppedBuffer = await processedImage
+          .extract({
+            left: scaledX,
+            top: scaledY,
+            width: scaledWidth,
+            height: scaledHeight
+          })
+          .jpeg({ quality: 90 }) // Use JPEG for better performance
+          .toBuffer();
+          
+        console.log('Crop operation completed with scaling');
+        return croppedBuffer;
+      }
+
+      // Extract crop region for normal-sized images
+      const croppedBuffer = await processedImage
         .extract({
           left: x,
           top: y,
