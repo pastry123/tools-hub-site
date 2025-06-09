@@ -90,11 +90,11 @@ export default function ImageCropper() {
     ctx.lineWidth = 2;
     ctx.strokeRect(scaledCropX, scaledCropY, scaledCropWidth, scaledCropHeight);
     
-    // Draw resize handles
-    const handleSize = 10;
+    // Draw resize handles with adaptive sizing
+    const handleSize = Math.max(12, Math.min(20, Math.min(scaledCropWidth, scaledCropHeight) * 0.1));
     ctx.fillStyle = '#3b82f6';
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     
     // Corner handles
     const corners = [
@@ -364,14 +364,28 @@ export default function ImageCropper() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `cropped.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      console.log('Download blob size:', blob.size, 'bytes');
+      
+      // Create download with better error handling
+      try {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cropped-${Date.now()}.${format}`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        
+        // Force click and cleanup
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+      } catch (downloadError) {
+        console.error('Download failed:', downloadError);
+        throw new Error('Failed to download cropped image');
+      }
 
       toast({
         title: "Success",

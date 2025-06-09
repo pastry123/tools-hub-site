@@ -97,8 +97,8 @@ export class SimpleImageService {
           .jpeg({ quality: 80, progressive: true })
           .toBuffer();
       } else {
-        // Respect original format for smaller images
-        const outputFormat = (options.format === 'jpg' || options.format === 'jpeg') ? 'jpeg' : (options.format || 'png');
+        // Respect original format for smaller images  
+        const outputFormat = options.format === 'webp' ? 'webp' : 'jpeg';
         result = await sharp(buffer)
           .extract({ left: x, top: y, width, height })
           .toFormat(outputFormat as any)
