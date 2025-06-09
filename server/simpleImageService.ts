@@ -54,81 +54,45 @@ export class SimpleImageService {
 
   async cropImage(buffer: Buffer, options: ImageCropOptions): Promise<Buffer> {
     try {
-      console.log('Starting crop operation with options:', {
-        x: options.x,
-        y: options.y,
-        width: options.width,
-        height: options.height,
-        format: options.format
-      });
-
-      // Get image metadata to validate crop dimensions
-      const metadata = await sharp(buffer).metadata();
-      console.log('Image metadata:', { 
-        width: metadata.width, 
-        height: metadata.height,
-        format: metadata.format,
-        size: Math.round(buffer.length / 1024) + 'KB'
-      });
-
-      // Validate crop bounds
-      const x = Math.max(0, Math.min(Math.round(options.x), metadata.width! - 1));
-      const y = Math.max(0, Math.min(Math.round(options.y), metadata.height! - 1));
-      const width = Math.min(Math.round(options.width), metadata.width! - x);
-      const height = Math.min(Math.round(options.height), metadata.height! - y);
-
-      console.log('Validated crop bounds:', { x, y, width, height });
-
-      // Resize large images before cropping to improve performance
-      let processedImage = sharp(buffer);
+      console.log('Starting optimized crop operation');
       
-      if (metadata.width! > 4000 || metadata.height! > 4000) {
-        console.log('Large image detected, resizing for performance');
-        const scale = Math.min(4000 / metadata.width!, 4000 / metadata.height!);
-        processedImage = processedImage.resize({
-          width: Math.round(metadata.width! * scale),
-          height: Math.round(metadata.height! * scale)
-        });
-        
-        // Adjust crop coordinates for scaled image
-        const scaledX = Math.round(x * scale);
-        const scaledY = Math.round(y * scale);
-        const scaledWidth = Math.round(width * scale);
-        const scaledHeight = Math.round(height * scale);
-        
-        console.log('Scaled crop bounds:', { x: scaledX, y: scaledY, width: scaledWidth, height: scaledHeight });
-        
-        const croppedBuffer = await processedImage
-          .extract({
-            left: scaledX,
-            top: scaledY,
-            width: scaledWidth,
-            height: scaledHeight
-          })
-          .jpeg({ quality: 90 }) // Use JPEG for better performance
-          .toBuffer();
-          
-        console.log('Crop operation completed with scaling');
-        return croppedBuffer;
+      // Validate crop bounds first to avoid processing invalid crops
+      if (options.width <= 0 || options.height <= 0) {
+        throw new Error('Invalid crop dimensions');
       }
 
-      // Extract crop region for normal-sized images
-      const croppedBuffer = await processedImage
-        .extract({
-          left: x,
-          top: y,
-          width: width,
-          height: height
-        })
-        .toFormat(options.format || 'png')
+      // Use Sharp with optimized settings for speed
+      const sharpInstance = sharp(buffer, {
+        failOnError: false,
+        limitInputPixels: false
+      });
+
+      // Get basic metadata quickly
+      const { width: imgWidth, height: imgHeight } = await sharpInstance.metadata();
+      
+      if (!imgWidth || !imgHeight) {
+        throw new Error('Could not read image dimensions');
+      }
+
+      // Constrain crop bounds
+      const x = Math.max(0, Math.min(Math.round(options.x), imgWidth - 1));
+      const y = Math.max(0, Math.min(Math.round(options.y), imgHeight - 1));
+      const width = Math.min(Math.round(options.width), imgWidth - x);
+      const height = Math.min(Math.round(options.height), imgHeight - y);
+
+      console.log('Processing crop:', { x, y, width, height });
+
+      // Perform crop with optimized settings
+      const result = await sharp(buffer)
+        .extract({ left: x, top: y, width, height })
+        .jpeg({ quality: 85, progressive: true }) // Use JPEG for speed
         .toBuffer();
-        
-      console.log('Crop operation completed successfully');
-      return croppedBuffer;
+
+      console.log('Crop completed successfully');
+      return result;
     } catch (error) {
       console.error('Crop operation failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to crop image: ${errorMessage}`);
+      throw new Error('Failed to crop image');
     }
   }
 
