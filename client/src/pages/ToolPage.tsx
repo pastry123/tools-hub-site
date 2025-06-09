@@ -200,8 +200,7 @@ export default function ToolPage() {
       case 'text-to-slug':
         return <TextToSlug />;
       case 'dummy-text':
-      case 'dummy-text-generator':
-        return <DummyTextGenerator />;
+        return <LoremGenerator />;
       case 'color-converter':
         return <ColorConverter />;
       case 'currency-converter':

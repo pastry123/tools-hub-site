@@ -1,84 +1,133 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Eye, Upload, Copy, Download } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Upload, FileText, Copy, Download, Loader2, Image, Languages } from "lucide-react";
+import Tesseract from 'tesseract.js';
+
+const languages = [
+  { code: 'eng', name: 'English' },
+  { code: 'spa', name: 'Spanish' },
+  { code: 'fra', name: 'French' },
+  { code: 'deu', name: 'German' },
+  { code: 'ita', name: 'Italian' },
+  { code: 'por', name: 'Portuguese' },
+  { code: 'rus', name: 'Russian' },
+  { code: 'chi_sim', name: 'Chinese (Simplified)' },
+  { code: 'jpn', name: 'Japanese' },
+  { code: 'kor', name: 'Korean' },
+  { code: 'ara', name: 'Arabic' },
+  { code: 'hin', name: 'Hindi' }
+];
 
 export default function ImageToText() {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [extractedText, setExtractedText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [confidence, setConfidence] = useState(0);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState("eng");
   const { toast } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile && selectedFile.type.startsWith('image/')) {
-      setFile(selectedFile);
-      setExtractedText('');
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file (PNG, JPG, JPEG, WEBP).",
+          variant: "destructive"
+        });
+        return;
+      }
       
-      // Create preview URL
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
-    } else {
-      toast({
-        title: "Error",
-        description: "Please select a valid image file",
-        variant: "destructive"
-      });
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 10MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+      setExtractedText("");
+      setConfidence(0);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleExtractText = async () => {
-    if (!file) {
+  const extractText = async () => {
+    if (!selectedFile) {
       toast({
-        title: "Error",
-        description: "Please select an image file",
+        title: "No file selected",
+        description: "Please select an image file first.",
         variant: "destructive"
       });
       return;
     }
 
-    setIsProcessing(true);
+    setIsLoading(true);
+    setProgress(0);
+    setExtractedText("");
 
     try {
-      const formData = new FormData();
-      formData.append('image', file);
+      const result = await Tesseract.recognize(
+        selectedFile,
+        selectedLanguage,
+        {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              setProgress(Math.round(m.progress * 100));
+            }
+          }
+        }
+      );
 
-      const response = await fetch('/api/image/ocr', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to extract text from image');
+      const text = result.data.text.trim();
+      setExtractedText(text);
+      setConfidence(Math.round(result.data.confidence));
+      
+      if (text.length > 0) {
+        toast({
+          title: "Text extracted successfully",
+          description: `Extracted ${text.length} characters with ${Math.round(result.data.confidence)}% confidence.`
+        });
+      } else {
+        toast({
+          title: "No text found",
+          description: "No readable text was detected in the image. Try with a clearer image or different language.",
+          variant: "destructive"
+        });
       }
-
-      const data = await response.json();
-      setExtractedText(data.text);
-
-      toast({
-        title: "Success",
-        description: "Text extracted successfully"
-      });
     } catch (error) {
+      console.error('OCR Error:', error);
       toast({
-        title: "Error",
-        description: "Failed to extract text from image",
+        title: "Extraction failed",
+        description: "Failed to extract text from the image. Please try with a clearer image.",
         variant: "destructive"
       });
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false);
+      setProgress(0);
     }
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(extractedText);
     toast({
-      title: "Copied",
-      description: "Text copied to clipboard"
+      title: "Copied to clipboard",
+      description: "Text has been copied to your clipboard."
     });
   };
 
@@ -87,7 +136,7 @@ export default function ImageToText() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `extracted_text_${file?.name?.split('.')[0] || 'image'}.txt`;
+    a.download = 'extracted-text.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -95,103 +144,153 @@ export default function ImageToText() {
     
     toast({
       title: "Downloaded",
-      description: "Text file downloaded successfully"
+      description: "Text has been saved as extracted-text.txt"
     });
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Eye className="w-5 h-5" />
+            <FileText className="w-5 h-5" />
             Image to Text (OCR)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="file">Image File</Label>
-            <div className="mt-2">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-8 h-8 mb-4 text-gray-500" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">PNG, JPG, JPEG, GIF, WEBP</p>
-                </div>
-                <input 
-                  id="file" 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Language Selection */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Languages className="w-4 h-4" />
+                Language
               </label>
+              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map(lang => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            {file && (
-              <p className="mt-2 text-sm text-green-600">
-                Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
-            )}
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Upload className="w-4 h-4" />
+                Upload Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
           </div>
 
-          {previewUrl && (
-            <div>
-              <Label>Image Preview</Label>
-              <div className="mt-2 border rounded-md overflow-hidden">
+          {/* Image Preview */}
+          {imagePreview && (
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Image className="w-4 h-4" />
+                Image Preview
+              </label>
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-full max-w-md mx-auto block max-h-64 object-contain"
+                  src={imagePreview} 
+                  alt="Selected image" 
+                  className="max-w-full max-h-64 mx-auto rounded"
                 />
-              </div>
-            </div>
-          )}
-
-          <Button 
-            onClick={handleExtractText} 
-            disabled={!file || isProcessing} 
-            className="w-full"
-          >
-            {isProcessing ? 'Extracting Text...' : 'Extract Text from Image'}
-          </Button>
-
-          {extractedText && (
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Extracted Text</Label>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={downloadText}>
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-                <Textarea
-                  value={extractedText}
-                  readOnly
-                  rows={12}
-                  className="font-mono text-sm"
-                  placeholder="Extracted text will appear here..."
-                />
-              </div>
-
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
-                <p className="text-blue-700 dark:text-blue-300 text-sm">
-                  <strong>Note:</strong> OCR accuracy depends on image quality, text clarity, and font readability. 
-                  For best results, use high-resolution images with clear, well-lit text.
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  {selectedFile?.name} ({(selectedFile?.size || 0 / 1024 / 1024).toFixed(2)} MB)
                 </p>
               </div>
             </div>
           )}
+
+          {/* Extract Button */}
+          <Button 
+            onClick={extractText} 
+            disabled={!selectedFile || isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Extracting Text...
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4 mr-2" />
+                Extract Text
+              </>
+            )}
+          </Button>
+
+          {/* Progress Bar */}
+          {isLoading && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Processing image...</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} />
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Results */}
+      {extractedText && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Extracted Text</span>
+              {confidence > 0 && (
+                <span className="text-sm font-normal text-gray-600">
+                  Confidence: {confidence}%
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              value={extractedText}
+              onChange={(e) => setExtractedText(e.target.value)}
+              rows={12}
+              placeholder="Extracted text will appear here..."
+              className="font-mono"
+            />
+            
+            <div className="flex gap-3">
+              <Button onClick={copyToClipboard} variant="outline">
+                <Copy className="w-4 h-4 mr-2" />
+                Copy Text
+              </Button>
+              <Button onClick={downloadText} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Download as TXT
+              </Button>
+            </div>
+
+            <div className="text-sm text-gray-600 space-y-1">
+              <p><strong>Tips for better results:</strong></p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Use high-contrast images with clear text</li>
+                <li>Ensure text is horizontal and not rotated</li>
+                <li>Select the correct language for the text</li>
+                <li>Avoid blurry or low-resolution images</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
