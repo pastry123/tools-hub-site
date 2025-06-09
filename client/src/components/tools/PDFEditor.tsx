@@ -46,7 +46,7 @@ export default function PDFEditor() {
     const id = Date.now().toString();
     setFields(prev => ({
       ...prev,
-      [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Edit me", width: 150, height: 50 }]
+      [page]: [...(prev[page] || []), { id, x: 100, y: 100, text: "Click to edit", width: 200, height: 60, manualResize: false }]
     }));
   }
 
@@ -121,6 +121,38 @@ export default function PDFEditor() {
     resizeObserver.observe(element);
     return () => resizeObserver.disconnect();
   }, []);
+
+  function startResize(e: React.MouseEvent, page: number, id: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const field = fields[page]?.find(f => f.id === id);
+    if (!field) return;
+    
+    const startWidth = field.width;
+    const startHeight = field.height;
+    
+    const onMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      updateField(page, id, {
+        width: Math.max(100, startWidth + deltaX),
+        height: Math.max(40, startHeight + deltaY),
+        manualResize: true
+      });
+    };
+    
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
 
   function addImageOverlay(page: number, file: File) {
     if (!file) return;
@@ -245,89 +277,111 @@ export default function PDFEditor() {
               title={`Page ${pageIndex + 1}`}
             />
             
-            {/* Text fields - positioned absolutely but only where needed */}
-            {(fields[pageIndex] || []).map(field => {
-              const textSize = autoResizeText(field.text);
-              const fieldWidth = field.manualResize ? field.width : Math.max(textSize.width, 80);
-              const fieldHeight = field.manualResize ? field.height : Math.max(textSize.height, 30);
-              
-              return (
+            {/* Text fields with enhanced drag and resize */}
+            {(fields[pageIndex] || []).map(field => (
+              <div
+                key={field.id}
+                className="text-field-container"
+                style={{
+                  position: "absolute",
+                  left: field.x,
+                  top: field.y,
+                  width: field.width,
+                  height: field.height,
+                  minWidth: "100px",
+                  minHeight: "40px",
+                  background: transparentField ? "transparent" : "rgba(255,255,255,0.9)",
+                  border: selectedField === field.id ? "2px dashed #007acc" : "1px solid rgba(0,0,0,0.2)",
+                  borderRadius: "4px",
+                  zIndex: 20,
+                  boxShadow: selectedField === field.id ? "0 2px 8px rgba(0,122,204,0.3)" : "none",
+                }}
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedField(field.id);
+                }}
+              >
+                {/* Drag Header Bar */}
                 <div
-                  key={field.id}
-                  ref={el => {
-                    if (el && selectedField === field.id) {
-                      handleResize(pageIndex, field.id, el);
-                    }
-                  }}
                   style={{
                     position: "absolute",
-                    left: field.x,
-                    top: field.y,
-                    width: fieldWidth,
-                    height: fieldHeight,
-                    border: selectedField === field.id ? "2px solid #007acc" : "1px solid transparent",
-                    resize: selectedField === field.id ? "both" : "none",
-                    overflow: selectedField === field.id ? "visible" : "hidden",
-                    background: transparentField ? "transparent" : "white",
-                    zIndex: 20,
-                    cursor: selectedField === field.id ? "move" : "pointer",
-                    minWidth: "80px",
-                    minHeight: "30px",
-                    transition: isDragging ? "none" : "all 0.1s ease",
-                    userSelect: "none",
+                    top: -25,
+                    left: 0,
+                    right: 0,
+                    height: 20,
+                    background: selectedField === field.id ? "#007acc" : "transparent",
+                    cursor: "move",
+                    borderRadius: "4px 4px 0 0",
+                    display: selectedField === field.id ? "flex" : "none",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    fontSize: "10px",
+                    fontWeight: "bold",
                   }}
-                  onClick={e => {
+                  onMouseDown={e => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    setSelectedField(field.id);
+                    startDrag(e, pageIndex, field.id);
                   }}
                 >
-                {/* Drag handle - only visible when selected */}
+                  DRAG TO MOVE
+                </div>
+
+                {/* Resize Handles */}
                 {selectedField === field.id && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -10,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      width: 20,
-                      height: 20,
-                      background: "#007acc",
-                      cursor: "move",
-                      borderRadius: "50%",
-                      zIndex: 25,
-                      border: "2px solid white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "12px",
-                      color: "white",
-                    }}
-                    onMouseDown={e => {
-                      e.stopPropagation();
-                      startDrag(e, pageIndex, field.id);
-                    }}
-                  >
-                    ⋮⋮
-                  </div>
+                  <>
+                    {/* Corner resize handles */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: -3,
+                        right: -3,
+                        width: 12,
+                        height: 12,
+                        background: "#007acc",
+                        cursor: "se-resize",
+                        borderRadius: "2px",
+                        border: "1px solid white",
+                      }}
+                      onMouseDown={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        startResize(e, pageIndex, field.id);
+                      }}
+                    />
+                    
+                    {/* Side resize handles */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        right: -3,
+                        width: 6,
+                        height: 20,
+                        background: "#007acc",
+                        cursor: "e-resize",
+                        transform: "translateY(-50%)",
+                        borderRadius: "2px",
+                      }}
+                    />
+                    
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: -3,
+                        left: "50%",
+                        width: 20,
+                        height: 6,
+                        background: "#007acc",
+                        cursor: "s-resize",
+                        transform: "translateX(-50%)",
+                        borderRadius: "2px",
+                      }}
+                    />
+                  </>
                 )}
 
-                {/* Corner resize handle when selected */}
-                {selectedField === field.id && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: -5,
-                      right: -5,
-                      width: 10,
-                      height: 10,
-                      background: "#007acc",
-                      cursor: "nw-resize",
-                      borderRadius: "2px",
-                      zIndex: 25,
-                    }}
-                  />
-                )}
-                
                 <textarea
                   value={field.text}
                   onChange={e => {
@@ -338,8 +392,8 @@ export default function PDFEditor() {
                     if (!field.manualResize) {
                       const newSize = autoResizeText(newText);
                       updateField(pageIndex, field.id, { 
-                        width: Math.max(newSize.width, 80),
-                        height: Math.max(newSize.height, 30)
+                        width: Math.max(newSize.width, 100),
+                        height: Math.max(newSize.height, 40)
                       });
                     }
                   }}
@@ -352,19 +406,16 @@ export default function PDFEditor() {
                     outline: "none",
                     padding: "8px",
                     color: "#000000",
-                    fontSize: "12px",
+                    fontSize: "14px",
                     fontFamily: "Arial, sans-serif",
-                    pointerEvents: isDragging ? "none" : "auto",
-                    lineHeight: "16px",
+                    lineHeight: "1.4",
                     cursor: "text",
                   }}
-                  onMouseDown={e => e.stopPropagation()}
                   onFocus={() => setSelectedField(field.id)}
-                  placeholder="Type here..."
+                  placeholder="Click to edit text..."
                 />
               </div>
-              )
-            })}
+            ))}
             
             {/* Images */}
             {(images[pageIndex] || []).map((img, idx) => (
