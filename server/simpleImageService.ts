@@ -1,4 +1,5 @@
 // Simple image service providing placeholder functionality for demonstration
+import sharp from 'sharp';
 
 export interface ImageResizeOptions {
   width?: number;
@@ -53,8 +54,6 @@ export class SimpleImageService {
 
   async cropImage(buffer: Buffer, options: ImageCropOptions): Promise<Buffer> {
     try {
-      const sharp = require('sharp');
-      
       // Extract crop region and convert to target format
       const croppedBuffer = await sharp(buffer)
         .extract({
