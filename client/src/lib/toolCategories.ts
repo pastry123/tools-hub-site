@@ -153,12 +153,7 @@ export const toolCategories: ToolCategory[] = [
         icon: 'fa-signature'
       },
 
-      {
-        id: 'pdf-form-filler',
-        name: 'PDF Form Filler',
-        description: 'Fill interactive PDF forms with templates',
-        icon: 'fa-wpforms'
-      }
+
     ]
   },
   {
