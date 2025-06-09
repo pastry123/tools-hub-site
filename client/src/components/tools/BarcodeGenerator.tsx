@@ -310,18 +310,23 @@ export default function BarcodeGenerator() {
     }
   };
 
-  // Auto-generate barcode when component mounts and options change
+  // Initialize with first barcode type
   useEffect(() => {
-    if (options.text.trim()) {
-      generateBarcode();
+    if (!currentBarcodeDef && Object.keys(barcodeCategories).length > 0) {
+      const firstCategory = Object.keys(barcodeCategories)[0];
+      const firstType = Object.keys(barcodeCategories[firstCategory])[0];
+      const firstTypeData = barcodeCategories[firstCategory][firstType];
+      setCurrentBarcodeDef({ ...firstTypeData, name: firstType, category: firstCategory });
+      updateOption('bcid', firstTypeData.bcid);
     }
   }, []);
 
+  // Auto-generate barcode when options change
   useEffect(() => {
-    if (options.text.trim()) {
+    if (currentBarcodeDef && options.text.trim()) {
       generateBarcode();
     }
-  }, [options.text, options.bcid]);
+  }, [options.text, options.bcid, currentBarcodeDef]);
 
   const downloadBarcode = () => {
     if (!barcodeUrl) return;
@@ -330,6 +335,22 @@ export default function BarcodeGenerator() {
     link.download = `barcode_${options.bcid}_${Date.now()}.png`;
     link.href = barcodeUrl;
     link.click();
+  };
+
+  const downloadSVG = async () => {
+    if (!currentBarcodeDef || !options.text.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Generate a barcode first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "SVG Feature",
+      description: "SVG download will be implemented in the next update. PNG download is fully functional.",
+    });
   };
 
   const copyToClipboard = async () => {
@@ -431,47 +452,24 @@ export default function BarcodeGenerator() {
               </Select>
               
               {/* Show current selection info */}
-              {BARCODE_TYPES[options.bcid] && (
-                <div className={`mt-2 p-3 rounded-lg ${
-                  BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
-                    ? 'bg-green-50 dark:bg-green-900/20' 
-                    : 'bg-orange-50 dark:bg-orange-900/20'
-                }`}>
+              {currentBarcodeDef && (
+                <div className="mt-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
-                      <span className={`font-medium ${
-                        BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
-                          ? 'text-green-700 dark:text-green-300' 
-                          : 'text-orange-700 dark:text-orange-300'
-                      }`}>
-                        {BARCODE_TYPES[options.bcid].name}
+                      <span className="font-medium text-green-700 dark:text-green-300">
+                        {currentBarcodeDef.name}
                       </span>
                       <span className="mx-2 text-gray-500">•</span>
-                      <span className={`${
-                        BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
-                          ? 'text-green-600 dark:text-green-400' 
-                          : 'text-orange-600 dark:text-orange-400'
-                      }`}>
-                        {BARCODE_TYPES[options.bcid].category}
+                      <span className="text-green-600 dark:text-green-400">
+                        {currentBarcodeDef.category}
                       </span>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
-                        ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300' 
-                        : 'bg-orange-100 dark:bg-orange-800 text-orange-700 dark:text-orange-300'
-                    }`}>
-                      {BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode' ? 'Authentic Encoding' : 'Coming Soon'}
+                    <span className="text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
+                      ✓ bwip-js Authentic
                     </span>
                   </div>
-                  <div className={`text-xs mt-1 ${
-                    BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode'
-                      ? 'text-green-600 dark:text-green-300' 
-                      : 'text-orange-600 dark:text-orange-300'
-                  }`}>
-                    {BARCODE_TYPES[options.bcid].description}
-                    {BARCODE_TYPES[options.bcid].jsFormat || options.bcid === 'qrcode' 
-                      ? ' - Generates real, scannable barcodes' 
-                      : ' - Implementation in progress'}
+                  <div className="text-xs mt-1 text-green-600 dark:text-green-300">
+                    {currentBarcodeDef.hint} - Generates real, scannable barcodes
                   </div>
                 </div>
               )}
@@ -569,7 +567,11 @@ export default function BarcodeGenerator() {
                   <div className="flex gap-2 justify-center">
                     <Button onClick={downloadBarcode} variant="outline" size="sm">
                       <Download className="w-4 h-4 mr-2" />
-                      Download
+                      PNG
+                    </Button>
+                    <Button onClick={downloadSVG} variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      SVG
                     </Button>
                     <Button onClick={copyToClipboard} variant="outline" size="sm">
                       <Copy className="w-4 h-4 mr-2" />
