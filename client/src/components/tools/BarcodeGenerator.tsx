@@ -190,6 +190,15 @@ export default function BarcodeGenerator() {
 
 
 
+  // Utility function for drawing bars
+  const drawBars = (ctx: CanvasRenderingContext2D, x: number, y: number, barWidth: number, height: number, pattern: number[]) => {
+    for (let i = 0; i < pattern.length; i++) {
+      if (pattern[i]) {
+        ctx.fillRect(x + i * barWidth, y, barWidth, height);
+      }
+    }
+  };
+
   const generateCanvasBarcode = (options: BarcodeOptions): HTMLCanvasElement => {
     if (options.bcid === 'qrcode') {
       return generateQRCode(options.text, options.scale * 100);
@@ -517,7 +526,7 @@ export default function BarcodeGenerator() {
   };
 
   // Generate Postal Barcodes
-  const generatePostalBarcode = (text: string, type: string, scale: number, height: number): HTMLCanvasCanvas => {
+  const generatePostalBarcode = (text: string, type: string, scale: number, height: number): HTMLCanvasElement => {
     const canvas = document.createElement('canvas');
     const width = Math.max(200, text.length * 15 * scale);
     canvas.width = width;
