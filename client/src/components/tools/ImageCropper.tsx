@@ -153,7 +153,7 @@ export default function ImageCropper() {
     const scaledCropY = cropArea.y * scale;
     const scaledCropWidth = cropArea.width * scale;
     const scaledCropHeight = cropArea.height * scale;
-    const handleSize = 10;
+    const handleSize = Math.max(12, Math.min(20, scaledCropWidth * 0.05)); // Adaptive handle size
     
     // Check corner handles
     const corners = [
@@ -183,9 +183,10 @@ export default function ImageCropper() {
       }
     }
     
-    // Check if inside crop area for moving
-    if (x >= scaledCropX && x <= scaledCropX + scaledCropWidth && 
-        y >= scaledCropY && y <= scaledCropY + scaledCropHeight) {
+    // Check if inside crop area for moving (with expanded tolerance for small images)
+    const tolerance = Math.max(5, handleSize * 0.5);
+    if (x >= scaledCropX - tolerance && x <= scaledCropX + scaledCropWidth + tolerance && 
+        y >= scaledCropY - tolerance && y <= scaledCropY + scaledCropHeight + tolerance) {
       return 'move';
     }
     

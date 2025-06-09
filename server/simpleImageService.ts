@@ -54,7 +54,7 @@ export class SimpleImageService {
 
   async cropImage(buffer: Buffer, options: ImageCropOptions): Promise<Buffer> {
     try {
-      console.log('Starting optimized crop operation');
+      console.log('Starting crop operation with options:', options);
       
       // Validate crop bounds first to avoid processing invalid crops
       if (options.width <= 0 || options.height <= 0) {
@@ -68,11 +68,16 @@ export class SimpleImageService {
       });
 
       // Get basic metadata quickly
-      const { width: imgWidth, height: imgHeight } = await sharpInstance.metadata();
+      const metadata = await sharpInstance.metadata();
+      const imgWidth = metadata.width!;
+      const imgHeight = metadata.height!;
       
-      if (!imgWidth || !imgHeight) {
-        throw new Error('Could not read image dimensions');
-      }
+      console.log('Image metadata:', { 
+        width: imgWidth, 
+        height: imgHeight, 
+        format: metadata.format,
+        size: `${Math.round(buffer.length / 1024)}KB`
+      });
 
       // Constrain crop bounds
       const x = Math.max(0, Math.min(Math.round(options.x), imgWidth - 1));
@@ -80,15 +85,27 @@ export class SimpleImageService {
       const width = Math.min(Math.round(options.width), imgWidth - x);
       const height = Math.min(Math.round(options.height), imgHeight - y);
 
-      console.log('Processing crop:', { x, y, width, height });
+      console.log('Final crop bounds:', { x, y, width, height, imgSize: `${imgWidth}x${imgHeight}` });
 
-      // Perform crop with optimized settings
-      const result = await sharp(buffer)
-        .extract({ left: x, top: y, width, height })
-        .jpeg({ quality: 85, progressive: true }) // Use JPEG for speed
-        .toBuffer();
+      // Handle large images differently for better performance
+      let result: Buffer;
+      
+      if (imgWidth > 2000 || imgHeight > 2000) {
+        console.log('Processing large image with compression');
+        result = await sharp(buffer)
+          .extract({ left: x, top: y, width, height })
+          .jpeg({ quality: 80, progressive: true })
+          .toBuffer();
+      } else {
+        // Respect original format for smaller images
+        const outputFormat = (options.format === 'jpg' || options.format === 'jpeg') ? 'jpeg' : (options.format || 'png');
+        result = await sharp(buffer)
+          .extract({ left: x, top: y, width, height })
+          .toFormat(outputFormat as any)
+          .toBuffer();
+      }
 
-      console.log('Crop completed successfully');
+      console.log('Crop completed successfully, output size:', Math.round(result.length / 1024) + 'KB');
       return result;
     } catch (error) {
       console.error('Crop operation failed:', error);
