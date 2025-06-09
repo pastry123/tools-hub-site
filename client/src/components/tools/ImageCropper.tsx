@@ -186,10 +186,10 @@ export default function ImageCropper() {
       }
     }
     
-    // Check if inside crop area for moving (with expanded tolerance for small images)
-    const tolerance = Math.max(5, handleSize * 0.5);
-    if (x >= scaledCropX - tolerance && x <= scaledCropX + scaledCropWidth + tolerance && 
-        y >= scaledCropY - tolerance && y <= scaledCropY + scaledCropHeight + tolerance) {
+    // Check if inside crop area for moving (strict interior only)
+    const moveTolerance = 5; // Small tolerance for easier clicking
+    if (x >= scaledCropX + moveTolerance && x <= scaledCropX + scaledCropWidth - moveTolerance && 
+        y >= scaledCropY + moveTolerance && y <= scaledCropY + scaledCropHeight - moveTolerance) {
       return 'move';
     }
     
@@ -226,13 +226,13 @@ export default function ImageCropper() {
       const scaledCropWidth = cropArea.width * scale;
       const scaledCropHeight = cropArea.height * scale;
       
-      // More generous click area for small crops
-      const clickTolerance = Math.max(20, Math.min(scaledCropWidth, scaledCropHeight) * 0.2);
+      // For very small crops, enable dragging anywhere near the crop area
+      const clickTolerance = Math.max(15, Math.min(scaledCropWidth, scaledCropHeight) * 0.15);
       
       if (x >= scaledCropX - clickTolerance && x <= scaledCropX + scaledCropWidth + clickTolerance && 
           y >= scaledCropY - clickTolerance && y <= scaledCropY + scaledCropHeight + clickTolerance) {
         setIsDragging(true);
-        console.log('Starting drag with extended tolerance');
+        console.log('Starting drag with extended tolerance for small crop');
       }
     }
     
@@ -248,23 +248,26 @@ export default function ImageCropper() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Update cursor based on handle position
+    // Update cursor based on handle position with precise zones
     const handle = getHandleAtPosition(x, y);
-    if (handle) {
+    if (handle && handle !== 'move') {
+      // Show resize cursors only on actual handles
       const cursorMap: Record<string, string> = {
         'nw': 'nw-resize',
-        'ne': 'ne-resize',
+        'ne': 'ne-resize', 
         'sw': 'sw-resize',
         'se': 'se-resize',
         'n': 'n-resize',
         's': 's-resize',
         'w': 'w-resize',
-        'e': 'e-resize',
-        'move': 'move'
+        'e': 'e-resize'
       };
       canvas.style.cursor = cursorMap[handle] || 'default';
+    } else if (handle === 'move') {
+      // Show move cursor only inside crop area
+      canvas.style.cursor = 'move';
     } else {
-      canvas.style.cursor = 'default';
+      canvas.style.cursor = 'crosshair';
     }
     
     if (!isDragging && !isResizing) return;
