@@ -154,7 +154,12 @@ export default function ImageCropper() {
     const scaledCropWidth = cropArea.width * scale;
     const scaledCropHeight = cropArea.height * scale;
     const handleSize = Math.max(15, Math.min(25, scaledCropWidth * 0.08)); // Larger adaptive handle size
-    const hitTolerance = Math.max(8, handleSize * 0.6); // Extra hit tolerance
+    
+    console.log('Handle detection:', {
+      mousePos: { x, y },
+      cropArea: { scaledCropX, scaledCropY, scaledCropWidth, scaledCropHeight },
+      handleSize
+    });
     
     // Check corner handles first (more precise detection)
     const corners = [
@@ -248,8 +253,11 @@ export default function ImageCropper() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Update cursor based on handle position with precise zones
+    // Debug cursor detection
     const handle = getHandleAtPosition(x, y);
+    console.log('Mouse position:', { x, y }, 'Handle detected:', handle);
+    
+    // Update cursor based on handle position with precise zones
     if (handle && handle !== 'move') {
       // Show resize cursors only on actual handles
       const cursorMap: Record<string, string> = {
@@ -262,12 +270,16 @@ export default function ImageCropper() {
         'w': 'w-resize',
         'e': 'e-resize'
       };
-      canvas.style.cursor = cursorMap[handle] || 'default';
+      const newCursor = cursorMap[handle] || 'default';
+      canvas.style.cursor = newCursor;
+      console.log('Setting resize cursor:', newCursor);
     } else if (handle === 'move') {
       // Show move cursor only inside crop area
       canvas.style.cursor = 'move';
+      console.log('Setting move cursor');
     } else {
       canvas.style.cursor = 'crosshair';
+      console.log('Setting crosshair cursor');
     }
     
     if (!isDragging && !isResizing) return;
