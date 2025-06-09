@@ -337,6 +337,8 @@ export default function ImageCropper() {
     setIsProcessing(true);
 
     try {
+      console.log('Sending crop request with params:', { x, y, width, height, format });
+      
       const formData = new FormData();
       formData.append('image', file);
       formData.append('x', x);
@@ -345,10 +347,16 @@ export default function ImageCropper() {
       formData.append('height', height);
       formData.append('format', format);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch('/api/image/crop', {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error('Failed to crop image');
@@ -369,9 +377,11 @@ export default function ImageCropper() {
         description: "Image cropped successfully"
       });
     } catch (error) {
+      console.error('Crop error:', error);
+      const errorMessage = error instanceof Error && error.name === 'AbortError' ? 'Operation timed out' : 'Failed to crop image';
       toast({
-        title: "Error",
-        description: "Failed to crop image",
+        title: "Error", 
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

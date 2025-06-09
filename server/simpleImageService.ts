@@ -54,21 +54,43 @@ export class SimpleImageService {
 
   async cropImage(buffer: Buffer, options: ImageCropOptions): Promise<Buffer> {
     try {
+      console.log('Starting crop operation with options:', {
+        x: options.x,
+        y: options.y,
+        width: options.width,
+        height: options.height,
+        format: options.format
+      });
+
+      // Get image metadata to validate crop dimensions
+      const metadata = await sharp(buffer).metadata();
+      console.log('Image metadata:', { width: metadata.width, height: metadata.height });
+
+      // Validate crop bounds
+      const x = Math.max(0, Math.min(Math.round(options.x), metadata.width! - 1));
+      const y = Math.max(0, Math.min(Math.round(options.y), metadata.height! - 1));
+      const width = Math.min(Math.round(options.width), metadata.width! - x);
+      const height = Math.min(Math.round(options.height), metadata.height! - y);
+
+      console.log('Validated crop bounds:', { x, y, width, height });
+
       // Extract crop region and convert to target format
       const croppedBuffer = await sharp(buffer)
         .extract({
-          left: Math.round(options.x),
-          top: Math.round(options.y),
-          width: Math.round(options.width),
-          height: Math.round(options.height)
+          left: x,
+          top: y,
+          width: width,
+          height: height
         })
         .toFormat(options.format || 'png')
         .toBuffer();
         
+      console.log('Crop operation completed successfully');
       return croppedBuffer;
     } catch (error) {
       console.error('Crop operation failed:', error);
-      throw new Error('Failed to crop image');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to crop image: ${errorMessage}`);
     }
   }
 
