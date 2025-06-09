@@ -208,7 +208,25 @@ export class BarcodeGenerator {
   private constructor() {
     this.bwipjs = (window as any).bwipjs;
     if (!this.bwipjs) {
-      throw new Error('bwip-js library not loaded');
+      console.error('bwip-js library not available. Attempting to load...');
+      this.loadBwipjs();
+    }
+  }
+
+  private async loadBwipjs() {
+    try {
+      if (!(window as any).bwipjs) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = '/bwip-js.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+      this.bwipjs = (window as any).bwipjs;
+    } catch (error) {
+      console.error('Failed to load bwip-js library:', error);
     }
   }
 
@@ -222,6 +240,14 @@ export class BarcodeGenerator {
   public generateToCanvas(options: BarcodeOptions): Promise<BarcodeResult> {
     return new Promise((resolve) => {
       try {
+        if (!this.bwipjs) {
+          resolve({
+            success: false,
+            error: 'bwip-js library not available. Please refresh the page.'
+          });
+          return;
+        }
+
         const canvas = document.createElement('canvas');
         const opts = this.prepareOptions(options);
         

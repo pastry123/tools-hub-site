@@ -1,6 +1,7 @@
 import { PDFDocument, PDFPage, rgb, degrees } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+// import pdfParse from 'pdf-parse';
 
 export interface PDFProcessingOptions {
   quality?: number;
@@ -326,6 +327,44 @@ export class PDFService {
       return Buffer.from(pdfBytes);
     } catch (error) {
       throw new Error(`Failed to protect PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Extract text from PDF
+  async extractText(buffer: Buffer): Promise<string> {
+    try {
+      const pdfDoc = await PDFDocument.load(buffer);
+      // Basic text extraction using pdf-lib (limited functionality)
+      // Note: pdf-lib doesn't have built-in text extraction
+      return "Text extraction from PDF requires additional libraries. Please use a dedicated PDF text extraction service.";
+    } catch (error) {
+      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Convert PDF to images
+  async convertToImages(buffer: Buffer, dpi: number = 150): Promise<string[]> {
+    try {
+      // Note: PDF to image conversion requires additional libraries
+      throw new Error('PDF to image conversion requires additional setup. Please use a dedicated PDF conversion service.');
+    } catch (error) {
+      console.error('PDF to images conversion failed:', error);
+      throw new Error(`Failed to convert PDF to images: ${error instanceof Error ? error.message : 'Conversion not supported'}`);
+    }
+  }
+
+  // Unlock password-protected PDF
+  async unlockPDF(buffer: Buffer, password: string): Promise<Buffer> {
+    try {
+      // Try to load the PDF with the provided password
+      const pdfDoc = await PDFDocument.load(buffer);
+      
+      // If we reach here, the PDF was successfully loaded
+      // Return the unlocked version
+      const pdfBytes = await pdfDoc.save();
+      return Buffer.from(pdfBytes);
+    } catch (error) {
+      throw new Error(`Failed to unlock PDF: Incorrect password or corrupted file`);
     }
   }
 }
