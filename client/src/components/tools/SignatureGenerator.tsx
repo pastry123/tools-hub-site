@@ -150,31 +150,24 @@ export default function SignatureGenerator() {
       const data = await response.json();
       
       if (response.ok && data.signature) {
-        // Set the signature as SVG directly for preview
-        setCurrentSignature(data.signature);
-        
-        // Also draw on canvas for download functionality
+        // Render AI-generated text signature on canvas
         const canvas = canvasRef.current;
         if (canvas) {
           const ctx = canvas.getContext("2d");
           if (ctx) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Create temporary image to get SVG content
-            const tempImg = new Image();
-            tempImg.onload = () => {
-              // Calculate proper scaling and positioning
-              const scale = Math.min(canvas.width * 0.8 / 400, canvas.height * 0.8 / 120);
-              const scaledWidth = 400 * scale;
-              const scaledHeight = 120 * scale;
-              const x = (canvas.width - scaledWidth) / 2;
-              const y = (canvas.height - scaledHeight) / 2;
-              
-              ctx.drawImage(tempImg, x, y, scaledWidth, scaledHeight);
-            };
+            // Style the AI signature text
+            const fontSize = Math.min(canvas.width / 12, 48);
+            ctx.font = `${fontSize}px "Dancing Script", cursive`;
+            ctx.fillStyle = color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
             
-            const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(data.signature);
-            tempImg.src = svgDataUrl;
+            // Draw the signature in the center
+            ctx.fillText(data.signature, canvas.width / 2, canvas.height / 2);
+            
+            setCurrentSignature(canvas.toDataURL());
           }
         }
         
@@ -212,38 +205,8 @@ export default function SignatureGenerator() {
 
     const link = document.createElement("a");
     link.download = "signature.png";
-    
-    if (currentSignature.startsWith('<svg')) {
-      // Convert SVG to canvas for download
-      const canvas = document.createElement('canvas');
-      canvas.width = 600;
-      canvas.height = 200;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        const img = new Image();
-        img.onload = () => {
-          const scale = Math.min(canvas.width * 0.8 / 400, canvas.height * 0.8 / 120);
-          const scaledWidth = 400 * scale;
-          const scaledHeight = 120 * scale;
-          const x = (canvas.width - scaledWidth) / 2;
-          const y = (canvas.height - scaledHeight) / 2;
-          
-          ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
-          link.href = canvas.toDataURL();
-          link.click();
-        };
-        
-        const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(currentSignature);
-        img.src = svgDataUrl;
-      }
-    } else {
-      link.href = currentSignature;
-      link.click();
-    }
+    link.href = currentSignature;
+    link.click();
   };
 
   return (
@@ -449,18 +412,11 @@ export default function SignatureGenerator() {
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Preview</h3>
               <div className="border rounded-lg p-4 bg-white dark:bg-gray-50 flex items-center justify-center min-h-[150px]">
-                {currentSignature.startsWith('<svg') ? (
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: currentSignature }}
-                    className="flex items-center justify-center w-full h-full"
-                  />
-                ) : (
-                  <img 
-                    src={currentSignature} 
-                    alt="Signature Preview" 
-                    className="max-w-full h-auto"
-                  />
-                )}
+                <img 
+                  src={currentSignature} 
+                  alt="Signature Preview" 
+                  className="max-w-full h-auto"
+                />
               </div>
             </div>
           )}

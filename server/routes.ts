@@ -1886,27 +1886,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ESIGN & DIGITAL SIGNATURE ENDPOINTS
 
-  // AI Signature Generator
+  // AI Signature Generator using Groq API
   app.post('/api/esign/generate-signature', async (req, res) => {
     try {
-      const { name, style, format } = req.body;
+      const { name, style } = req.body;
+      
       if (!name) {
-        return res.status(400).json({ error: 'Name is required for signature generation' });
+        return res.status(400).json({ error: 'Name is required' });
       }
 
-      const result = await eSignService.generateAISignature({
-        name,
-        style: style || 'sophisticated-cursive',
-        format: format || 'svg'
+      const styleDescriptions = {
+        'professional-executive': 'professional and clean business style',
+        'artistic-flowing': 'creative and artistic with flowing curves',
+        'traditional-formal': 'classic elegant formal style',
+        'contemporary-clean': 'modern minimalist design',
+        'sophisticated-cursive': 'refined cursive with subtle flourishes',
+        'strong-confident': 'bold and confident strokes'
+      };
+
+      const styleDesc = styleDescriptions[style as keyof typeof styleDescriptions] || 'elegant cursive';
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama3-8b-8192',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert calligrapher AI. Generate a realistic and elegant digital signature for a given name in ${styleDesc} style. Create a stylized text representation that looks like a handwritten signature. Use special characters, flourishes, and spacing to make it look authentic. Only return the signature text, nothing else.`
+            },
+            {
+              role: 'user',
+              content: `Name: ${name}`
+            }
+          ],
+          temperature: 0.8,
+          max_tokens: 100
+        })
       });
 
-      if (result.success) {
-        res.json({ signature: result.signature });
+      const data = await response.json();
+      
+      if (response.ok && data.choices?.[0]?.message?.content) {
+        const signature = data.choices[0].message.content.trim();
+        res.json({ signature });
       } else {
-        res.status(500).json({ error: result.error });
+        console.error('Groq API error:', data);
+        res.status(500).json({ error: 'Signature generation failed' });
       }
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate signature' });
+      console.error('Signature generation error:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
