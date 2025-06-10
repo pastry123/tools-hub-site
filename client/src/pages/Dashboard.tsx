@@ -17,25 +17,12 @@ export default function Dashboard() {
           Professional Online Tools Dashboard - 50+ Free Utilities
         </h1>
         <p className="text-slate-600 dark:text-gray-300 text-xl mb-6 leading-relaxed">
-          Access our comprehensive suite of professional-grade online tools designed for businesses, developers, and content creators. 
-          From advanced <a href="/tool/barcode-generator" className="text-primary hover:underline">barcode generators</a> and 
-          <a href="/tool/pdf-merger" className="text-primary hover:underline">PDF editing tools</a> to 
-          <a href="/tool/signature-generator" className="text-primary hover:underline">digital signature generators</a> and 
-          <a href="/category/developer-tools" className="text-primary hover:underline">developer utilities</a> - all completely free and secure.
+          50+ professional tools for <a href="/tool/barcode-generator" className="text-primary hover:underline">barcodes</a>, 
+          <a href="/tool/pdf-merger" className="text-primary hover:underline">PDFs</a>, 
+          <a href="/tool/signature-generator" className="text-primary hover:underline">signatures</a>, and 
+          <a href="/category/developer-tools" className="text-primary hover:underline">development</a>. 
+          Free, secure, browser-based tools for businesses and developers.
         </p>
-        
-        <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
-          <p className="text-slate-600 dark:text-gray-300">
-            ToolHub provides instant access to over 50 specialized tools across 8 major categories. Whether you're processing 
-            <a href="/category/image-tools" className="text-primary hover:underline">images</a>, 
-            converting <a href="/category/text-tools" className="text-primary hover:underline">text formats</a>, 
-            manipulating <a href="/category/pdf-tools" className="text-primary hover:underline">PDF documents</a>, or 
-            testing <a href="/tool/api-tester" className="text-primary hover:underline">APIs</a>, 
-            our platform delivers enterprise-quality results without requiring registration or payment. All tools run securely 
-            in your browser, ensuring your data remains private and protected. Perfect for professionals who need reliable, 
-            fast solutions for document processing, image manipulation, code development, and business operations.
-          </p>
-        </div>
         
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
