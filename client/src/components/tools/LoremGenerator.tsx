@@ -200,7 +200,7 @@ export default function LoremGenerator() {
       {generatedText && (
         <Card>
           <CardHeader>
-            <CardTitle>Generated Text</CardTitle>
+            <CardTitle>{t("lorem.generatedText")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
