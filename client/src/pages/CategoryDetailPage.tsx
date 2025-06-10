@@ -68,11 +68,7 @@ export default function CategoryDetailPage() {
                     </div>
                     
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                      {(() => {
-                        const translatedName = t(`tools.${tool.id}`);
-                        console.log(`Translation for tools.${tool.id}:`, translatedName);
-                        return translatedName || tool.name;
-                      })()}
+                      {t(`tools.${tool.id}`) || tool.name}
                     </h3>
                     
                     <p className="text-sm text-slate-600 dark:text-gray-300 mb-4 leading-relaxed">
