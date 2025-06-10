@@ -400,20 +400,22 @@ export class GeneratorService {
       font: font,
     });
     
-    yPosition -= 20;
-    page.drawText('Tax:', {
-      x: 400,
-      y: yPosition,
-      size: 12,
-      font: font,
-    });
-    
-    page.drawText(`$${data.tax.toFixed(2)}`, {
-      x: 480,
-      y: yPosition,
-      size: 12,
-      font: font,
-    });
+    if (data.includeTax) {
+      yPosition -= 20;
+      page.drawText(`Tax (${data.taxRate}%):`, {
+        x: 400,
+        y: yPosition,
+        size: 12,
+        font: font,
+      });
+      
+      page.drawText(`$${data.tax.toFixed(2)}`, {
+        x: 480,
+        y: yPosition,
+        size: 12,
+        font: font,
+      });
+    }
     
     yPosition -= 20;
     page.drawText('Total:', {
