@@ -402,14 +402,7 @@ const translations = {
     "tools.api-access.desc": "Access and test APIs",
     "tools.mobile-app-plan": "Mobile App Plan",
     "tools.mobile-app-plan.desc": "Plan mobile applications",
-    
-    // Tool page features
-    "tool.securePrivate": "Secure & Private",
-    "tool.securePrivate.desc": "All processing happens locally on your device. No data is sent to our servers.",
-    "tool.mobileOptimized": "Mobile Optimized",
-    "tool.mobileOptimized.desc": "Works perfectly on all devices with responsive design and touch support.",
-    "tool.multipleFormats": "Multiple Formats",
-    "tool.multipleFormats.desc": "Supports various input and output formats for maximum compatibility.",
+
     
     // Barcode Generator Tool
     "barcodeGenerator.title": "Barcode & QR Code Generator",
@@ -682,12 +675,6 @@ const translations = {
     // Tool Pages - Common Elements
     "tool.addToFavorites": "Agregar a Favoritos",
     "tool.removeFromFavorites": "Eliminar de Favoritos",
-    "tool.multipleFormats": "Múltiples Formatos",
-    "tool.multipleFormats.desc": "Descargar resultados en varios formatos para máxima compatibilidad",
-    "tool.mobileOptimized": "Optimizado para Móvil",
-    "tool.mobileOptimized.desc": "Funciona perfectamente en todos los dispositivos y tamaños de pantalla",
-    "tool.securePrivate": "Seguro y Privado",
-    "tool.securePrivate.desc": "Todo el procesamiento ocurre en tu navegador. Tus datos nunca salen de tu dispositivo",
     
     // Lorem Ipsum Generator
     "lorem.title": "Generador Lorem Ipsum",
@@ -916,26 +903,7 @@ const translations = {
     "tools.mobile-app-plan": "Plan de App Móvil",
     "tools.mobile-app-plan.desc": "Planificar aplicaciones móviles",
 
-    
-    // Barcode Generator Tool
-    "barcodeGenerator.title": "Generador de Códigos de Barras y QR",
-    "barcodeGenerator.subtitle": "Generar más de 85 tipos de códigos de barras incluyendo códigos QR, códigos lineales, códigos postales, tarjetas de visita, Wi-Fi, eventos y formatos especializados",
-    "barcodeGenerator.barcodeType": "Tipo de Código de Barras",
-    "barcodeGenerator.available": "disponibles",
-    "barcodeGenerator.searchTypes": "Buscar tipos de códigos de barras...",
-    "barcodeGenerator.allCategories": "Todas las Categorías",
-    "barcodeGenerator.selectType": "Selecciona un tipo de código de barras...",
-    "barcodeGenerator.noTypesFound": "No se encontraron tipos de códigos de barras que coincidan con tu búsqueda",
-    "barcodeGenerator.professional": "Profesional",
-    "barcodeGenerator.sampleDataLoaded": "Datos de Muestra Cargados",
-    "barcodeGenerator.sampleDataDesc": "Se han cargado datos de muestra para este tipo de código de barras",
-    "barcodeGenerator.loadSample": "Cargar Datos de Muestra",
-    "barcodeGenerator.content": "Contenido",
-    "barcodeGenerator.enterData": "Ingresa tus datos aquí...",
-    "barcodeGenerator.generateBarcode": "Generar Código de Barras",
-    "barcodeGenerator.generating": "Generando...",
-    "barcodeGenerator.generated": "Código de Barras Generado",
-    "barcodeGenerator.downloadPNG": "Descargar PNG",
+
     "barcodeGenerator.downloadSVG": "Descargar SVG",
     "barcodeGenerator.copyClipboard": "Copiar al Portapapeles",
     "barcodeGenerator.barcodeGenerated": "Código de Barras Generado",
@@ -1423,14 +1391,7 @@ const translations = {
     "tools.api-access.desc": "الوصول واختبار واجهات API",
     "tools.mobile-app-plan": "خطة التطبيق المحمول",
     "tools.mobile-app-plan.desc": "تخطيط التطبيقات المحمولة",
-    
-    // Tool page features
-    "tool.securePrivate": "آمن وخاص",
-    "tool.securePrivate.desc": "تتم جميع المعالجات محلياً على جهازك. لا يتم إرسال أي بيانات إلى خوادمنا.",
-    "tool.mobileOptimized": "محسن للجوال",
-    "tool.mobileOptimized.desc": "يعمل بشكل مثالي على جميع الأجهزة مع تصميم متجاوب ودعم اللمس.",
-    "tool.multipleFormats": "تنسيقات متعددة",
-    "tool.multipleFormats.desc": "يدعم تنسيقات إدخال وإخراج متنوعة للحصول على أقصى توافق.",
+
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
