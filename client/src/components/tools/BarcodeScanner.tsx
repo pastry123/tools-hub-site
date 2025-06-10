@@ -170,7 +170,7 @@ export default function BarcodeScanner() {
             <div>
               <Label className="flex items-center gap-2">
                 <Eye className="w-4 h-4" />
-                Image Preview
+                {t("barcodeScanner.imagePreview")}
               </Label>
               <div className="mt-2 border rounded-md overflow-hidden bg-white dark:bg-gray-900">
                 <img 
@@ -187,14 +187,14 @@ export default function BarcodeScanner() {
             disabled={!file || isScanning} 
             className="w-full"
           >
-            {isScanning ? 'Scanning Barcode...' : 'Scan Barcode/QR Code'}
+            {isScanning ? t("barcodeScanner.scanning") : t("barcodeScanner.scanButton")}
           </Button>
 
           {scanResults.length > 0 && (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                 <h3 className="font-medium text-green-800 dark:text-green-200 mb-4">
-                  Scan Successful! Found {scanResults.length} barcode{scanResults.length > 1 ? 's' : ''}
+                  {t("barcodeScanner.scanSuccessful")} {scanResults.length} {scanResults.length > 1 ? t("barcodeScanner.barcodes") : t("barcodeScanner.barcode")}
                 </h3>
                 
                 <div className="space-y-6">
