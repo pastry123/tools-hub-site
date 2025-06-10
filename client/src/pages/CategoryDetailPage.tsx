@@ -19,11 +19,11 @@ export default function CategoryDetailPage() {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">Category Not Found</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">{t("category.notFound")}</h2>
           <Link href="/">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              {t("category.backToDashboard")}
             </Button>
           </Link>
         </div>
@@ -32,7 +32,7 @@ export default function CategoryDetailPage() {
   }
 
   const breadcrumbItems = [
-    { name: category.title }
+    { name: t(`category.${category.id}.title`) }
   ];
 
   return (
@@ -47,10 +47,10 @@ export default function CategoryDetailPage() {
               <i className={`fas ${category.icon} text-${category.color}-500 text-2xl`}></i>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{category.title}</h1>
-              <p className="text-slate-600 dark:text-gray-300">{category.description}</p>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{t(`category.${category.id}.title`)}</h1>
+              <p className="text-slate-600 dark:text-gray-300">{t(`category.${category.id}.description`)}</p>
               <Badge variant="secondary" className="mt-2">
-                {category.tools.length} tools
+                {category.tools.length} {t("category.toolsCount")}
               </Badge>
             </div>
           </div>

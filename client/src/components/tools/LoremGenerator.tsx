@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Copy, FileText, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LoremGenerator() {
   const [textType, setTextType] = useState("lorem");
@@ -13,6 +14,7 @@ export default function LoremGenerator() {
   const [countType, setCountType] = useState("paragraphs");
   const [generatedText, setGeneratedText] = useState("");
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const loremWords = [
     "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",

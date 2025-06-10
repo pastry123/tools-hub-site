@@ -159,6 +159,43 @@ const translations = {
     "dashboard.security.title": "Security and Privacy Commitment",
     "dashboard.security.protection.title": "Data Protection",
     "dashboard.security.protection.description": "All processing happens locally in your browser. Files uploaded to tools like our {pdfMerger} or {imageCompressor} are never stored on our servers. Data is processed client-side and immediately discarded after use.",
+    
+    // Category Pages
+    "category.notFound": "Category Not Found",
+    "category.backToDashboard": "Back to Dashboard",
+    "category.toolsCount": "tools",
+    "category.useTool": "Use Tool",
+    
+    // Tool Pages - Common Elements
+    "tool.addToFavorites": "Add to Favorites",
+    "tool.removeFromFavorites": "Remove from Favorites",
+    "tool.multipleFormats": "Multiple Formats",
+    "tool.multipleFormats.desc": "Download results in various formats for maximum compatibility",
+    "tool.mobileOptimized": "Mobile Optimized",
+    "tool.mobileOptimized.desc": "Works perfectly on all devices and screen sizes",
+    "tool.securePrivate": "Secure & Private",
+    "tool.securePrivate.desc": "All processing happens in your browser. Your data never leaves your device",
+    
+    // Lorem Ipsum Generator
+    "lorem.title": "Lorem Ipsum Generator",
+    "lorem.subtitle": "Generate placeholder text",
+    "lorem.generate": "Generate",
+    "lorem.paragraphs": "Paragraphs",
+    "lorem.count": "Count",
+    "lorem.textType": "Text Type",
+    "lorem.loremIpsum": "Lorem Ipsum",
+    "lorem.generateText": "Generate Text",
+    
+    // Text to Slug
+    "textSlug.title": "Text to Slug",
+    "textSlug.subtitle": "Convert text to URL-friendly slugs",
+    "textSlug.inputText": "Input Text",
+    "textSlug.enterText": "Enter your text here",
+    "textSlug.maxLength": "Max Length (optional)",
+    "textSlug.separator": "Separator",
+    "textSlug.convertLowercase": "Convert to lowercase",
+    "textSlug.removeDiacritics": "Remove diacritics (accents)",
+    "textSlug.generateSlug": "Generate Slug",
   },
   es: {
     // Header
@@ -310,6 +347,43 @@ const translations = {
     "dashboard.security.title": "Compromiso de Seguridad y Privacidad",
     "dashboard.security.protection.title": "Protección de Datos",
     "dashboard.security.protection.description": "Todo el procesamiento ocurre localmente en tu navegador. Los archivos subidos a herramientas como nuestro {pdfMerger} o {imageCompressor} nunca se almacenan en nuestros servidores. Los datos se procesan del lado del cliente y se descartan inmediatamente después del uso.",
+    
+    // Category Pages
+    "category.notFound": "Categoría No Encontrada",
+    "category.backToDashboard": "Volver al Panel",
+    "category.toolsCount": "herramientas",
+    "category.useTool": "Usar Herramienta",
+    
+    // Tool Pages - Common Elements
+    "tool.addToFavorites": "Agregar a Favoritos",
+    "tool.removeFromFavorites": "Eliminar de Favoritos",
+    "tool.multipleFormats": "Múltiples Formatos",
+    "tool.multipleFormats.desc": "Descargar resultados en varios formatos para máxima compatibilidad",
+    "tool.mobileOptimized": "Optimizado para Móvil",
+    "tool.mobileOptimized.desc": "Funciona perfectamente en todos los dispositivos y tamaños de pantalla",
+    "tool.securePrivate": "Seguro y Privado",
+    "tool.securePrivate.desc": "Todo el procesamiento ocurre en tu navegador. Tus datos nunca salen de tu dispositivo",
+    
+    // Lorem Ipsum Generator
+    "lorem.title": "Generador Lorem Ipsum",
+    "lorem.subtitle": "Generar texto de relleno",
+    "lorem.generate": "Generar",
+    "lorem.paragraphs": "Párrafos",
+    "lorem.count": "Cantidad",
+    "lorem.textType": "Tipo de Texto",
+    "lorem.loremIpsum": "Lorem Ipsum",
+    "lorem.generateText": "Generar Texto",
+    
+    // Text to Slug
+    "textSlug.title": "Texto a Slug",
+    "textSlug.subtitle": "Convertir texto a slugs amigables para URL",
+    "textSlug.inputText": "Texto de Entrada",
+    "textSlug.enterText": "Ingresa tu texto aquí",
+    "textSlug.maxLength": "Longitud Máxima (opcional)",
+    "textSlug.separator": "Separador",
+    "textSlug.convertLowercase": "Convertir a minúsculas",
+    "textSlug.removeDiacritics": "Eliminar diacríticos (acentos)",
+    "textSlug.generateSlug": "Generar Slug",
   },
   ar: {
     // Header
@@ -461,6 +535,43 @@ const translations = {
     "dashboard.security.title": "التزام الأمان والخصوصية",
     "dashboard.security.protection.title": "حماية البيانات",
     "dashboard.security.protection.description": "تتم جميع العمليات محلياً في متصفحك. الملفات المرفوعة لأدوات مثل {pdfMerger} أو {imageCompressor} لا تُخزن أبداً على خوادمنا. تتم معالجة البيانات من جانب العميل ويتم التخلص منها فوراً بعد الاستخدام.",
+    
+    // Category Pages
+    "category.notFound": "الفئة غير موجودة",
+    "category.backToDashboard": "العودة إلى لوحة التحكم",
+    "category.toolsCount": "أدوات",
+    "category.useTool": "استخدام الأداة",
+    
+    // Tool Pages - Common Elements
+    "tool.addToFavorites": "إضافة إلى المفضلة",
+    "tool.removeFromFavorites": "إزالة من المفضلة",
+    "tool.multipleFormats": "تنسيقات متعددة",
+    "tool.multipleFormats.desc": "تحميل النتائج بتنسيقات مختلفة لأقصى توافق",
+    "tool.mobileOptimized": "محسن للجوال",
+    "tool.mobileOptimized.desc": "يعمل بشكل مثالي على جميع الأجهزة وأحجام الشاشات",
+    "tool.securePrivate": "آمن وخاص",
+    "tool.securePrivate.desc": "تتم جميع العمليات في متصفحك. بياناتك لا تغادر جهازك أبداً",
+    
+    // Lorem Ipsum Generator
+    "lorem.title": "مولد Lorem Ipsum",
+    "lorem.subtitle": "إنشاء نص تجريبي",
+    "lorem.generate": "إنشاء",
+    "lorem.paragraphs": "فقرات",
+    "lorem.count": "العدد",
+    "lorem.textType": "نوع النص",
+    "lorem.loremIpsum": "Lorem Ipsum",
+    "lorem.generateText": "إنشاء النص",
+    
+    // Text to Slug
+    "textSlug.title": "النص إلى Slug",
+    "textSlug.subtitle": "تحويل النص إلى slugs صديقة للروابط",
+    "textSlug.inputText": "النص المدخل",
+    "textSlug.enterText": "أدخل نصك هنا",
+    "textSlug.maxLength": "الطول الأقصى (اختياري)",
+    "textSlug.separator": "الفاصل",
+    "textSlug.convertLowercase": "تحويل إلى أحرف صغيرة",
+    "textSlug.removeDiacritics": "إزالة علامات التشكيل",
+    "textSlug.generateSlug": "إنشاء Slug",
   }
 };
 
