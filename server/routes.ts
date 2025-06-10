@@ -1887,7 +1887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ESIGN & DIGITAL SIGNATURE ENDPOINTS
 
   // AI Signature Generator
-  app.post('/api/signature/ai-generate', async (req, res) => {
+  app.post('/api/esign/generate-signature', async (req, res) => {
     try {
       const { name, style, format } = req.body;
       if (!name) {
