@@ -190,71 +190,62 @@ export class SimpleImageService {
     return sizes.map(size => ({ size, data: buffer }));
   }
 
-  async extractColorPalette(buffer: Buffer, colorCount: number = 5): Promise<ColorPalette> {
+  async extractColorPalette(buffer: Buffer): Promise<ColorPalette> {
     try {
-      // Simple approach: convert to PNG and extract raw RGB data
-      const imageBuffer = await sharp(buffer)
-        .resize(200, 200, { fit: 'inside' })
-        .png()
+      // Convert image to raw pixel data
+      const { data, info } = await sharp(buffer)
+        .resize(150, 150, { fit: 'cover' })
         .raw()
-        .toBuffer();
+        .toBuffer({ resolveWithObject: true });
 
-      const metadata = await sharp(buffer).metadata();
-      const resizedMetadata = await sharp(buffer).resize(200, 200, { fit: 'inside' }).metadata();
+      const pixels = data;
+      const { width, height, channels } = info;
       
-      console.log(`Processing: ${metadata.width}x${metadata.height} -> ${resizedMetadata.width}x${resizedMetadata.height}`);
-
-      // Calculate dimensions
-      const width = resizedMetadata.width || 200;
-      const height = resizedMetadata.height || 200;
-      const totalPixels = width * height;
-
-      const colorMap = new Map<string, number>();
-
-      // Process RGB data - every 3 bytes is one pixel (R, G, B)
-      for (let i = 0; i < imageBuffer.length; i += 3) {
-        const r = imageBuffer[i];
-        const g = imageBuffer[i + 1];
-        const b = imageBuffer[i + 2];
-
-        if (r !== undefined && g !== undefined && b !== undefined) {
-          // Quantize colors to reduce noise (group similar colors)
-          const qR = Math.floor(r / 20) * 20;
-          const qG = Math.floor(g / 20) * 20;
-          const qB = Math.floor(b / 20) * 20;
-
-          const colorKey = `${qR},${qG},${qB}`;
-          colorMap.set(colorKey, (colorMap.get(colorKey) || 0) + 1);
+      // Map to store color frequencies
+      const colors = new Map<string, { r: number; g: number; b: number; count: number }>();
+      
+      // Sample pixels (every 4th pixel for performance)
+      for (let i = 0; i < pixels.length; i += channels * 4) {
+        const r = pixels[i] || 0;
+        const g = pixels[i + 1] || 0;
+        const b = pixels[i + 2] || 0;
+        
+        // Create color key
+        const key = `${r}-${g}-${b}`;
+        
+        if (colors.has(key)) {
+          colors.get(key)!.count++;
+        } else {
+          colors.set(key, { r, g, b, count: 1 });
         }
       }
-
-      // Sort colors by frequency
-      const sortedColors = Array.from(colorMap.entries())
-        .map(([key, count]) => {
-          const [r, g, b] = key.split(',').map(Number);
-          return { r, g, b, count, percentage: Math.round((count / totalPixels) * 100) };
-        })
-        .filter(color => color.percentage >= 1) // Only colors representing at least 1% of image
+      
+      // Convert to array and sort by frequency
+      const colorArray = Array.from(colors.values())
         .sort((a, b) => b.count - a.count);
-
-      console.log(`Found ${sortedColors.length} significant colors from ${totalPixels} pixels`);
-      sortedColors.slice(0, 10).forEach((color, i) => {
-        console.log(`${i + 1}. RGB(${color.r}, ${color.g}, ${color.b}) - ${color.percentage}%`);
-      });
-
-      const colors = sortedColors.map(color => ({
-        hex: `#${color.r.toString(16).padStart(2, '0')}${color.g.toString(16).padStart(2, '0')}${color.b.toString(16).padStart(2, '0')}`,
-        rgb: { r: color.r, g: color.g, b: color.b },
-        percentage: color.percentage
-      }));
+      
+      // Calculate total samples
+      const totalSamples = colorArray.reduce((sum, color) => sum + color.count, 0);
+      
+      // Get colors with at least 0.5% representation
+      const significantColors = colorArray
+        .filter(color => (color.count / totalSamples) >= 0.005)
+        .map(color => ({
+          hex: `#${color.r.toString(16).padStart(2, '0')}${color.g.toString(16).padStart(2, '0')}${color.b.toString(16).padStart(2, '0')}`,
+          rgb: { r: color.r, g: color.g, b: color.b },
+          percentage: Math.round((color.count / totalSamples) * 100)
+        }));
 
       return {
-        dominant: colors[0]?.hex || '#000000',
-        colors
+        dominant: significantColors[0]?.hex || '#000000',
+        colors: significantColors
       };
     } catch (error) {
-      console.error('Color palette extraction error:', error);
-      throw new Error('Failed to extract color palette');
+      console.error('Color extraction failed:', error);
+      return {
+        dominant: '#000000',
+        colors: []
+      };
     }
   }
 
