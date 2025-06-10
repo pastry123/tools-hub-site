@@ -113,11 +113,11 @@ export default function BarcodeSubcategoryPage() {
                     </div>
                     
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                      {tool.name}
+                      {t(`tools.${tool.id}`) || tool.name}
                     </h3>
                     
                     <p className="text-sm text-slate-600 dark:text-gray-300 mb-4 leading-relaxed">
-                      {tool.description}
+                      {t(`tools.${tool.id}.desc`) || tool.description}
                     </p>
                     
                     <div className="flex items-center justify-center w-full pt-2 border-t border-slate-100 dark:border-gray-700">

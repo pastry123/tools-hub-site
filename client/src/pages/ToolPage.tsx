@@ -304,8 +304,8 @@ export default function ToolPage() {
               <i className={`fas ${tool.icon} text-${category.color}-500 text-2xl`}></i>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{tool.name}</h1>
-              <p className="text-slate-600 dark:text-gray-300">{tool.description}</p>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{t(`tools.${toolId}`)}</h1>
+              <p className="text-slate-600 dark:text-gray-300">{t(`tools.${toolId}.desc`)}</p>
             </div>
           </div>
           <Button

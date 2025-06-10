@@ -91,7 +91,7 @@ export default function FavoritesPage() {
                   </div>
                   
                   <h3 className="font-semibold text-slate-800 dark:text-white mb-2 group-hover:text-primary transition-colors">
-                    {favorite.toolName}
+                    {t(`tools.${favorite.toolId}`) || favorite.toolName}
                   </h3>
                   
                   <div className="flex items-center justify-between mb-4">

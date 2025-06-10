@@ -109,8 +109,8 @@ export default function Dashboard() {
                   <div className={`w-12 h-12 bg-${category.color}-100 dark:bg-${category.color}-900 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary group-hover:text-white transition-colors`}>
                     <i className={`fas ${tool.icon} text-${category.color}-500 group-hover:text-white`}></i>
                   </div>
-                  <h4 className="font-medium text-slate-900 dark:text-white">{tool.name.split(' ')[0]}</h4>
-                  <p className="text-sm text-slate-500 dark:text-gray-400">{tool.name.split(' ').slice(1).join(' ')}</p>
+                  <h4 className="font-medium text-slate-900 dark:text-white">{t(`tools.${tool.id}`).split(' ')[0]}</h4>
+                  <p className="text-sm text-slate-500 dark:text-gray-400">{t(`tools.${tool.id}`).split(' ').slice(1).join(' ')}</p>
                 </CardContent>
               </Card>
             </Link>
