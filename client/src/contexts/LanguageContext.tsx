@@ -11,7 +11,7 @@ interface LanguageContextType {
 const translations = {
   en: {
     // Header
-    "header.title": "ToolHub",
+    "header.title": "Aptexa's ToolHub",
     "header.subtitle": "Professional Online Tools",
     "header.search": "Search tools...",
     "header.dashboard": "Dashboard",
@@ -27,7 +27,7 @@ const translations = {
     "dashboard.stats.free": "Free to Use",
     "dashboard.quickAccess": "Quick Access",
     "dashboard.allCategories": "All Tool Categories",
-    "dashboard.features.title": "Why Choose ToolHub?",
+    "dashboard.features.title": "Why Choose Aptexa's ToolHub?",
     "dashboard.features.secure": "Secure & Private",
     "dashboard.features.secureDesc": "All processing happens in your browser. Your data never leaves your device.",
     "dashboard.features.fast": "Lightning Fast",
@@ -86,7 +86,7 @@ const translations = {
   },
   es: {
     // Header
-    "header.title": "ToolHub",
+    "header.title": "Aptexa's ToolHub",
     "header.subtitle": "Herramientas Profesionales en Línea",
     "header.search": "Buscar herramientas...",
     "header.dashboard": "Panel",
@@ -102,7 +102,7 @@ const translations = {
     "dashboard.stats.free": "Gratis",
     "dashboard.quickAccess": "Acceso Rápido",
     "dashboard.allCategories": "Todas las Categorías",
-    "dashboard.features.title": "¿Por qué elegir ToolHub?",
+    "dashboard.features.title": "¿Por qué elegir Aptexa's ToolHub?",
     "dashboard.features.secure": "Seguro y Privado",
     "dashboard.features.secureDesc": "Todo el procesamiento ocurre en tu navegador. Tus datos nunca salen de tu dispositivo.",
     "dashboard.features.fast": "Súper Rápido",
@@ -157,7 +157,7 @@ const translations = {
   },
   ar: {
     // Header
-    "header.title": "ToolHub",
+    "header.title": "Aptexa's ToolHub",
     "header.subtitle": "أدوات احترافية على الإنترنت",
     "header.search": "البحث في الأدوات...",
     "header.dashboard": "لوحة التحكم",
@@ -173,7 +173,7 @@ const translations = {
     "dashboard.stats.free": "مجاني للاستخدام",
     "dashboard.quickAccess": "الوصول السريع",
     "dashboard.allCategories": "جميع فئات الأدوات",
-    "dashboard.features.title": "لماذا تختار ToolHub؟",
+    "dashboard.features.title": "لماذا تختار Aptexa's ToolHub؟",
     "dashboard.features.secure": "آمن وخاص",
     "dashboard.features.secureDesc": "تتم جميع العمليات في متصفحك. بياناتك لا تغادر جهازك أبداً.",
     "dashboard.features.fast": "سريع جداً",

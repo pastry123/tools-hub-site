@@ -14,7 +14,7 @@ export default function Dashboard() {
       {/* Hero Section */}
       <div className="mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white mb-4">
-          Professional Online Tools Dashboard - 50+ Free Utilities
+          Aptexa's ToolHub - Professional Online Tools Dashboard | 50+ Free Utilities
         </h1>
         <p className="text-slate-600 dark:text-gray-300 text-xl mb-6 leading-relaxed">
           50+ professional tools for <a href="/tool/barcode-generator" className="text-primary hover:underline">barcodes</a>, 
