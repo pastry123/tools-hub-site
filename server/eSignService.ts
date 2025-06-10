@@ -72,53 +72,90 @@ export class ESignService {
       'strong-confident': 'bold, powerful, thick strokes with strong presence'
     };
 
-    const prompt = `Generate handwriting parameters for "${name}" signature in ${styleDescriptions[style as keyof typeof styleDescriptions] || 'elegant cursive'} style.
+    const styleVariations = {
+      'professional-executive': {
+        letterSpacing: [1.0, 1.3], baselineVariation: [2, 6], strokeVariation: [1.2, 2.0],
+        flourishIntensity: [0.2, 0.5], slantAngle: [-5, -1], pressureVariation: [0.3, 0.5]
+      },
+      'artistic-flowing': {
+        letterSpacing: [1.2, 1.6], baselineVariation: [8, 15], strokeVariation: [2.0, 3.0],
+        flourishIntensity: [0.6, 0.9], slantAngle: [-12, -3], pressureVariation: [0.5, 0.8]
+      },
+      'traditional-formal': {
+        letterSpacing: [0.8, 1.1], baselineVariation: [1, 4], strokeVariation: [0.8, 1.5],
+        flourishIntensity: [0.1, 0.3], slantAngle: [-2, 2], pressureVariation: [0.2, 0.4]
+      },
+      'contemporary-clean': {
+        letterSpacing: [0.9, 1.2], baselineVariation: [2, 5], strokeVariation: [1.0, 1.8],
+        flourishIntensity: [0.3, 0.6], slantAngle: [-4, 0], pressureVariation: [0.2, 0.4]
+      },
+      'sophisticated-cursive': {
+        letterSpacing: [1.1, 1.4], baselineVariation: [4, 8], strokeVariation: [1.5, 2.5],
+        flourishIntensity: [0.4, 0.8], slantAngle: [-8, -2], pressureVariation: [0.4, 0.6]
+      },
+      'strong-confident': {
+        letterSpacing: [1.0, 1.3], baselineVariation: [3, 7], strokeVariation: [2.0, 3.5],
+        flourishIntensity: [0.3, 0.7], slantAngle: [-6, -1], pressureVariation: [0.4, 0.7]
+      }
+    };
 
-Respond with only this JSON format, no explanations:
-{
-  "letterSpacing": 1.2,
-  "baselineVariation": 8,
-  "strokeVariation": 2.0,
-  "flourishIntensity": 0.7,
-  "connectionStyle": "connected",
-  "slantAngle": -5,
-  "pressureVariation": 0.4
-}`;
+    const variations = styleVariations[style as keyof typeof styleVariations] || styleVariations['sophisticated-cursive'];
+    
+    // Generate random values within style ranges
+    const randomInRange = (range: number[]) => range[0] + Math.random() * (range[1] - range[0]);
+    
+    const generatedParams = {
+      letterSpacing: Math.round(randomInRange(variations.letterSpacing) * 10) / 10,
+      baselineVariation: Math.round(randomInRange(variations.baselineVariation)),
+      strokeVariation: Math.round(randomInRange(variations.strokeVariation) * 10) / 10,
+      flourishIntensity: Math.round(randomInRange(variations.flourishIntensity) * 10) / 10,
+      connectionStyle: Math.random() > 0.7 ? 'partially-connected' : 'connected',
+      slantAngle: Math.round(randomInRange(variations.slantAngle)),
+      pressureVariation: Math.round(randomInRange(variations.pressureVariation) * 10) / 10
+    };
+
+    const prompt = `Refine these signature parameters for "${name}" in ${styleDescriptions[style as keyof typeof styleDescriptions]} style: ${JSON.stringify(generatedParams)}
+
+Return refined JSON only:`;
 
     const completion = await this.groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: 'llama3-8b-8192',
-      temperature: 0.8,
-      max_tokens: 200
+      temperature: 0.9,
+      max_tokens: 150
     });
 
-    const content = completion.choices[0]?.message?.content;
+    // Use name-based seeding for more variation
+    const nameHash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const styleSeed = style.length * 7;
+    const combinedSeed = (nameHash + styleSeed) % 1000;
     
-    if (content) {
-      try {
-        // Extract JSON from response that might contain extra text
-        const codeBlockMatch = content.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
-        let jsonText = content;
-        
-        if (codeBlockMatch) {
-          jsonText = codeBlockMatch[1];
-        } else {
-          const jsonMatch = content.match(/\{[\s\S]*?\}/);
-          if (jsonMatch) {
-            jsonText = jsonMatch[0];
-          }
-        }
-        
-        const parsed = JSON.parse(jsonText);
-        console.log('AI generated signature parameters:', parsed);
-        return parsed;
-      } catch (parseError) {
-        console.error('Failed to parse AI response, using defaults');
-        return this.getDefaultAIInstructions(style);
-      }
-    }
+    // Create seeded random function
+    const seededRandom = (seed: number) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
     
-    return this.getDefaultAIInstructions(style);
+    // Apply additional variation based on name and style
+    const variationFactor = seededRandom(combinedSeed);
+    
+    generatedParams.letterSpacing += (variationFactor - 0.5) * 0.2;
+    generatedParams.baselineVariation += Math.floor((variationFactor - 0.5) * 4);
+    generatedParams.strokeVariation += (variationFactor - 0.5) * 0.3;
+    generatedParams.flourishIntensity += (variationFactor - 0.5) * 0.2;
+    generatedParams.slantAngle += Math.floor((variationFactor - 0.5) * 4);
+    generatedParams.pressureVariation += (variationFactor - 0.5) * 0.1;
+    
+    // Clamp values to reasonable ranges
+    generatedParams.letterSpacing = Math.max(0.7, Math.min(1.8, generatedParams.letterSpacing));
+    generatedParams.baselineVariation = Math.max(1, Math.min(20, generatedParams.baselineVariation));
+    generatedParams.strokeVariation = Math.max(0.5, Math.min(4.0, generatedParams.strokeVariation));
+    generatedParams.flourishIntensity = Math.max(0.1, Math.min(1.0, generatedParams.flourishIntensity));
+    generatedParams.slantAngle = Math.max(-15, Math.min(15, generatedParams.slantAngle));
+    generatedParams.pressureVariation = Math.max(0.1, Math.min(1.0, generatedParams.pressureVariation));
+    
+    console.log('AI generated signature parameters:', generatedParams);
+    return generatedParams;
   }
 
   private getDefaultAIInstructions(style: string): any {
