@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { generateQRCodeURL, downloadQRCode, validateQRContent } from "@/lib/qrGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function QRGenerator() {
   const [content, setContent] = useState("");
@@ -17,6 +18,7 @@ export default function QRGenerator() {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleGenerate = async () => {
     const validation = validateQRContent(content);
