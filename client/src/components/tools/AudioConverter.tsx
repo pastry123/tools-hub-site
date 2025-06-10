@@ -113,10 +113,10 @@ export default function AudioConverter() {
       if (customBitrate) {
         formData.append('bitrate', customBitrate);
       }
-      if (sampleRate) {
+      if (sampleRate && sampleRate !== 'original') {
         formData.append('sampleRate', sampleRate);
       }
-      if (channels) {
+      if (channels && channels !== 'original') {
         formData.append('channels', channels);
       }
 
@@ -294,7 +294,7 @@ export default function AudioConverter() {
                         <SelectValue placeholder="Keep original" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Keep original</SelectItem>
+                        <SelectItem value="original">Keep original</SelectItem>
                         <SelectItem value="22050">22,050 Hz</SelectItem>
                         <SelectItem value="44100">44,100 Hz (CD quality)</SelectItem>
                         <SelectItem value="48000">48,000 Hz (DVD quality)</SelectItem>
@@ -309,7 +309,7 @@ export default function AudioConverter() {
                         <SelectValue placeholder="Keep original" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Keep original</SelectItem>
+                        <SelectItem value="original">Keep original</SelectItem>
                         <SelectItem value="1">Mono (1 channel)</SelectItem>
                         <SelectItem value="2">Stereo (2 channels)</SelectItem>
                       </SelectContent>
