@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 export interface UUIDOptions {
   version: 'v1' | 'v4';
@@ -43,6 +44,28 @@ export interface MetaTags {
   ogImage?: string;
   twitterCard?: string;
   html: string;
+}
+
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+}
+
+export interface InvoiceData {
+  companyName: string;
+  companyAddress: string;
+  clientName: string;
+  clientAddress: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  notes?: string;
 }
 
 export class GeneratorService {
@@ -143,6 +166,270 @@ export class GeneratorService {
     }
 
     return tags.join('\n');
+  }
+
+  async generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([612, 792]); // Letter size
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    let yPosition = 750;
+    const leftMargin = 50;
+    const rightMargin = 562;
+    
+    // Header
+    page.drawText('INVOICE', {
+      x: leftMargin,
+      y: yPosition,
+      size: 24,
+      font: boldFont,
+      color: rgb(0.2, 0.2, 0.2),
+    });
+    
+    // Invoice number and date
+    yPosition -= 30;
+    page.drawText(`Invoice #: ${data.invoiceNumber}`, {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    page.drawText(`Date: ${data.invoiceDate}`, {
+      x: rightMargin - 150,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    if (data.dueDate) {
+      yPosition -= 20;
+      page.drawText(`Due Date: ${data.dueDate}`, {
+        x: rightMargin - 150,
+        y: yPosition,
+        size: 12,
+        font: font,
+      });
+    }
+    
+    // Company info
+    yPosition -= 50;
+    page.drawText('From:', {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    
+    yPosition -= 20;
+    page.drawText(data.companyName, {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    if (data.companyAddress) {
+      const addressLines = data.companyAddress.split('\n');
+      for (const line of addressLines) {
+        yPosition -= 15;
+        page.drawText(line, {
+          x: leftMargin,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+      }
+    }
+    
+    // Client info
+    yPosition -= 40;
+    page.drawText('To:', {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    
+    yPosition -= 20;
+    page.drawText(data.clientName, {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    if (data.clientAddress) {
+      const addressLines = data.clientAddress.split('\n');
+      for (const line of addressLines) {
+        yPosition -= 15;
+        page.drawText(line, {
+          x: leftMargin,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+      }
+    }
+    
+    // Items table
+    yPosition -= 50;
+    const tableTop = yPosition;
+    
+    // Table headers
+    page.drawText('Description', {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    
+    page.drawText('Qty', {
+      x: 350,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    
+    page.drawText('Rate', {
+      x: 400,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    
+    page.drawText('Amount', {
+      x: 480,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    
+    // Table line
+    yPosition -= 5;
+    page.drawLine({
+      start: { x: leftMargin, y: yPosition },
+      end: { x: rightMargin, y: yPosition },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Items
+    yPosition -= 20;
+    for (const item of data.items) {
+      if (item.description) {
+        page.drawText(item.description.substring(0, 30), {
+          x: leftMargin,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        
+        page.drawText(item.quantity.toString(), {
+          x: 350,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        
+        page.drawText(`$${item.rate.toFixed(2)}`, {
+          x: 400,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        
+        page.drawText(`$${item.amount.toFixed(2)}`, {
+          x: 480,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        
+        yPosition -= 20;
+      }
+    }
+    
+    // Totals
+    yPosition -= 20;
+    page.drawLine({
+      start: { x: 400, y: yPosition },
+      end: { x: rightMargin, y: yPosition },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+    
+    yPosition -= 20;
+    page.drawText('Subtotal:', {
+      x: 400,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    page.drawText(`$${data.subtotal.toFixed(2)}`, {
+      x: 480,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    yPosition -= 20;
+    page.drawText('Tax:', {
+      x: 400,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    page.drawText(`$${data.tax.toFixed(2)}`, {
+      x: 480,
+      y: yPosition,
+      size: 12,
+      font: font,
+    });
+    
+    yPosition -= 20;
+    page.drawText('Total:', {
+      x: 400,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+    });
+    
+    page.drawText(`$${data.total.toFixed(2)}`, {
+      x: 480,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+    });
+    
+    // Notes
+    if (data.notes) {
+      yPosition -= 60;
+      page.drawText('Notes:', {
+        x: leftMargin,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+      });
+      
+      yPosition -= 20;
+      const noteLines = data.notes.split('\n');
+      for (const line of noteLines) {
+        page.drawText(line.substring(0, 80), {
+          x: leftMargin,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        yPosition -= 15;
+      }
+    }
+    
+    const pdfBytes = await pdfDoc.save();
+    return Buffer.from(pdfBytes);
   }
 }
 
