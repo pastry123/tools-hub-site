@@ -171,7 +171,7 @@ export default function ColorAnalyzer() {
               </div>
 
               <div>
-                <Label className="text-base font-medium">Dominant Color</Label>
+                <Label className="text-base font-medium">{t("colorAnalyzer.dominantColor")}</Label>
                 <div className="flex items-center gap-3 mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <div 
                     className="w-16 h-16 rounded-lg border-2 border-gray-300 cursor-pointer"
@@ -182,14 +182,14 @@ export default function ColorAnalyzer() {
                     <p className="font-mono text-lg">{analysis.dominant}</p>
                     <Button variant="ghost" size="sm" onClick={() => copyColor(analysis.dominant)}>
                       <Copy className="w-3 h-3 mr-1" />
-                      Copy
+                      {t("colorAnalyzer.copy")}
                     </Button>
                   </div>
                 </div>
               </div>
 
               <div>
-                <Label className="text-base font-medium">All Colors</Label>
+                <Label className="text-base font-medium">{t("colorAnalyzer.colorPalette")}</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 max-h-96 overflow-y-auto">
                   {analysis.colors.map((color, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">

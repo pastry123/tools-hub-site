@@ -1480,6 +1480,7 @@ const translations = {
     "colorAnalyzer.export": "تصدير",
     "colorAnalyzer.dominantColor": "اللون السائد",
     "colorAnalyzer.colorPalette": "لوحة الألوان",
+    "colorAnalyzer.copy": "نسخ",
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
