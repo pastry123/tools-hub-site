@@ -1507,24 +1507,7 @@ const translations = {
     "colorAnalyzer.colorPalette": "لوحة الألوان",
     "colorAnalyzer.copy": "نسخ",
 
-    // Image Tools translations
-    "imageCropper.title": "مقص الصور",
-    "imageCropper.subtitle": "اقتص وحرر الصور بدقة احترافية",
-    "imageCropper.uploadImage": "رفع صورة للقص",
-    "imageCropper.clickUpload": "اضغط للرفع",
-    "imageCropper.dragDrop": "أو اسحب وأفلت",
-    "imageCropper.cropImage": "قص الصورة",
-    "imageCropper.download": "تحميل",
-    "imageCropper.reset": "إعادة تعيين",
-    "imageCropper.processing": "جاري المعالجة...",
 
-    // Background Remover translations
-    "backgroundRemover.title": "إزالة الخلفية",
-    "backgroundRemover.subtitle": "إزالة الخلفية من الصور تلقائياً",
-    "backgroundRemover.uploadImage": "رفع صورة لإزالة الخلفية",
-    "backgroundRemover.removeBackground": "إزالة الخلفية",
-    "backgroundRemover.processing": "جاري إزالة الخلفية...",
-    "backgroundRemover.download": "تحميل",
 
     // Lorem Generator translations
     "loremGenerator.title": "مولد النص التجريبي",
