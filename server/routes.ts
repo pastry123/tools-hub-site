@@ -854,7 +854,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         wav: 'audio/wav',
         ogg: 'audio/ogg',
         aac: 'audio/aac',
-        flac: 'audio/flac'
+        flac: 'audio/flac',
+        m4a: 'audio/mp4',
+        wma: 'audio/x-ms-wma',
+        opus: 'audio/opus',
+        ac3: 'audio/ac3',
+        amr: 'audio/amr',
+        au: 'audio/basic',
+        ra: 'audio/vnd.rn-realaudio',
+        mp2: 'audio/mpeg',
+        aiff: 'audio/aiff',
+        dts: 'audio/dts',
+        ape: 'audio/ape',
+        tak: 'audio/tak',
+        tta: 'audio/tta',
+        gsm: 'audio/gsm',
+        voc: 'audio/voc'
       };
       
       res.set({

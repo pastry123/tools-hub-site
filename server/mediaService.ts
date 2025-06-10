@@ -13,7 +13,7 @@ export interface VideoToGifOptions {
 }
 
 export interface AudioConversionOptions {
-  format: 'mp3' | 'wav' | 'ogg' | 'aac' | 'flac';
+  format: 'mp3' | 'wav' | 'ogg' | 'aac' | 'flac' | 'm4a' | 'wma' | 'opus' | 'ac3' | 'amr' | 'au' | 'ra' | 'mp2' | 'aiff' | 'dts' | 'ape' | 'tak' | 'tta' | 'gsm' | 'voc';
   bitrate?: string;
   sampleRate?: number;
   channels?: number;
@@ -143,6 +143,51 @@ export class MediaService {
         case 'flac':
           ffmpegArgs.push('-codec:a', 'flac');
           break;
+        case 'm4a':
+          ffmpegArgs.push('-codec:a', 'aac');
+          break;
+        case 'wma':
+          ffmpegArgs.push('-codec:a', 'wmav2');
+          break;
+        case 'opus':
+          ffmpegArgs.push('-codec:a', 'libopus');
+          break;
+        case 'ac3':
+          ffmpegArgs.push('-codec:a', 'ac3');
+          break;
+        case 'amr':
+          ffmpegArgs.push('-codec:a', 'libopencore_amrnb');
+          break;
+        case 'au':
+          ffmpegArgs.push('-codec:a', 'pcm_mulaw');
+          break;
+        case 'ra':
+          ffmpegArgs.push('-codec:a', 'real_144');
+          break;
+        case 'mp2':
+          ffmpegArgs.push('-codec:a', 'mp2');
+          break;
+        case 'aiff':
+          ffmpegArgs.push('-codec:a', 'pcm_s16be');
+          break;
+        case 'dts':
+          ffmpegArgs.push('-codec:a', 'dts');
+          break;
+        case 'ape':
+          ffmpegArgs.push('-codec:a', 'ape');
+          break;
+        case 'tak':
+          ffmpegArgs.push('-codec:a', 'tak');
+          break;
+        case 'tta':
+          ffmpegArgs.push('-codec:a', 'tta');
+          break;
+        case 'gsm':
+          ffmpegArgs.push('-codec:a', 'gsm');
+          break;
+        case 'voc':
+          ffmpegArgs.push('-codec:a', 'pcm_u8');
+          break;
       }
 
       // Audio quality settings
@@ -270,7 +315,22 @@ export class MediaService {
       'audio/ogg': '.ogg',
       'audio/aac': '.aac',
       'audio/flac': '.flac',
-      'audio/x-flac': '.flac'
+      'audio/x-flac': '.flac',
+      'audio/mp4': '.m4a',
+      'audio/x-ms-wma': '.wma',
+      'audio/opus': '.opus',
+      'audio/ac3': '.ac3',
+      'audio/amr': '.amr',
+      'audio/basic': '.au',
+      'audio/vnd.rn-realaudio': '.ra',
+      'audio/aiff': '.aiff',
+      'audio/x-aiff': '.aiff',
+      'audio/dts': '.dts',
+      'audio/ape': '.ape',
+      'audio/tak': '.tak',
+      'audio/tta': '.tta',
+      'audio/gsm': '.gsm',
+      'audio/voc': '.voc'
     };
     return extensions[mimeType] || '.tmp';
   }

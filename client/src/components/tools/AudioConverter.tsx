@@ -29,9 +29,24 @@ export default function AudioConverter() {
   const formatOptions = [
     { value: 'mp3', label: 'MP3', description: 'Most compatible format' },
     { value: 'wav', label: 'WAV', description: 'Uncompressed, best quality' },
-    { value: 'ogg', label: 'OGG', description: 'Open source, good compression' },
+    { value: 'flac', label: 'FLAC', description: 'Lossless compression' },
     { value: 'aac', label: 'AAC', description: 'High quality, used by Apple' },
-    { value: 'flac', label: 'FLAC', description: 'Lossless compression' }
+    { value: 'ogg', label: 'OGG', description: 'Open source, good compression' },
+    { value: 'm4a', label: 'M4A', description: 'Apple lossless format' },
+    { value: 'wma', label: 'WMA', description: 'Windows Media Audio' },
+    { value: 'opus', label: 'OPUS', description: 'Modern, efficient codec' },
+    { value: 'ac3', label: 'AC3', description: 'Dolby Digital audio' },
+    { value: 'amr', label: 'AMR', description: 'Adaptive Multi-Rate' },
+    { value: 'au', label: 'AU', description: 'Sun Microsystems format' },
+    { value: 'ra', label: 'RA', description: 'RealAudio format' },
+    { value: 'mp2', label: 'MP2', description: 'MPEG-1 Audio Layer II' },
+    { value: 'aiff', label: 'AIFF', description: 'Audio Interchange File Format' },
+    { value: 'dts', label: 'DTS', description: 'Digital Theater Systems' },
+    { value: 'ape', label: 'APE', description: "Monkey's Audio lossless" },
+    { value: 'tak', label: 'TAK', description: 'Tom\'s lossless Audio Kompressor' },
+    { value: 'tta', label: 'TTA', description: 'True Audio lossless' },
+    { value: 'gsm', label: 'GSM', description: 'Global System for Mobile' },
+    { value: 'voc', label: 'VOC', description: 'Creative Voice File' }
   ];
 
   const qualitySettings = {
@@ -327,14 +342,59 @@ export default function AudioConverter() {
                     {outputFormat === 'wav' && (
                       <p>WAV: Uncompressed audio, excellent quality. Large file sizes. Best for professional audio.</p>
                     )}
-                    {outputFormat === 'ogg' && (
-                      <p>OGG: Open source format, excellent compression. Good for web and gaming.</p>
+                    {outputFormat === 'flac' && (
+                      <p>FLAC: Lossless compression, preserves original quality. Larger than lossy formats.</p>
                     )}
                     {outputFormat === 'aac' && (
                       <p>AAC: High-quality compression, used by Apple. Good for mobile devices.</p>
                     )}
-                    {outputFormat === 'flac' && (
-                      <p>FLAC: Lossless compression, preserves original quality. Larger than lossy formats.</p>
+                    {outputFormat === 'ogg' && (
+                      <p>OGG: Open source format, excellent compression. Good for web and gaming.</p>
+                    )}
+                    {outputFormat === 'm4a' && (
+                      <p>M4A: Apple's container format with AAC codec. Good quality and iTunes compatibility.</p>
+                    )}
+                    {outputFormat === 'wma' && (
+                      <p>WMA: Windows Media Audio. Microsoft format with good compression.</p>
+                    )}
+                    {outputFormat === 'opus' && (
+                      <p>OPUS: Modern codec with excellent compression. Best for streaming and VoIP.</p>
+                    )}
+                    {outputFormat === 'ac3' && (
+                      <p>AC3: Dolby Digital surround sound format. Used in DVDs and Blu-rays.</p>
+                    )}
+                    {outputFormat === 'amr' && (
+                      <p>AMR: Adaptive Multi-Rate codec optimized for speech and mobile.</p>
+                    )}
+                    {outputFormat === 'au' && (
+                      <p>AU: Sun Microsystems audio format. Common on Unix systems.</p>
+                    )}
+                    {outputFormat === 'ra' && (
+                      <p>RA: RealAudio format for streaming. Legacy web audio format.</p>
+                    )}
+                    {outputFormat === 'mp2' && (
+                      <p>MP2: MPEG-1 Audio Layer II. Broadcast quality audio format.</p>
+                    )}
+                    {outputFormat === 'aiff' && (
+                      <p>AIFF: Audio Interchange File Format. Apple's uncompressed format.</p>
+                    )}
+                    {outputFormat === 'dts' && (
+                      <p>DTS: Digital Theater Systems surround sound format.</p>
+                    )}
+                    {outputFormat === 'ape' && (
+                      <p>APE: Monkey's Audio lossless format with high compression.</p>
+                    )}
+                    {outputFormat === 'tak' && (
+                      <p>TAK: Tom's lossless Audio Kompressor. Efficient lossless compression.</p>
+                    )}
+                    {outputFormat === 'tta' && (
+                      <p>TTA: True Audio lossless codec with real-time compression.</p>
+                    )}
+                    {outputFormat === 'gsm' && (
+                      <p>GSM: Global System for Mobile codec. Optimized for speech.</p>
+                    )}
+                    {outputFormat === 'voc' && (
+                      <p>VOC: Creative Voice File format from Sound Blaster cards.</p>
                     )}
                   </div>
                 </div>
