@@ -82,6 +82,7 @@ export default function ToolPage() {
   const { toolId } = useParams<{ toolId: string }>();
   const toolData = getToolById(toolId!);
   const { addToRecent, addToFavorites, removeFromFavorites, isFavorite } = useUserData();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (toolId) {
@@ -93,7 +94,7 @@ export default function ToolPage() {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-4">Tool Not Found</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">{t("toolPage.notFound")}</h2>
         </div>
       </main>
     );
@@ -320,7 +321,7 @@ export default function ToolPage() {
             className="flex items-center gap-2"
           >
             <Heart className={`w-5 h-5 ${isFavorite(toolId!) ? 'fill-current' : ''}`} />
-            {isFavorite(toolId!) ? 'Remove from Favorites' : 'Add to Favorites'}
+            {isFavorite(toolId!) ? t("toolPage.removeFromFavorites") : t("toolPage.addToFavorites")}
           </Button>
         </div>
 
@@ -333,22 +334,22 @@ export default function ToolPage() {
         <Card>
           <CardContent className="p-6">
             <Shield className="w-8 h-8 text-green-600 mb-3" />
-            <h3 className="font-semibold text-slate-800 mb-2">Secure & Private</h3>
-            <p className="text-slate-600 text-sm">All processing happens in your browser. Your data never leaves your device.</p>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">{t("tool.securePrivate")}</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">{t("tool.securePrivate.desc")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <Smartphone className="w-8 h-8 text-blue-600 mb-3" />
-            <h3 className="font-semibold text-slate-800 mb-2">Mobile Optimized</h3>
-            <p className="text-slate-600 text-sm">Works perfectly on all devices and screen sizes.</p>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">{t("tool.mobileOptimized")}</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">{t("tool.mobileOptimized.desc")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <Download className="w-8 h-8 text-purple-600 mb-3" />
-            <h3 className="font-semibold text-slate-800 mb-2">Multiple Formats</h3>
-            <p className="text-slate-600 text-sm">Download results in various formats for maximum compatibility.</p>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">{t("tool.multipleFormats")}</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">{t("tool.multipleFormats.desc")}</p>
           </CardContent>
         </Card>
       </div>

@@ -148,7 +148,7 @@ export default function TextToSlug() {
           {outputSlug && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Generated Slug</Label>
+                <Label>{t("textSlug.generatedSlug")}</Label>
                 <Button variant="outline" size="sm" onClick={copyToClipboard}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy

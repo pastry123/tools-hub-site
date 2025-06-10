@@ -145,7 +145,7 @@ export default function LoremGenerator() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="lorem">{t("lorem.loremIpsum")}</SelectItem>
-                  <SelectItem value="random">Random Words</SelectItem>
+                  <SelectItem value="random">{t("lorem.randomWords")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -168,8 +168,8 @@ export default function LoremGenerator() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="words">Words</SelectItem>
-                  <SelectItem value="sentences">Sentences</SelectItem>
+                  <SelectItem value="words">{t("lorem.words")}</SelectItem>
+                  <SelectItem value="sentences">{t("lorem.sentences")}</SelectItem>
                   <SelectItem value="paragraphs">{t("lorem.paragraphs")}</SelectItem>
                 </SelectContent>
               </Select>
@@ -186,10 +186,10 @@ export default function LoremGenerator() {
               <>
                 <Button onClick={copyToClipboard} variant="outline">
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy
+                  {t("lorem.copy")}
                 </Button>
                 <Button onClick={clearText} variant="outline">
-                  Clear
+                  {t("lorem.clear")}
                 </Button>
               </>
             )}
