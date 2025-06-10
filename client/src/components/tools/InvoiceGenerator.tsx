@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, Receipt, Plus, Trash2 } from "lucide-react";
+import { Download, Receipt, Plus, Trash2, Upload, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 interface InvoiceItem {
@@ -25,6 +28,10 @@ export default function InvoiceGenerator() {
     { description: "", quantity: 1, rate: 0, amount: 0 }
   ]);
   const [notes, setNotes] = useState("");
+  const [includeTax, setIncludeTax] = useState(true);
+  const [taxRate, setTaxRate] = useState(15);
+  const [companyLogo, setCompanyLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
   const { toast } = useToast();
 
   const addItem = () => {
@@ -47,11 +54,24 @@ export default function InvoiceGenerator() {
   };
 
   const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-  const tax = subtotal * 0.1; // 10% tax
+  const tax = includeTax ? subtotal * (taxRate / 100) : 0;
   const total = subtotal + tax;
 
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCompanyLogo(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const generatePDF = async () => {
-    const invoiceData = {
+    const formData = new FormData();
+    formData.append('invoiceData', JSON.stringify({
       companyName,
       companyAddress,
       clientName,
@@ -63,14 +83,19 @@ export default function InvoiceGenerator() {
       subtotal,
       tax,
       total,
-      notes
-    };
+      notes,
+      includeTax,
+      taxRate
+    }));
+    
+    if (companyLogo) {
+      formData.append('logo', companyLogo);
+    }
 
     try {
       const response = await fetch('/api/generate/invoice', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invoiceData),
+        body: formData,
       });
 
       if (response.ok) {
@@ -165,6 +190,76 @@ export default function InvoiceGenerator() {
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
+            </div>
+          </div>
+
+          {/* Company Logo Upload */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Company Logo</h3>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Label htmlFor="logo">Upload Logo (PNG, JPG)</Label>
+                <Input
+                  id="logo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="mt-1"
+                />
+              </div>
+              {logoPreview && (
+                <div className="relative">
+                  <img 
+                    src={logoPreview} 
+                    alt="Logo preview" 
+                    className="w-16 h-16 object-contain border rounded"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                    onClick={() => {
+                      setCompanyLogo(null);
+                      setLogoPreview("");
+                    }}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tax Configuration */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Tax Settings</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="includeTax"
+                  checked={includeTax}
+                  onCheckedChange={(checked) => setIncludeTax(checked as boolean)}
+                />
+                <Label htmlFor="includeTax">Include Tax</Label>
+              </div>
+              {includeTax && (
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="taxRate">Tax Rate:</Label>
+                  <Select value={taxRate.toString()} onValueChange={(value) => setTaxRate(Number(value))}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5%</SelectItem>
+                      <SelectItem value="10">10%</SelectItem>
+                      <SelectItem value="15">15%</SelectItem>
+                      <SelectItem value="18">18%</SelectItem>
+                      <SelectItem value="20">20%</SelectItem>
+                      <SelectItem value="25">25%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
 

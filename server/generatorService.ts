@@ -66,6 +66,8 @@ export interface InvoiceData {
   tax: number;
   total: number;
   notes?: string;
+  includeTax: boolean;
+  taxRate: number;
 }
 
 export class GeneratorService {
@@ -168,7 +170,7 @@ export class GeneratorService {
     return tags.join('\n');
   }
 
-  async generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
+  async generateInvoicePDF(data: InvoiceData, logoBuffer?: Buffer | null): Promise<Buffer> {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([612, 792]); // Letter size
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -177,6 +179,29 @@ export class GeneratorService {
     let yPosition = 750;
     const leftMargin = 50;
     const rightMargin = 562;
+    
+    // Add logo if provided
+    if (logoBuffer) {
+      try {
+        let logoImage;
+        // Try to embed as PNG first, then JPG
+        try {
+          logoImage = await pdfDoc.embedPng(logoBuffer);
+        } catch {
+          logoImage = await pdfDoc.embedJpg(logoBuffer);
+        }
+        
+        const logoSize = 60;
+        page.drawImage(logoImage, {
+          x: rightMargin - logoSize,
+          y: yPosition - logoSize,
+          width: logoSize,
+          height: logoSize,
+        });
+      } catch (error) {
+        console.warn('Failed to embed logo:', error);
+      }
+    }
     
     // Header
     page.drawText('INVOICE', {

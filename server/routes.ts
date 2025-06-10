@@ -1022,14 +1022,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Invoice Generator
-  app.post('/api/generate/invoice', async (req, res) => {
+  app.post('/api/generate/invoice', upload.single('logo'), async (req, res) => {
     try {
-      const invoiceData = req.body;
+      const invoiceData = JSON.parse(req.body.invoiceData || '{}');
       if (!invoiceData.companyName || !invoiceData.clientName) {
         return res.status(400).json({ error: 'Company name and client name are required' });
       }
 
-      const result = await generatorService.generateInvoicePDF(invoiceData);
+      const logoBuffer = req.file ? req.file.buffer : null;
+      const result = await generatorService.generateInvoicePDF(invoiceData, logoBuffer);
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoiceData.invoiceNumber || 'generated'}.pdf"`);
