@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Download, Pen, Type, Trash2 } from "lucide-react";
+import { Download, Pen, Type, Trash2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignatureGenerator() {
@@ -14,14 +14,25 @@ export default function SignatureGenerator() {
   const [fontFamily, setFontFamily] = useState("Dancing Script");
   const [fontSize, setFontSize] = useState(48);
   const [color, setColor] = useState("#1a365d");
-  const [mode, setMode] = useState<"draw" | "type">("draw");
+  const [mode, setMode] = useState<"draw" | "type" | "ai">("draw");
   const [currentSignature, setCurrentSignature] = useState<string>("");
   const [brushSize, setBrushSize] = useState<number>(3);
+  const [aiStyle, setAiStyle] = useState("professional-executive");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const { toast } = useToast();
 
   const signatureFonts = [
     "Dancing Script", "Great Vibes", "Allura", "Alex Brush", "Satisfy",
     "Pacifico", "Kaushan Script", "Amatic SC", "Caveat", "Sacramento"
+  ];
+
+  const aiSignatureStyles = [
+    { value: "professional-executive", label: "Professional Executive", description: "Clean, formal business style" },
+    { value: "artistic-flowing", label: "Artistic Flowing", description: "Creative with dramatic curves" },
+    { value: "traditional-formal", label: "Traditional Formal", description: "Classic elegant cursive" },
+    { value: "contemporary-clean", label: "Contemporary Clean", description: "Modern minimalist design" },
+    { value: "sophisticated-cursive", label: "Sophisticated Cursive", description: "Refined with subtle flourishes" },
+    { value: "strong-confident", label: "Strong Confident", description: "Bold and powerful strokes" }
   ];
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -113,6 +124,72 @@ export default function SignatureGenerator() {
     }
   };
 
+  const generateAISignature = async () => {
+    if (!signatureText.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your name first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingAI(true);
+    
+    try {
+      const response = await fetch('/api/esign/generate-signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: signatureText,
+          style: aiStyle,
+          format: 'svg'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.signature) {
+        // Convert SVG to canvas for consistent handling
+        const img = new Image();
+        img.onload = () => {
+          const canvas = canvasRef.current;
+          if (canvas) {
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              setCurrentSignature(canvas.toDataURL());
+            }
+          }
+        };
+        
+        const svgBlob = new Blob([data.signature], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(svgBlob);
+        img.src = url;
+        
+        toast({
+          title: "Success",
+          description: `AI signature generated successfully!`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to generate signature",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate AI signature",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   const downloadSignature = () => {
     if (!currentSignature) {
       toast({
@@ -156,6 +233,14 @@ export default function SignatureGenerator() {
             >
               <Type className="w-4 h-4" />
               Type
+            </Button>
+            <Button
+              variant={mode === "ai" ? "default" : "outline"}
+              onClick={() => setMode("ai")}
+              className="flex items-center gap-2"
+            >
+              <Wand2 className="w-4 h-4" />
+              AI Generation
             </Button>
           </div>
 
@@ -240,6 +325,39 @@ export default function SignatureGenerator() {
                   />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* AI Generation Controls */}
+          {mode === "ai" && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Signature Style</label>
+                <Select value={aiStyle} onValueChange={setAiStyle}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {aiSignatureStyles.map((style) => (
+                      <SelectItem key={style.value} value={style.value}>
+                        <div className="flex flex-col">
+                          <span>{style.label}</span>
+                          <span className="text-xs text-muted-foreground">{style.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                onClick={generateAISignature} 
+                disabled={isGeneratingAI || !signatureText.trim()}
+                className="flex items-center gap-2"
+              >
+                <Wand2 className="w-4 h-4" />
+                {isGeneratingAI ? "Generating..." : "Generate AI Signature"}
+              </Button>
             </div>
           )}
 
