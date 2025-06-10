@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import { getToolById } from "@/lib/toolCategories";
 import { useUserData } from "@/contexts/UserDataContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect } from "react";
 import QRGenerator from "@/components/tools/QRGenerator";
 import BarcodeGenerator from "@/components/tools/BarcodeGenerator";

@@ -179,12 +179,18 @@ const translations = {
     // Lorem Ipsum Generator
     "lorem.title": "Lorem Ipsum Generator",
     "lorem.subtitle": "Generate placeholder text",
-    "lorem.generate": "Generate",
-    "lorem.paragraphs": "Paragraphs",
-    "lorem.count": "Count",
     "lorem.textType": "Text Type",
     "lorem.loremIpsum": "Lorem Ipsum",
+    "lorem.randomWords": "Random Words",
+    "lorem.count": "Count",
+    "lorem.generate": "Generate",
+    "lorem.words": "Words",
+    "lorem.sentences": "Sentences",
+    "lorem.paragraphs": "Paragraphs",
     "lorem.generateText": "Generate Text",
+    "lorem.generatedText": "Generated Text",
+    "lorem.copy": "Copy",
+    "lorem.clear": "Clear",
     
     // Text to Slug
     "textSlug.title": "Text to Slug",
@@ -196,6 +202,13 @@ const translations = {
     "textSlug.convertLowercase": "Convert to lowercase",
     "textSlug.removeDiacritics": "Remove diacritics (accents)",
     "textSlug.generateSlug": "Generate Slug",
+    "textSlug.generatedSlug": "Generated Slug",
+    "textSlug.copying": "Copying...",
+    
+    // Tool Page
+    "toolPage.notFound": "Tool Not Found",
+    "toolPage.addToFavorites": "Add to Favorites",
+    "toolPage.removeFromFavorites": "Remove from Favorites",
   },
   es: {
     // Header
@@ -367,12 +380,18 @@ const translations = {
     // Lorem Ipsum Generator
     "lorem.title": "Generador Lorem Ipsum",
     "lorem.subtitle": "Generar texto de relleno",
-    "lorem.generate": "Generar",
-    "lorem.paragraphs": "Párrafos",
-    "lorem.count": "Cantidad",
     "lorem.textType": "Tipo de Texto",
     "lorem.loremIpsum": "Lorem Ipsum",
+    "lorem.randomWords": "Palabras Aleatorias",
+    "lorem.count": "Cantidad",
+    "lorem.generate": "Generar",
+    "lorem.words": "Palabras",
+    "lorem.sentences": "Oraciones",
+    "lorem.paragraphs": "Párrafos",
     "lorem.generateText": "Generar Texto",
+    "lorem.generatedText": "Texto Generado",
+    "lorem.copy": "Copiar",
+    "lorem.clear": "Limpiar",
     
     // Text to Slug
     "textSlug.title": "Texto a Slug",
@@ -384,6 +403,13 @@ const translations = {
     "textSlug.convertLowercase": "Convertir a minúsculas",
     "textSlug.removeDiacritics": "Eliminar diacríticos (acentos)",
     "textSlug.generateSlug": "Generar Slug",
+    "textSlug.generatedSlug": "Slug Generado",
+    "textSlug.copying": "Copiando...",
+    
+    // Tool Page
+    "toolPage.notFound": "Herramienta No Encontrada",
+    "toolPage.addToFavorites": "Agregar a Favoritos",
+    "toolPage.removeFromFavorites": "Quitar de Favoritos",
   },
   ar: {
     // Header
@@ -572,6 +598,21 @@ const translations = {
     "textSlug.convertLowercase": "تحويل إلى أحرف صغيرة",
     "textSlug.removeDiacritics": "إزالة علامات التشكيل",
     "textSlug.generateSlug": "إنشاء Slug",
+    "textSlug.generatedSlug": "Slug المنشأ",
+    "textSlug.copying": "جاري النسخ...",
+    
+    // Lorem Generator additional keys
+    "lorem.randomWords": "كلمات عشوائية",
+    "lorem.words": "كلمات",
+    "lorem.sentences": "جمل",
+    "lorem.generatedText": "النص المنشأ",
+    "lorem.copy": "نسخ",
+    "lorem.clear": "مسح",
+    
+    // Tool Page
+    "toolPage.notFound": "الأداة غير موجودة",
+    "toolPage.addToFavorites": "إضافة إلى المفضلة",
+    "toolPage.removeFromFavorites": "إزالة من المفضلة",
   }
 };
 
