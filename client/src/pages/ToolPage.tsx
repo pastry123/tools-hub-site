@@ -72,6 +72,8 @@ import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
 import TimezoneConverter from "@/components/tools/TimezoneConverter";
 import DNSLookup from "@/components/tools/DNSLookup";
 import WebsiteScreenshot from "@/components/tools/WebsiteScreenshot";
+import VideoConverter from "@/components/tools/VideoConverter";
+import AudioConverter from "@/components/tools/AudioConverter";
 import { Shield, Smartphone, Download } from "lucide-react";
 
 export default function ToolPage() {
@@ -272,6 +274,10 @@ export default function ToolPage() {
         return <RFIDReader />;
       case 'bulk-barcode-generator':
         return <BulkBarcodeGenerator />;
+      case 'video-to-gif':
+        return <VideoConverter />;
+      case 'audio-converter':
+        return <AudioConverter />;
 
       default:
         return (
