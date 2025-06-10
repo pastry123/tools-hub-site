@@ -56,7 +56,7 @@ export default function SignatureGenerator() {
       });
 
       const data = await response.json();
-      if (data.success && data.signature) {
+      if (response.ok && data.signature) {
         setCurrentSignature(data.signature);
         toast({
           title: "Success",
