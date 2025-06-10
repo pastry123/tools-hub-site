@@ -345,15 +345,7 @@ export default function SignatureGenerator() {
                     <Download className="w-4 h-4 mr-2" />
                     Download
                   </Button>
-                  <Button 
-                    variant="default" 
-                    onClick={() => setIsPlacingSignature(true)} 
-                    size="sm"
-                    disabled={true}
-                  >
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Place on PDF
-                  </Button>
+
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <Check className="w-3 h-3" />
                     Signature Ready
