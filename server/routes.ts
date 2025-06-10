@@ -14,6 +14,7 @@ import { currencyService } from "./currencyService";
 import { analyticsService } from "./analyticsService";
 import { eSignService } from "./eSignService";
 import { developerAdvancedService } from "./developerAdvancedService";
+import { mediaService } from "./mediaService";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -22,10 +23,13 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+    if (file.mimetype.startsWith('image/') || 
+        file.mimetype === 'application/pdf' ||
+        file.mimetype.startsWith('video/') ||
+        file.mimetype.startsWith('audio/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image and PDF files are allowed'));
+      cb(new Error('Only image, PDF, video, and audio files are allowed'));
     }
   }
 });
@@ -787,6 +791,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // MEDIA PROCESSING ENDPOINTS
+
+  // Video to GIF Conversion
+  app.post('/api/media/video-to-gif', upload.single('video'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Video file is required' });
+      }
+
+      const options = {
+        startTime: req.body.startTime ? parseFloat(req.body.startTime) : undefined,
+        duration: req.body.duration ? parseFloat(req.body.duration) : undefined,
+        width: req.body.width ? parseInt(req.body.width) : undefined,
+        height: req.body.height ? parseInt(req.body.height) : undefined,
+        fps: req.body.fps ? parseInt(req.body.fps) : 10,
+        quality: req.body.quality || 'medium'
+      };
+
+      const gifBuffer = await mediaService.convertVideoToGif(req.file.buffer, options);
+      
+      res.set({
+        'Content-Type': 'image/gif',
+        'Content-Disposition': 'attachment; filename="converted.gif"'
+      });
+      
+      res.send(gifBuffer);
+    } catch (error) {
+      console.error('Video to GIF conversion error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to convert video to GIF'
+      });
+    }
+  });
+
+  // Audio Conversion
+  app.post('/api/media/convert-audio', upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Audio file is required' });
+      }
+
+      const options = {
+        format: req.body.format || 'mp3',
+        bitrate: req.body.bitrate,
+        sampleRate: req.body.sampleRate ? parseInt(req.body.sampleRate) : undefined,
+        channels: req.body.channels ? parseInt(req.body.channels) : undefined,
+        quality: req.body.quality || 'medium'
+      };
+
+      const audioBuffer = await mediaService.convertAudio(
+        req.file.buffer,
+        req.file.mimetype,
+        options
+      );
+      
+      const mimeTypes: Record<string, string> = {
+        mp3: 'audio/mpeg',
+        wav: 'audio/wav',
+        ogg: 'audio/ogg',
+        aac: 'audio/aac',
+        flac: 'audio/flac'
+      };
+      
+      res.set({
+        'Content-Type': mimeTypes[options.format] || 'audio/mpeg',
+        'Content-Disposition': `attachment; filename="converted.${options.format}"`
+      });
+      
+      res.send(audioBuffer);
+    } catch (error) {
+      console.error('Audio conversion error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to convert audio'
+      });
+    }
+  });
+
+  // Video Conversion
+  app.post('/api/media/convert-video', upload.single('video'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Video file is required' });
+      }
+
+      const options = {
+        format: req.body.format || 'mp4',
+        quality: req.body.quality || 'medium',
+        resolution: req.body.resolution,
+        bitrate: req.body.bitrate
+      };
+
+      const videoBuffer = await mediaService.convertVideo(
+        req.file.buffer,
+        req.file.mimetype,
+        options
+      );
+      
+      const mimeTypes: Record<string, string> = {
+        mp4: 'video/mp4',
+        avi: 'video/x-msvideo',
+        mov: 'video/quicktime',
+        webm: 'video/webm',
+        mkv: 'video/x-matroska'
+      };
+      
+      res.set({
+        'Content-Type': mimeTypes[options.format] || 'video/mp4',
+        'Content-Disposition': `attachment; filename="converted.${options.format}"`
+      });
+      
+      res.send(videoBuffer);
+    } catch (error) {
+      console.error('Video conversion error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to convert video'
+      });
+    }
+  });
+
+  // Media Info
+  app.post('/api/media/info', upload.single('media'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Media file is required' });
+      }
+
+      const info = await mediaService.getMediaInfo(req.file.buffer, req.file.mimetype);
+      res.json({ info });
+    } catch (error) {
+      console.error('Media info error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get media info'
+      });
     }
   });
 
