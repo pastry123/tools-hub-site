@@ -24,7 +24,7 @@ export default function QRGenerator() {
     const validation = validateQRContent(content);
     if (!validation.isValid) {
       toast({
-        title: "Invalid Content",
+        title: t("qrGenerator.invalidContent"),
         description: validation.error,
         variant: "destructive",
       });
@@ -44,13 +44,13 @@ export default function QRGenerator() {
       setQrCodeUrl(url);
       
       toast({
-        title: "QR Code Generated",
-        description: "Your QR code has been generated successfully!",
+        title: t("qrGenerator.successfullyGenerated"),
+        description: t("qrGenerator.successfullyGenerated"),
       });
     } catch (error) {
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate QR code. Please try again.",
+        title: t("qrGenerator.generationError"),
+        description: t("qrGenerator.failedToGenerate"),
         variant: "destructive",
       });
     } finally {
@@ -62,8 +62,8 @@ export default function QRGenerator() {
     if (qrCodeUrl) {
       downloadQRCode(qrCodeUrl, `qr-code.${format}`);
       toast({
-        title: "Download Started",
-        description: "Your QR code is being downloaded.",
+        title: t("qrGenerator.download"),
+        description: t("qrGenerator.download"),
       });
     }
   };
@@ -77,13 +77,13 @@ export default function QRGenerator() {
           new ClipboardItem({ [blob.type]: blob })
         ]);
         toast({
-          title: "Copied to Clipboard",
-          description: "QR code image copied to clipboard.",
+          title: t("qrGenerator.copy"),
+          description: t("qrGenerator.linkCopied"),
         });
       } catch (error) {
         toast({
-          title: "Copy Failed",
-          description: "Failed to copy QR code to clipboard.",
+          title: t("qrGenerator.generationError"),
+          description: t("qrGenerator.failedToGenerate"),
           variant: "destructive",
         });
       }
@@ -95,26 +95,26 @@ export default function QRGenerator() {
       {/* Input Section */}
       <div className="space-y-6">
         <div>
-          <Label htmlFor="qr-type">QR Code Type</Label>
+          <Label htmlFor="qr-type">{t("qrGenerator.type")}</Label>
           <Select value={qrType} onValueChange={setQrType}>
             <SelectTrigger>
-              <SelectValue placeholder="Select QR code type" />
+              <SelectValue placeholder={t("qrGenerator.type")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="text">Text</SelectItem>
-              <SelectItem value="url">URL</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="phone">Phone</SelectItem>
-              <SelectItem value="wifi">WiFi</SelectItem>
+              <SelectItem value="text">{t("qrGenerator.text")}</SelectItem>
+              <SelectItem value="url">{t("qrGenerator.url")}</SelectItem>
+              <SelectItem value="email">{t("qrGenerator.email")}</SelectItem>
+              <SelectItem value="phone">{t("qrGenerator.phone")}</SelectItem>
+              <SelectItem value="wifi">{t("qrGenerator.wifi")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <Label htmlFor="content">Content</Label>
+          <Label htmlFor="content">{t("qrGenerator.content")}</Label>
           <Textarea
             id="content"
-            placeholder="Enter your text, URL, or other content here..."
+            placeholder={t("qrGenerator.enterText")}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={4}
