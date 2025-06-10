@@ -403,6 +403,14 @@ const translations = {
     "tools.mobile-app-plan": "Mobile App Plan",
     "tools.mobile-app-plan.desc": "Plan mobile applications",
     
+    // Tool page features
+    "tool.securePrivate": "Secure & Private",
+    "tool.securePrivate.desc": "All processing happens locally on your device. No data is sent to our servers.",
+    "tool.mobileOptimized": "Mobile Optimized",
+    "tool.mobileOptimized.desc": "Works perfectly on all devices with responsive design and touch support.",
+    "tool.multipleFormats": "Multiple Formats",
+    "tool.multipleFormats.desc": "Supports various input and output formats for maximum compatibility.",
+    
     // Footer sections
     "footer.enterpriseStandards": "Enterprise Standards",
     "footer.dataProtection": "Data Protection", 
@@ -813,6 +821,14 @@ const translations = {
     "tools.api-access.desc": "Acceder y probar APIs",
     "tools.mobile-app-plan": "Plan de App Móvil",
     "tools.mobile-app-plan.desc": "Planificar aplicaciones móviles",
+    
+    // Tool page features
+    "tool.securePrivate": "Seguro y Privado",
+    "tool.securePrivate.desc": "Todo el procesamiento ocurre localmente en tu dispositivo. No se envían datos a nuestros servidores.",
+    "tool.mobileOptimized": "Optimizado para Móvil",
+    "tool.mobileOptimized.desc": "Funciona perfectamente en todos los dispositivos con diseño responsivo y soporte táctil.",
+    "tool.multipleFormats": "Múltiples Formatos",
+    "tool.multipleFormats.desc": "Soporta varios formatos de entrada y salida para máxima compatibilidad.",
     
     // Footer sections
     "footer.enterpriseStandards": "Estándares Empresariales",
@@ -1226,6 +1242,14 @@ const translations = {
     "tools.api-access.desc": "الوصول واختبار واجهات API",
     "tools.mobile-app-plan": "خطة التطبيق المحمول",
     "tools.mobile-app-plan.desc": "تخطيط التطبيقات المحمولة",
+    
+    // Tool page features
+    "tool.securePrivate": "آمن وخاص",
+    "tool.securePrivate.desc": "تتم جميع المعالجات محلياً على جهازك. لا يتم إرسال أي بيانات إلى خوادمنا.",
+    "tool.mobileOptimized": "محسن للجوال",
+    "tool.mobileOptimized.desc": "يعمل بشكل مثالي على جميع الأجهزة مع تصميم متجاوب ودعم اللمس.",
+    "tool.multipleFormats": "تنسيقات متعددة",
+    "tool.multipleFormats.desc": "يدعم تنسيقات إدخال وإخراج متنوعة للحصول على أقصى توافق.",
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
