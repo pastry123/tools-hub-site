@@ -729,15 +729,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // JSON Formatter
-  app.post('/api/converter/json', async (req, res) => {
+  app.post('/api/converter/json-format', async (req, res) => {
     try {
-      const { json, indent } = req.body;
-      if (!json) {
+      const { jsonString, indent } = req.body;
+      if (!jsonString) {
         return res.status(400).json({ error: 'JSON string is required' });
       }
 
-      const result = converterService.formatJSON(json, indent);
-      res.json(result);
+      const result = converterService.formatJSON(jsonString, indent);
+      res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -759,7 +759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Markdown to HTML
-  app.post('/api/converter/markdown', async (req, res) => {
+  app.post('/api/converter/markdown-to-html', async (req, res) => {
     try {
       const { markdown } = req.body;
       if (!markdown) {
