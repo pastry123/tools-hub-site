@@ -192,73 +192,79 @@ export class SimpleImageService {
 
   async extractColorPalette(buffer: Buffer, colorCount: number = 5): Promise<ColorPalette> {
     try {
-      // Convert to RGB format ensuring 3 channels
-      const { data, info } = await sharp(buffer)
-        .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
-        .raw()
+      // First, get image metadata to understand what we're working with
+      const metadata = await sharp(buffer).metadata();
+      console.log(`Original image: ${metadata.width}x${metadata.height}, format: ${metadata.format}, channels: ${metadata.channels}`);
+
+      // Convert to standard RGB format, ensuring proper color space conversion
+      const processedImage = sharp(buffer)
+        .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
+        .removeAlpha()
         .toColorspace('srgb')
-        .toBuffer({ resolveWithObject: true });
+        .gamma() // Apply gamma correction
+        .raw();
 
-      const pixels = data;
+      const { data, info } = await processedImage.toBuffer({ resolveWithObject: true });
       const { width, height, channels } = info;
-      const actualChannels = channels || 3; // Default to 3 if undefined
       
-      console.log(`Processing image: ${width}x${height}, channels: ${actualChannels}, data length: ${pixels.length}`);
+      console.log(`Processed image: ${width}x${height}, channels: ${channels}, data length: ${data.length}`);
 
-      const colorCounts = new Map<string, { count: number; r: number; g: number; b: number }>();
-      const totalPixels = Math.floor(pixels.length / actualChannels);
+      // Use a different approach - sample strategically across the image
+      const colorFrequency = new Map<string, number>();
+      const step = Math.max(1, Math.floor(width * height / 10000)); // Sample ~10k pixels max
 
-      // Process every pixel with proper channel handling
-      for (let i = 0; i < pixels.length; i += actualChannels) {
-        const r = pixels[i] || 0;
-        const g = pixels[i + 1] || 0; 
-        const b = pixels[i + 2] || 0;
+      for (let y = 0; y < height; y += Math.max(1, Math.floor(step / width))) {
+        for (let x = 0; x < width; x += step) {
+          const pixelIndex = (y * width + x) * 3;
+          
+          if (pixelIndex + 2 < data.length) {
+            const r = data[pixelIndex];
+            const g = data[pixelIndex + 1];
+            const b = data[pixelIndex + 2];
 
-        // Group similar colors (reduce to 32 levels per channel)
-        const quantizedR = Math.floor(r / 8) * 8;
-        const quantizedG = Math.floor(g / 8) * 8;
-        const quantizedB = Math.floor(b / 8) * 8;
-        
-        const colorKey = `${quantizedR},${quantizedG},${quantizedB}`;
-        
-        if (colorCounts.has(colorKey)) {
-          colorCounts.get(colorKey)!.count++;
-        } else {
-          colorCounts.set(colorKey, { 
-            count: 1, 
-            r: quantizedR, 
-            g: quantizedG, 
-            b: quantizedB 
-          });
+            // Use less aggressive quantization to preserve color distinction
+            const qR = Math.round(r / 16) * 16;
+            const qG = Math.round(g / 16) * 16;
+            const qB = Math.round(b / 16) * 16;
+
+            const colorKey = `${qR}-${qG}-${qB}`;
+            colorFrequency.set(colorKey, (colorFrequency.get(colorKey) || 0) + 1);
+          }
         }
       }
 
-      console.log(`Found ${colorCounts.size} unique color groups from ${totalPixels} pixels`);
+      console.log(`Sampled ${colorFrequency.size} unique colors from image`);
 
-      // Get all colors with at least 0.5% representation
-      const minPixelThreshold = Math.max(5, Math.floor(totalPixels * 0.005));
-      const sortedColors = Array.from(colorCounts.entries())
-        .filter(([, data]) => data.count >= minPixelThreshold)
-        .sort(([,a], [,b]) => b.count - a.count);
+      // Convert to array and sort by frequency
+      const colorArray = Array.from(colorFrequency.entries()).map(([key, count]) => {
+        const [r, g, b] = key.split('-').map(Number);
+        return { r, g, b, count };
+      }).sort((a, b) => b.count - a.count);
 
-      console.log(`Showing ${sortedColors.length} significant colors (threshold: ${minPixelThreshold} pixels)`);
+      // Take all colors with meaningful representation
+      const totalSamples = Array.from(colorFrequency.values()).reduce((sum, count) => sum + count, 0);
+      const minCount = Math.max(1, Math.floor(totalSamples * 0.005)); // 0.5% minimum
+      
+      const significantColors = colorArray.filter(color => color.count >= minCount);
+      
+      console.log(`Found ${significantColors.length} significant colors (min count: ${minCount})`);
+      console.log('Top colors:', significantColors.slice(0, 10).map(c => 
+        `RGB(${c.r},${c.g},${c.b}) - ${Math.round(c.count/totalSamples*100)}%`
+      ));
 
-      const colors = sortedColors.map(([colorKey, data]) => {
-        const { r, g, b, count } = data;
-        const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-        const percentage = Math.round((count / totalPixels) * 100);
-        
-        console.log(`Color: ${hex} (RGB: ${r},${g},${b}) - ${percentage}% (${count} pixels)`);
+      const colors = significantColors.map(color => {
+        const hex = `#${color.r.toString(16).padStart(2, '0')}${color.g.toString(16).padStart(2, '0')}${color.b.toString(16).padStart(2, '0')}`;
+        const percentage = Math.round((color.count / totalSamples) * 100);
         
         return {
           hex,
-          rgb: { r, g, b },
+          rgb: { r: color.r, g: color.g, b: color.b },
           percentage
         };
       });
 
       const dominant = colors[0]?.hex || '#000000';
-      console.log(`Dominant color: ${dominant}`);
+      console.log(`Returning ${colors.length} colors, dominant: ${dominant}`);
 
       return {
         dominant,
