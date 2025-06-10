@@ -137,7 +137,7 @@ export default function Dashboard() {
 
       {/* Detailed Benefits Section */}
       <div className="mb-12">
-        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Why Choose ToolHub for Your Professional Needs</h2>
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Why Choose Aptexa's ToolHub for Your Professional Needs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div className="prose prose-lg dark:prose-invert">
             <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Advanced Document Processing</h3>
