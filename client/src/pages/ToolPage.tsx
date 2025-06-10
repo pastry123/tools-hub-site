@@ -255,10 +255,6 @@ export default function ToolPage() {
 
       case 'timezone-converter':
         return <TimezoneConverter />;
-      case 'video-to-gif':
-        return <div>Video to GIF converter coming soon</div>;
-      case 'audio-converter':
-        return <div>Audio converter coming soon</div>;
       case 'dns-lookup':
         return <DNSLookup />;
       case 'website-screenshot':
