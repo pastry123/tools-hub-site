@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Type, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CaseConverter() {
   const [inputText, setInputText] = useState('');
@@ -13,6 +14,7 @@ export default function CaseConverter() {
   const [caseType, setCaseType] = useState('uppercase');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleConvert = async () => {
     if (!inputText.trim()) {
@@ -74,51 +76,51 @@ export default function CaseConverter() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Type className="w-5 h-5" />
-            Case Converter
+            {t("caseConverter.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="input-text">Input Text</Label>
+            <Label htmlFor="input-text">{t("caseConverter.inputText")}</Label>
             <Textarea
               id="input-text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Enter your text here..."
+              placeholder={t("caseConverter.enterText")}
               className="mt-2 min-h-[120px]"
             />
           </div>
 
           <div>
-            <Label htmlFor="case-type">Conversion Type</Label>
+            <Label htmlFor="case-type">{t("caseConverter.conversionType")}</Label>
             <Select value={caseType} onValueChange={setCaseType}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="uppercase">UPPERCASE</SelectItem>
-                <SelectItem value="lowercase">lowercase</SelectItem>
-                <SelectItem value="title">Title Case</SelectItem>
-                <SelectItem value="sentence">Sentence case</SelectItem>
-                <SelectItem value="camel">camelCase</SelectItem>
-                <SelectItem value="pascal">PascalCase</SelectItem>
-                <SelectItem value="snake">snake_case</SelectItem>
-                <SelectItem value="kebab">kebab-case</SelectItem>
+                <SelectItem value="uppercase">{t("caseConverter.uppercase")}</SelectItem>
+                <SelectItem value="lowercase">{t("caseConverter.lowercase")}</SelectItem>
+                <SelectItem value="title">{t("caseConverter.titleCase")}</SelectItem>
+                <SelectItem value="sentence">{t("caseConverter.sentenceCase")}</SelectItem>
+                <SelectItem value="camel">{t("caseConverter.camelCase")}</SelectItem>
+                <SelectItem value="pascal">{t("caseConverter.pascalCase")}</SelectItem>
+                <SelectItem value="snake">{t("caseConverter.snakeCase")}</SelectItem>
+                <SelectItem value="kebab">{t("caseConverter.kebabCase")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <Button onClick={handleConvert} disabled={isProcessing} className="w-full">
-            {isProcessing ? 'Converting...' : 'Convert Case'}
+            {isProcessing ? t("caseConverter.converting") : t("caseConverter.convertCase")}
           </Button>
 
           {outputText && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Output Text</Label>
+                <Label>{t("caseConverter.outputText")}</Label>
                 <Button variant="outline" size="sm" onClick={copyToClipboard}>
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy
+                  {t("caseConverter.copy")}
                 </Button>
               </div>
               <Textarea

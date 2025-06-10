@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Download, Upload, Eraser, Sparkles, Info } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RemovalOptions {
   size: string;
@@ -50,6 +51,7 @@ export default function BackgroundRemover() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Query account info
   const { data: accountInfo } = useQuery<AccountInfo>({
