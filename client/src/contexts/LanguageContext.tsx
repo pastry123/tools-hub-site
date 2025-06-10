@@ -915,14 +915,7 @@ const translations = {
     "tools.api-access.desc": "Acceder y probar APIs",
     "tools.mobile-app-plan": "Plan de App Móvil",
     "tools.mobile-app-plan.desc": "Planificar aplicaciones móviles",
-    
-    // Tool page features
-    "tool.securePrivate": "Seguro y Privado",
-    "tool.securePrivate.desc": "Todo el procesamiento ocurre localmente en tu dispositivo. No se envían datos a nuestros servidores.",
-    "tool.mobileOptimized": "Optimizado para Móvil",
-    "tool.mobileOptimized.desc": "Funciona perfectamente en todos los dispositivos con diseño responsivo y soporte táctil.",
-    "tool.multipleFormats": "Múltiples Formatos",
-    "tool.multipleFormats.desc": "Soporta varios formatos de entrada y salida para máxima compatibilidad.",
+
     
     // Barcode Generator Tool
     "barcodeGenerator.title": "Generador de Códigos de Barras y QR",

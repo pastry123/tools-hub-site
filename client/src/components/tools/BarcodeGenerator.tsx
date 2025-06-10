@@ -489,7 +489,7 @@ export default function BarcodeGenerator() {
                   }, 50);
                 }}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select a barcode type..." />
+                    <SelectValue placeholder={t("barcodeGenerator.selectType")} />
                   </SelectTrigger>
                   <SelectContent className="max-h-[350px]">
                     {filteredBarcodeTypes.length > 0 ? (
@@ -501,14 +501,14 @@ export default function BarcodeGenerator() {
                               <span className="text-xs text-gray-500 truncate">{typeData.hint}</span>
                             </div>
                             <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded ml-2 flex-shrink-0">
-                              ✓ Professional
+                              ✓ {t("barcodeGenerator.professional")}
                             </span>
                           </div>
                         </SelectItem>
                       ))
                     ) : (
                       <div className="p-4 text-center text-gray-500 text-sm">
-                        No barcode types found matching your search
+                        {t("barcodeGenerator.noTypesFound")}
                       </div>
                     )}
                   </SelectContent>
@@ -529,7 +529,7 @@ export default function BarcodeGenerator() {
                       </span>
                     </div>
                     <span className="text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
-                      ✓ Professional
+                      ✓ {t("barcodeGenerator.professional")}
                     </span>
                   </div>
                   <div className="text-xs mt-2 text-green-600 dark:text-green-300">
