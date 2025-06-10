@@ -85,15 +85,15 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const removeFromFavorites = (toolId: string) => {
+  const removeFromFavorites = useCallback((toolId: string) => {
     setFavorites(prev => prev.filter(f => f.toolId !== toolId));
-  };
+  }, []);
 
-  const isFavorite = (toolId: string) => {
+  const isFavorite = useCallback((toolId: string) => {
     return favorites.some(f => f.toolId === toolId);
-  };
+  }, [favorites]);
 
-  const addToRecent = (toolId: string) => {
+  const addToRecent = useCallback((toolId: string) => {
     const tool = getToolById(toolId);
     if (!tool) return;
 
@@ -125,15 +125,15 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
         return [recentTool, ...prev.slice(0, 19)];
       }
     });
-  };
+  }, []);
 
-  const clearRecent = () => {
+  const clearRecent = useCallback(() => {
     setRecentTools([]);
-  };
+  }, []);
 
-  const clearFavorites = () => {
+  const clearFavorites = useCallback(() => {
     setFavorites([]);
-  };
+  }, []);
 
   return (
     <UserDataContext.Provider value={{
