@@ -192,49 +192,59 @@ export class SimpleImageService {
 
   async extractColorPalette(buffer: Buffer, colorCount: number = 5): Promise<ColorPalette> {
     try {
-      // Process image without resizing to preserve color accuracy
+      // Convert to RGB and resize for processing
       const { data, info } = await sharp(buffer)
+        .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
         .raw()
+        .ensureAlpha(false)
         .toBuffer({ resolveWithObject: true });
 
       const pixels = data;
-      const colorMap = new Map<string, number>();
-
-      // Sample more pixels for better accuracy
-      const step = Math.max(3, Math.floor(pixels.length / (50000 * 3))); // Sample ~50k pixels max
+      const { width, height, channels } = info;
       
-      for (let i = 0; i < pixels.length; i += step * 3) {
+      console.log(`Processing image: ${width}x${height}, channels: ${channels}, data length: ${pixels.length}`);
+
+      const colorCounts = new Map<string, { count: number; r: number; g: number; b: number }>();
+
+      // Process every pixel (no sampling to ensure accuracy)
+      for (let i = 0; i < pixels.length; i += channels) {
         const r = pixels[i];
-        const g = pixels[i + 1];
+        const g = pixels[i + 1]; 
         const b = pixels[i + 2];
+
+        // Skip if any channel is undefined
+        if (r === undefined || g === undefined || b === undefined) continue;
+
+        // Create color key with actual RGB values (no rounding yet)
+        const colorKey = `${Math.floor(r/8)*8},${Math.floor(g/8)*8},${Math.floor(b/8)*8}`;
         
-        // Skip very dark/light colors that are likely noise
-        const brightness = (r + g + b) / 3;
-        if (brightness < 10 || brightness > 245) continue;
-        
-        // Group similar colors with finer granularity
-        const roundedR = Math.round(r / 16) * 16;
-        const roundedG = Math.round(g / 16) * 16;
-        const roundedB = Math.round(b / 16) * 16;
-        
-        const colorKey = `${roundedR},${roundedG},${roundedB}`;
-        colorMap.set(colorKey, (colorMap.get(colorKey) || 0) + 1);
+        if (colorCounts.has(colorKey)) {
+          colorCounts.get(colorKey)!.count++;
+        } else {
+          colorCounts.set(colorKey, { 
+            count: 1, 
+            r: Math.floor(r/8)*8, 
+            g: Math.floor(g/8)*8, 
+            b: Math.floor(b/8)*8 
+          });
+        }
       }
 
-      // Sort colors by frequency and filter out very rare colors
-      const totalSamples = Array.from(colorMap.values()).reduce((sum, count) => sum + count, 0);
-      const minThreshold = Math.max(1, Math.floor(totalSamples * 0.005)); // At least 0.5% of samples
-      
-      const sortedColors = Array.from(colorMap.entries())
-        .filter(([, count]) => count >= minThreshold)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, colorCount * 2) // Get more candidates
-        .slice(0, colorCount); // Then take the requested amount
+      console.log(`Found ${colorCounts.size} unique colors`);
 
-      const colors = sortedColors.map(([colorKey, count]) => {
-        const [r, g, b] = colorKey.split(',').map(Number);
+      // Sort by frequency and get top colors
+      const sortedColors = Array.from(colorCounts.entries())
+        .sort(([,a], [,b]) => b.count - a.count)
+        .slice(0, colorCount);
+
+      const totalPixels = pixels.length / channels;
+
+      const colors = sortedColors.map(([colorKey, data]) => {
+        const { r, g, b, count } = data;
         const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-        const percentage = Math.round((count / totalSamples) * 100);
+        const percentage = Math.round((count / totalPixels) * 100);
+        
+        console.log(`Color: ${hex} (${r},${g},${b}) - ${percentage}% (${count} pixels)`);
         
         return {
           hex,
@@ -243,8 +253,11 @@ export class SimpleImageService {
         };
       });
 
+      const dominant = colors[0]?.hex || '#000000';
+      console.log(`Dominant color: ${dominant}`);
+
       return {
-        dominant: colors[0]?.hex || '#000000',
+        dominant,
         colors
       };
     } catch (error) {
