@@ -253,6 +253,50 @@ const translations = {
     "imageCropper.uploadImage": "Upload Image",
     "imageCropper.noFileChosen": "No file chosen",
     "imageCropper.chooseFile": "Choose File",
+    
+    // Tool Cards and Actions
+    "tools.useTool": "Use Tool",
+    "tools.analyzeColors": "Analyze Colors",
+    "tools.uploadImage": "Upload Image",
+    "tools.chooseFile": "Choose File",
+    "tools.noFileChosen": "No file chosen",
+    
+    // Tool Names
+    "tools.backgroundRemover": "Background Remover",
+    "tools.backgroundRemover.desc": "Remove backgrounds from images",
+    "tools.imageCrop": "Image Crop", 
+    "tools.imageCrop.desc": "Crop images to specific areas",
+    "tools.formatConverter": "Format Converter",
+    "tools.formatConverter.desc": "Convert between image formats", 
+    "tools.imageResize": "Image Resize",
+    "tools.imageResize.desc": "Resize images to specific dimensions",
+    "tools.imageWatermark": "Image Watermark",
+    "tools.imageWatermark.desc": "Add watermarks to images",
+    "tools.colorPalette": "Color Palette Generator",
+    "tools.colorPalette.desc": "Extract color palettes from images",
+    "tools.imageCompressor": "Image Compressor", 
+    "tools.imageCompressor.desc": "Compress images to reduce file size",
+    "tools.faviconGenerator": "Favicon Generator",
+    "tools.faviconGenerator.desc": "Generate favicons from images",
+    "tools.imageToText": "Image to Text",
+    "tools.imageToText.desc": "Extract text from images (OCR)",
+    
+    // Footer sections
+    "footer.enterpriseStandards": "Enterprise Standards",
+    "footer.dataProtection": "Data Protection", 
+    "footer.securityCompliance": "Built with enterprise-grade security protocols. SSL encryption protects all data transmission. Tools like our",
+    "footer.barcodeScanner": "barcode scanner",
+    "footer.signatureGenerator": "signature generator", 
+    "footer.professionalCompliance": "meet professional compliance standards",
+    "footer.regularAudits": "Regular security audits and updates ensure platform integrity. Compatible with corporate firewalls and security policies. Trusted by thousands of professionals worldwide for daily business operations",
+    "footer.privacyPolicy": "Zero data collection policy ensures your privacy. No registration required, no tracking cookies, and no personal information stored. Perfect for handling sensitive business documents and confidential data",
+    
+    // Color Analyzer Tool
+    "colorAnalyzer.title": "Color Analyzer",
+    "colorAnalyzer.uploadImage": "Upload Image",
+    "colorAnalyzer.analyzeColors": "Analyze Colors",
+    "colorAnalyzer.noFileChosen": "No file chosen",
+    "colorAnalyzer.chooseFile": "Choose File",
   },
   es: {
     // Header
@@ -498,6 +542,50 @@ const translations = {
     "imageCropper.uploadImage": "Subir Imagen",
     "imageCropper.noFileChosen": "Ningún archivo seleccionado",
     "imageCropper.chooseFile": "Elegir Archivo",
+    
+    // Tool Cards and Actions
+    "tools.useTool": "Usar Herramienta",
+    "tools.analyzeColors": "Analizar Colores",
+    "tools.uploadImage": "Subir Imagen",
+    "tools.chooseFile": "Elegir Archivo",
+    "tools.noFileChosen": "Ningún archivo seleccionado",
+    
+    // Tool Names
+    "tools.backgroundRemover": "Removedor de Fondo",
+    "tools.backgroundRemover.desc": "Eliminar fondos de imágenes",
+    "tools.imageCrop": "Recorte de Imagen", 
+    "tools.imageCrop.desc": "Recortar imágenes a áreas específicas",
+    "tools.formatConverter": "Convertidor de Formato",
+    "tools.formatConverter.desc": "Convertir entre formatos de imagen", 
+    "tools.imageResize": "Redimensionar Imagen",
+    "tools.imageResize.desc": "Redimensionar imágenes a dimensiones específicas",
+    "tools.imageWatermark": "Marca de Agua en Imagen",
+    "tools.imageWatermark.desc": "Agregar marcas de agua a imágenes",
+    "tools.colorPalette": "Generador de Paleta de Colores",
+    "tools.colorPalette.desc": "Extraer paletas de colores de imágenes",
+    "tools.imageCompressor": "Compresor de Imagen", 
+    "tools.imageCompressor.desc": "Comprimir imágenes para reducir el tamaño del archivo",
+    "tools.faviconGenerator": "Generador de Favicon",
+    "tools.faviconGenerator.desc": "Generar favicons a partir de imágenes",
+    "tools.imageToText": "Imagen a Texto",
+    "tools.imageToText.desc": "Extraer texto de imágenes (OCR)",
+    
+    // Footer sections
+    "footer.enterpriseStandards": "Estándares Empresariales",
+    "footer.dataProtection": "Protección de Datos", 
+    "footer.securityCompliance": "Construido con protocolos de seguridad de nivel empresarial. El cifrado SSL protege toda la transmisión de datos. Herramientas como nuestro",
+    "footer.barcodeScanner": "escáner de códigos de barras",
+    "footer.signatureGenerator": "generador de firmas", 
+    "footer.professionalCompliance": "cumplen con estándares de cumplimiento profesional",
+    "footer.regularAudits": "Las auditorías de seguridad regulares y las actualizaciones garantizan la integridad de la plataforma. Compatible con firewalls corporativos y políticas de seguridad. Confiado por miles de profesionales en todo el mundo para operaciones comerciales diarias",
+    "footer.privacyPolicy": "La política de cero recopilación de datos garantiza su privacidad. No se requiere registro, no hay cookies de seguimiento y no se almacena información personal. Perfecto para manejar documentos comerciales sensibles y datos confidenciales",
+    
+    // Color Analyzer Tool
+    "colorAnalyzer.title": "Analizador de Colores",
+    "colorAnalyzer.uploadImage": "Subir Imagen",
+    "colorAnalyzer.analyzeColors": "Analizar Colores",
+    "colorAnalyzer.noFileChosen": "Ningún archivo seleccionado",
+    "colorAnalyzer.chooseFile": "Elegir Archivo",
   },
   ar: {
     // Header
@@ -745,6 +833,50 @@ const translations = {
     "imageCropper.uploadImage": "رفع صورة",
     "imageCropper.noFileChosen": "لم يتم اختيار ملف",
     "imageCropper.chooseFile": "اختر ملف",
+    
+    // Tool Cards and Actions
+    "tools.useTool": "استخدم الأداة",
+    "tools.analyzeColors": "تحليل الألوان",
+    "tools.uploadImage": "رفع صورة",
+    "tools.chooseFile": "اختر ملف",
+    "tools.noFileChosen": "لم يتم اختيار ملف",
+    
+    // Tool Names
+    "tools.backgroundRemover": "إزالة الخلفية",
+    "tools.backgroundRemover.desc": "إزالة الخلفيات من الصور",
+    "tools.imageCrop": "قص الصورة", 
+    "tools.imageCrop.desc": "قص الصور إلى مناطق محددة",
+    "tools.formatConverter": "محول التنسيق",
+    "tools.formatConverter.desc": "التحويل بين تنسيقات الصور", 
+    "tools.imageResize": "تغيير حجم الصورة",
+    "tools.imageResize.desc": "تغيير حجم الصور إلى أبعاد محددة",
+    "tools.imageWatermark": "علامة مائية للصورة",
+    "tools.imageWatermark.desc": "إضافة علامات مائية للصور",
+    "tools.colorPalette": "مولد لوحة الألوان",
+    "tools.colorPalette.desc": "استخراج لوحات الألوان من الصور",
+    "tools.imageCompressor": "ضاغط الصور", 
+    "tools.imageCompressor.desc": "ضغط الصور لتقليل حجم الملف",
+    "tools.faviconGenerator": "مولد أيقونة الموقع",
+    "tools.faviconGenerator.desc": "إنشاء أيقونات مواقع من الصور",
+    "tools.imageToText": "الصورة إلى نص",
+    "tools.imageToText.desc": "استخراج النص من الصور (OCR)",
+    
+    // Footer sections
+    "footer.enterpriseStandards": "معايير المؤسسات",
+    "footer.dataProtection": "حماية البيانات", 
+    "footer.securityCompliance": "مبني بروتوكولات أمان على مستوى المؤسسات. تشفير SSL يحمي جميع عمليات نقل البيانات. أدوات مثل",
+    "footer.barcodeScanner": "ماسح الباركود",
+    "footer.signatureGenerator": "مولد التوقيع", 
+    "footer.professionalCompliance": "تلبي معايير الامتثال المهني",
+    "footer.regularAudits": "عمليات التدقيق الأمني المنتظمة والتحديثات تضمن سلامة المنصة. متوافق مع جدران الحماية المؤسسية وسياسات الأمان. موثوق به من قبل آلاف المحترفين حول العالم للعمليات التجارية اليومية",
+    "footer.privacyPolicy": "سياسة عدم جمع البيانات تضمن خصوصيتك. لا يتطلب تسجيل، لا توجد ملفات تعريف ارتباط للتتبع، ولا يتم تخزين معلومات شخصية. مثالي للتعامل مع الوثائق التجارية الحساسة والبيانات السرية",
+    
+    // Color Analyzer Tool
+    "colorAnalyzer.title": "محلل الألوان",
+    "colorAnalyzer.uploadImage": "رفع صورة",
+    "colorAnalyzer.analyzeColors": "تحليل الألوان",
+    "colorAnalyzer.noFileChosen": "لم يتم اختيار ملف",
+    "colorAnalyzer.chooseFile": "اختر ملف",
   }
 };
 

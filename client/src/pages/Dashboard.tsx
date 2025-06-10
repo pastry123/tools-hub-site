@@ -283,21 +283,23 @@ export default function Dashboard() {
               />
             </p>
             <p className="text-slate-600 dark:text-gray-300">
-              Zero data collection policy ensures your privacy. No registration required, no tracking cookies, 
-              and no personal information stored. Perfect for handling sensitive business documents and confidential data.
+              {t("footer.privacyPolicy")}
             </p>
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Enterprise Standards</h3>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">{t("footer.enterpriseStandards")}</h3>
             <p className="text-slate-600 dark:text-gray-300 mb-4">
-              Built with enterprise-grade security protocols. SSL encryption protects all data transmission. 
-              Tools like our <a href="/tool/barcode-scanner" className="text-primary hover:underline">barcode scanner</a> 
-              and <a href="/tool/signature-generator" className="text-primary hover:underline">signature generator</a> 
-              meet professional compliance standards.
+              <span 
+                dangerouslySetInnerHTML={{
+                  __html: formatTranslation("footer.securityCompliance", {
+                    barcodeScanner: `<a href="/tool/barcode-scanner" class="text-primary hover:underline">${t("footer.barcodeScanner")}</a>`,
+                    signatureGenerator: `<a href="/tool/signature-generator" class="text-primary hover:underline">${t("footer.signatureGenerator")}</a>`
+                  }) + ` ${t("footer.professionalCompliance")}`
+                }}
+              />
             </p>
             <p className="text-slate-600 dark:text-gray-300">
-              Regular security audits and updates ensure platform integrity. Compatible with corporate firewalls 
-              and security policies. Trusted by thousands of professionals worldwide for daily business operations.
+              {t("footer.regularAudits")}
             </p>
           </div>
         </div>
