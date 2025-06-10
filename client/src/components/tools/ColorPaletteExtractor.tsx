@@ -19,7 +19,6 @@ interface ColorPalette {
 
 export default function ColorPaletteExtractor() {
   const [file, setFile] = useState<File | null>(null);
-  const [colorCount, setColorCount] = useState('5');
   const [palette, setPalette] = useState<ColorPalette | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -45,7 +44,6 @@ export default function ColorPaletteExtractor() {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('colorCount', colorCount);
 
       const response = await fetch('/api/image/color-palette', {
         method: 'POST',
@@ -108,19 +106,7 @@ export default function ColorPaletteExtractor() {
             )}
           </div>
 
-          <div>
-            <Label htmlFor="color-count">Number of Colors</Label>
-            <Input
-              id="color-count"
-              type="number"
-              value={colorCount}
-              onChange={(e) => setColorCount(e.target.value)}
-              placeholder="5"
-              min="1"
-              max="20"
-              className="mt-2"
-            />
-          </div>
+
 
           <Button onClick={handleExtract} disabled={isProcessing} className="w-full">
             {isProcessing ? (
@@ -154,8 +140,8 @@ export default function ColorPaletteExtractor() {
               </div>
 
               <div>
-                <Label className="text-lg font-semibold">Color Palette</Label>
-                <div className="grid grid-cols-1 gap-3 mt-2">
+                <Label className="text-lg font-semibold">All Extracted Colors ({palette.colors.length})</Label>
+                <div className="grid grid-cols-1 gap-3 mt-2 max-h-96 overflow-y-auto">
                   {palette.colors.map((color, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                       <div 
