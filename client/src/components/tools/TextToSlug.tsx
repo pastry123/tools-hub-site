@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function TextToSlug() {
   const [inputText, setInputText] = useState('');
@@ -17,6 +18,7 @@ export default function TextToSlug() {
   const [outputSlug, setOutputSlug] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleGenerate = async () => {
     if (!inputText.trim()) {
@@ -81,24 +83,24 @@ export default function TextToSlug() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Link className="w-5 h-5" />
-            Text to Slug
+            {t("textSlug.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="input-text">Input Text</Label>
+            <Label htmlFor="input-text">{t("textSlug.inputText")}</Label>
             <Textarea
               id="input-text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Enter your text here..."
+              placeholder={t("textSlug.enterText")}
               className="mt-2 min-h-[100px]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="separator">Separator</Label>
+              <Label htmlFor="separator">{t("textSlug.separator")}</Label>
               <Input
                 id="separator"
                 value={separator}
@@ -108,7 +110,7 @@ export default function TextToSlug() {
               />
             </div>
             <div>
-              <Label htmlFor="max-length">Max Length (optional)</Label>
+              <Label htmlFor="max-length">{t("textSlug.maxLength")}</Label>
               <Input
                 id="max-length"
                 type="number"
@@ -127,7 +129,7 @@ export default function TextToSlug() {
                 checked={lowercase}
                 onCheckedChange={(checked) => setLowercase(checked === true)}
               />
-              <Label htmlFor="lowercase">Convert to lowercase</Label>
+              <Label htmlFor="lowercase">{t("textSlug.convertLowercase")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -135,12 +137,12 @@ export default function TextToSlug() {
                 checked={removeDiacritics}
                 onCheckedChange={(checked) => setRemoveDiacritics(checked === true)}
               />
-              <Label htmlFor="remove-diacritics">Remove diacritics (accents)</Label>
+              <Label htmlFor="remove-diacritics">{t("textSlug.removeDiacritics")}</Label>
             </div>
           </div>
 
           <Button onClick={handleGenerate} disabled={isProcessing} className="w-full">
-            {isProcessing ? 'Generating...' : 'Generate Slug'}
+            {isProcessing ? 'Generating...' : t("textSlug.generateSlug")}
           </Button>
 
           {outputSlug && (

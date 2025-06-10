@@ -132,26 +132,26 @@ export default function LoremGenerator() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            Lorem Ipsum Generator
+            {t("lorem.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Text Type</label>
+              <label className="block text-sm font-medium mb-2">{t("lorem.textType")}</label>
               <Select value={textType} onValueChange={setTextType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lorem">Lorem Ipsum</SelectItem>
+                  <SelectItem value="lorem">{t("lorem.loremIpsum")}</SelectItem>
                   <SelectItem value="random">Random Words</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Count</label>
+              <label className="block text-sm font-medium mb-2">{t("lorem.count")}</label>
               <Input
                 type="number"
                 value={count}
@@ -162,7 +162,7 @@ export default function LoremGenerator() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Generate</label>
+              <label className="block text-sm font-medium mb-2">{t("lorem.generate")}</label>
               <Select value={countType} onValueChange={setCountType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -170,7 +170,7 @@ export default function LoremGenerator() {
                 <SelectContent>
                   <SelectItem value="words">Words</SelectItem>
                   <SelectItem value="sentences">Sentences</SelectItem>
-                  <SelectItem value="paragraphs">Paragraphs</SelectItem>
+                  <SelectItem value="paragraphs">{t("lorem.paragraphs")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -179,7 +179,7 @@ export default function LoremGenerator() {
           <div className="flex gap-3">
             <Button onClick={generateText} className="flex-1">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Generate Text
+              {t("lorem.generateText")}
             </Button>
             
             {generatedText && (
