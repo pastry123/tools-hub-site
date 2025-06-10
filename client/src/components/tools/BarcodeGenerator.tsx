@@ -460,7 +460,7 @@ export default function BarcodeGenerator() {
                   <SelectContent>
                     {categories.map(category => (
                       <SelectItem key={category} value={category}>
-                        {category === "all" ? "All Categories" : category}
+                        {category === "all" ? t("barcodeGenerator.allCategories") : category}
                       </SelectItem>
                     ))}
                   </SelectContent>
