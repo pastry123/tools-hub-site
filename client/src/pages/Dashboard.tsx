@@ -9,19 +9,33 @@ export default function Dashboard() {
   const popularTools = getPopularTools();
   const { t } = useLanguage();
 
+  // Helper function to replace placeholders in translations
+  const formatTranslation = (key: string, replacements: Record<string, string> = {}) => {
+    let translation = t(key);
+    Object.entries(replacements).forEach(([placeholder, value]) => {
+      translation = translation.replace(`{${placeholder}}`, value);
+    });
+    return translation;
+  };
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
       <div className="mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white mb-4">
-          Aptexa ToolHub - 50+ Free Online Utilities
+          {t("dashboard.hero.title")}
         </h1>
         <p className="text-slate-600 dark:text-gray-300 text-xl mb-6 leading-relaxed">
-          50+ professional tools for <a href="/tool/barcode-generator" className="text-primary hover:underline">barcodes</a>, 
-          <a href="/tool/pdf-merger" className="text-primary hover:underline">PDFs</a>, 
-          <a href="/tool/signature-generator" className="text-primary hover:underline">signatures</a>, and 
-          <a href="/category/developer-tools" className="text-primary hover:underline">development</a>. 
-          Free, secure, browser-based tools for businesses and developers.
+          <span 
+            dangerouslySetInnerHTML={{
+              __html: formatTranslation("dashboard.hero.description", {
+                barcodes: `<a href="/tool/barcode-generator" class="text-primary hover:underline">${t("dashboard.hero.barcodes")}</a>`,
+                pdfs: `<a href="/tool/pdf-merger" class="text-primary hover:underline">${t("dashboard.hero.pdfs")}</a>`,
+                signatures: `<a href="/tool/signature-generator" class="text-primary hover:underline">${t("dashboard.hero.signatures")}</a>`,
+                development: `<a href="/category/developer-tools" class="text-primary hover:underline">${t("dashboard.hero.development")}</a>`
+              })
+            }}
+          />
         </p>
         
         {/* Quick Stats */}
@@ -86,7 +100,7 @@ export default function Dashboard() {
 
       {/* Quick Access */}
       <div className="mb-12">
-        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Most Popular Tools - Quick Access</h2>
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">{t("dashboard.quickAccess.title")}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {popularTools.slice(0, 4).map(({ tool, category }) => (
             <Link key={tool.id} href={`/tool/${tool.id}`}>

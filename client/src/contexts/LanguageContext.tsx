@@ -83,6 +83,47 @@ const translations = {
     "barcode.business": "Business Cards",
     "barcode.events": "Event Barcodes",
     "barcode.wifi": "Wi-Fi Barcodes",
+    
+    // Dashboard Hero Section
+    "dashboard.hero.title": "Aptexa ToolHub - 50+ Free Online Utilities",
+    "dashboard.hero.description": "50+ professional tools for {barcodes}, {pdfs}, {signatures}, and {development}. Free, secure, browser-based tools for businesses and developers.",
+    "dashboard.hero.barcodes": "barcodes",
+    "dashboard.hero.pdfs": "PDFs",
+    "dashboard.hero.signatures": "signatures", 
+    "dashboard.hero.development": "development",
+    
+    // Dashboard Sections
+    "dashboard.quickAccess.title": "Most Popular Tools - Quick Access",
+    "dashboard.categories.title": "Complete Tool Categories",
+    "dashboard.categories.description": "Explore our extensive collection of tools organized into specialized categories. Each category contains multiple tools designed to handle specific tasks efficiently. From {barcodeGeneration} to {imageProcessing}, find the perfect tool for your needs.",
+    "dashboard.categories.barcodeGeneration": "barcode generation",
+    "dashboard.categories.imageProcessing": "image processing",
+    "dashboard.categories.toolsCount": "{count} tools",
+    
+    // Dashboard Benefits
+    "dashboard.benefits.title": "Why Choose Aptexa ToolHub for Your Professional Needs",
+    "dashboard.benefits.document.title": "Advanced Document Processing",
+    "dashboard.benefits.document.description1": "Our {pdfTools} include merge, split, compress, and watermark capabilities. The {eSignature} enables legal document signing with AI-powered signature generation. Process multiple files simultaneously with enterprise-grade security protocols ensuring your documents remain confidential.",
+    "dashboard.benefits.document.description2": "Advanced OCR technology extracts text from scanned documents, while intelligent compression reduces file sizes without quality loss. Batch processing capabilities handle hundreds of documents efficiently.",
+    "dashboard.benefits.barcode.title": "Professional Barcode & QR Generation",
+    "dashboard.benefits.barcode.description1": "Generate industry-standard barcodes including {code128}, {qrCodes}, {dataMatrix}, and postal codes. Our {barcodeScanner} uses advanced computer vision to decode any barcode format with high accuracy rates.",
+    "dashboard.benefits.barcode.description2": "Support for business cards, event tickets, inventory management, and Wi-Fi sharing. Bulk generation capabilities for enterprise applications with custom branding options.",
+    "dashboard.benefits.image.title": "Comprehensive Image Processing",
+    "dashboard.benefits.image.description1": "Professional {imageTools} for resizing, format conversion, compression, and editing. Advanced features include watermarking, background removal, and batch processing for multiple files.",
+    "dashboard.benefits.image.description2": "Support for all major formats including JPEG, PNG, WebP, SVG, and TIFF. Intelligent compression algorithms maintain visual quality while reducing file sizes significantly.",
+    "dashboard.benefits.developer.title": "Developer & Business Tools",
+    "dashboard.benefits.developer.description1": "Essential {developerTools} including regex testers, API validators, JWT decoders, and code formatters. The {invoiceGenerator} creates professional invoices with customizable templates and automatic calculations.",
+    "dashboard.benefits.developer.description2": "Text processing tools for case conversion, hash generation, and content analysis. Currency converters with real-time exchange rates for international business operations.",
+    
+    // Features Section
+    "dashboard.features.security.title": "Enterprise-Grade Security",
+    "dashboard.features.security.description": "All processing occurs client-side in your browser. Zero data transmission to external servers ensures complete privacy. Your sensitive documents and information never leave your device.",
+    "dashboard.features.performance.title": "Optimized Performance",
+    "dashboard.features.performance.description": "Lightning-fast processing with minimal resource usage. Tools are optimized for both desktop and mobile devices, ensuring consistent performance across all platforms.",
+    "dashboard.features.accessibility.title": "Universal Accessibility",
+    "dashboard.features.accessibility.description": "Full multilingual support with right-to-left language compatibility. Responsive design works seamlessly on smartphones, tablets, and desktop computers.",
+    "dashboard.features.business.title": "Business-Ready Features",
+    "dashboard.features.business.description": "Professional templates for invoices, certificates, and business documents. Batch processing capabilities handle large volumes efficiently for enterprise workflows.",
   },
   es: {
     // Header
@@ -154,6 +195,47 @@ const translations = {
     "barcode.business": "Tarjetas de Visita",
     "barcode.events": "Códigos de Eventos",
     "barcode.wifi": "Códigos Wi-Fi",
+    
+    // Dashboard Hero Section
+    "dashboard.hero.title": "Aptexa ToolHub - 50+ Utilidades Gratuitas en Línea",
+    "dashboard.hero.description": "50+ herramientas profesionales para {barcodes}, {pdfs}, {signatures}, y {development}. Herramientas gratuitas, seguras y basadas en navegador para empresas y desarrolladores.",
+    "dashboard.hero.barcodes": "códigos de barras",
+    "dashboard.hero.pdfs": "PDFs",
+    "dashboard.hero.signatures": "firmas", 
+    "dashboard.hero.development": "desarrollo",
+    
+    // Dashboard Sections
+    "dashboard.quickAccess.title": "Herramientas Más Populares - Acceso Rápido",
+    "dashboard.categories.title": "Categorías Completas de Herramientas",
+    "dashboard.categories.description": "Explora nuestra extensa colección de herramientas organizadas en categorías especializadas. Cada categoría contiene múltiples herramientas diseñadas para manejar tareas específicas de manera eficiente. Desde {barcodeGeneration} hasta {imageProcessing}, encuentra la herramienta perfecta para tus necesidades.",
+    "dashboard.categories.barcodeGeneration": "generación de códigos de barras",
+    "dashboard.categories.imageProcessing": "procesamiento de imágenes",
+    "dashboard.categories.toolsCount": "{count} herramientas",
+    
+    // Dashboard Benefits
+    "dashboard.benefits.title": "Por Qué Elegir Aptexa ToolHub para Tus Necesidades Profesionales",
+    "dashboard.benefits.document.title": "Procesamiento Avanzado de Documentos",
+    "dashboard.benefits.document.description1": "Nuestras {pdfTools} incluyen capacidades de fusión, división, compresión y marca de agua. La {eSignature} permite la firma legal de documentos con generación de firmas impulsada por IA. Procesa múltiples archivos simultáneamente con protocolos de seguridad de nivel empresarial que garantizan la confidencialidad de tus documentos.",
+    "dashboard.benefits.document.description2": "La tecnología OCR avanzada extrae texto de documentos escaneados, mientras que la compresión inteligente reduce el tamaño de los archivos sin pérdida de calidad. Las capacidades de procesamiento por lotes manejan cientos de documentos de manera eficiente.",
+    "dashboard.benefits.barcode.title": "Generación Profesional de Códigos de Barras y QR",
+    "dashboard.benefits.barcode.description1": "Genera códigos de barras estándar de la industria incluyendo {code128}, {qrCodes}, {dataMatrix}, y códigos postales. Nuestro {barcodeScanner} utiliza visión por computadora avanzada para decodificar cualquier formato de código de barras con altas tasas de precisión.",
+    "dashboard.benefits.barcode.description2": "Soporte para tarjetas de visita, boletos de eventos, gestión de inventario y compartir Wi-Fi. Capacidades de generación masiva para aplicaciones empresariales con opciones de marca personalizada.",
+    "dashboard.benefits.image.title": "Procesamiento Integral de Imágenes",
+    "dashboard.benefits.image.description1": "{imageTools} profesionales para redimensionar, conversión de formato, compresión y edición. Las características avanzadas incluyen marcas de agua, eliminación de fondo y procesamiento por lotes para múltiples archivos.",
+    "dashboard.benefits.image.description2": "Soporte para todos los formatos principales incluyendo JPEG, PNG, WebP, SVG y TIFF. Los algoritmos de compresión inteligente mantienen la calidad visual mientras reducen significativamente el tamaño de los archivos.",
+    "dashboard.benefits.developer.title": "Herramientas para Desarrolladores y Empresas",
+    "dashboard.benefits.developer.description1": "{developerTools} esenciales incluyendo probadores de regex, validadores de API, decodificadores JWT y formateadores de código. El {invoiceGenerator} crea facturas profesionales con plantillas personalizables y cálculos automáticos.",
+    "dashboard.benefits.developer.description2": "Herramientas de procesamiento de texto para conversión de casos, generación de hash y análisis de contenido. Convertidores de moneda con tasas de cambio en tiempo real para operaciones comerciales internacionales.",
+    
+    // Features Section
+    "dashboard.features.security.title": "Seguridad de Nivel Empresarial",
+    "dashboard.features.security.description": "Todo el procesamiento ocurre del lado del cliente en tu navegador. Cero transmisión de datos a servidores externos garantiza privacidad completa. Tus documentos e información sensibles nunca salen de tu dispositivo.",
+    "dashboard.features.performance.title": "Rendimiento Optimizado",
+    "dashboard.features.performance.description": "Procesamiento ultrarrápido con uso mínimo de recursos. Las herramientas están optimizadas tanto para dispositivos de escritorio como móviles, asegurando rendimiento consistente en todas las plataformas.",
+    "dashboard.features.accessibility.title": "Accesibilidad Universal",
+    "dashboard.features.accessibility.description": "Soporte multilingüe completo con compatibilidad para idiomas de derecha a izquierda. El diseño responsivo funciona perfectamente en smartphones, tablets y computadoras de escritorio.",
+    "dashboard.features.business.title": "Características Listas para Empresas",
+    "dashboard.features.business.description": "Plantillas profesionales para facturas, certificados y documentos comerciales. Las capacidades de procesamiento por lotes manejan grandes volúmenes de manera eficiente para flujos de trabajo empresariales.",
   },
   ar: {
     // Header
@@ -229,6 +311,47 @@ const translations = {
     "barcode.business": "بطاقات العمل",
     "barcode.events": "أكواد الأحداث",
     "barcode.wifi": "أكواد الواي فاي",
+    
+    // Dashboard Hero Section
+    "dashboard.hero.title": "Aptexa ToolHub - 50+ أداة مجانية على الإنترنت",
+    "dashboard.hero.description": "50+ أداة احترافية لـ {barcodes} و {pdfs} و {signatures} و {development}. أدوات مجانية وآمنة تعمل في المتصفح للشركات والمطورين.",
+    "dashboard.hero.barcodes": "الباركود",
+    "dashboard.hero.pdfs": "ملفات PDF",
+    "dashboard.hero.signatures": "التوقيعات", 
+    "dashboard.hero.development": "التطوير",
+    
+    // Dashboard Sections
+    "dashboard.quickAccess.title": "الأدوات الأكثر شعبية - الوصول السريع",
+    "dashboard.categories.title": "فئات الأدوات الكاملة",
+    "dashboard.categories.description": "استكشف مجموعتنا الواسعة من الأدوات المنظمة في فئات متخصصة. كل فئة تحتوي على أدوات متعددة مصممة للتعامل مع مهام محددة بكفاءة. من {barcodeGeneration} إلى {imageProcessing}، اعثر على الأداة المثالية لاحتياجاتك.",
+    "dashboard.categories.barcodeGeneration": "إنشاء الباركود",
+    "dashboard.categories.imageProcessing": "معالجة الصور",
+    "dashboard.categories.toolsCount": "{count} أداة",
+    
+    // Dashboard Benefits
+    "dashboard.benefits.title": "لماذا تختار Aptexa ToolHub لاحتياجاتك المهنية",
+    "dashboard.benefits.document.title": "معالجة متقدمة للمستندات",
+    "dashboard.benefits.document.description1": "تشمل {pdfTools} إمكانيات الدمج والتقسيم والضغط والعلامة المائية. تمكن {eSignature} من توقيع المستندات القانونية مع إنشاء التوقيعات المدعوم بالذكاء الاصطناعي. معالجة ملفات متعددة بشكل متزامن مع بروتوكولات أمان على مستوى المؤسسات لضمان سرية مستنداتك.",
+    "dashboard.benefits.document.description2": "تقنية OCR المتقدمة تستخرج النص من المستندات الممسوحة ضوئياً، بينما يقلل الضغط الذكي من أحجام الملفات دون فقدان الجودة. قدرات المعالجة المجمعة تتعامل مع مئات المستندات بكفاءة.",
+    "dashboard.benefits.barcode.title": "إنشاء احترافي للباركود ورموز QR",
+    "dashboard.benefits.barcode.description1": "إنشاء باركود معياري في الصناعة بما في ذلك {code128} و {qrCodes} و {dataMatrix} والرموز البريدية. يستخدم {barcodeScanner} رؤية الكمبيوتر المتقدمة لفك تشفير أي تنسيق باركود بمعدلات دقة عالية.",
+    "dashboard.benefits.barcode.description2": "دعم لبطاقات العمل وتذاكر الأحداث وإدارة المخزون ومشاركة الواي فاي. قدرات الإنشاء الجماعي للتطبيقات المؤسسية مع خيارات العلامة التجارية المخصصة.",
+    "dashboard.benefits.image.title": "معالجة شاملة للصور",
+    "dashboard.benefits.image.description1": "{imageTools} احترافية لتغيير الحجم وتحويل التنسيق والضغط والتحرير. الميزات المتقدمة تشمل العلامات المائية وإزالة الخلفية والمعالجة المجمعة لملفات متعددة.",
+    "dashboard.benefits.image.description2": "دعم لجميع التنسيقات الرئيسية بما في ذلك JPEG و PNG و WebP و SVG و TIFF. خوارزميات الضغط الذكية تحافظ على الجودة البصرية مع تقليل أحجام الملفات بشكل كبير.",
+    "dashboard.benefits.developer.title": "أدوات المطورين والأعمال",
+    "dashboard.benefits.developer.description1": "{developerTools} أساسية بما في ذلك مختبري regex ومدققي API ومفكك تشفير JWT ومنسقي الكود. ينشئ {invoiceGenerator} فواتير احترافية مع قوالب قابلة للتخصيص وحسابات تلقائية.",
+    "dashboard.benefits.developer.description2": "أدوات معالجة النص لتحويل الحالات وإنشاء التجزئة وتحليل المحتوى. محولات العملة مع أسعار الصرف في الوقت الفعلي للعمليات التجارية الدولية.",
+    
+    // Features Section
+    "dashboard.features.security.title": "أمان على مستوى المؤسسات",
+    "dashboard.features.security.description": "تتم جميع العمليات من جانب العميل في متصفحك. عدم نقل البيانات إلى خوادم خارجية يضمن الخصوصية الكاملة. مستنداتك ومعلوماتك الحساسة لا تغادر جهازك أبداً.",
+    "dashboard.features.performance.title": "أداء محسن",
+    "dashboard.features.performance.description": "معالجة فائقة السرعة مع استخدام الحد الأدنى من الموارد. الأدوات محسنة لكل من أجهزة سطح المكتب والأجهزة المحمولة، مما يضمن أداءً متسقاً عبر جميع المنصات.",
+    "dashboard.features.accessibility.title": "إمكانية وصول شاملة",
+    "dashboard.features.accessibility.description": "دعم متعدد اللغات كامل مع توافق للغات من اليمين إلى اليسار. التصميم المتجاوب يعمل بسلاسة على الهواتف الذكية والأجهزة اللوحية وأجهزة الكمبيوتر المكتبية.",
+    "dashboard.features.business.title": "ميزات جاهزة للأعمال",
+    "dashboard.features.business.description": "قوالب احترافية للفواتير والشهادات والوثائق التجارية. قدرات المعالجة المجمعة تتعامل مع أحجام كبيرة بكفاءة لسير العمل المؤسسي.",
   }
 };
 
