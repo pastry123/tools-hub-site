@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getToolById } from '@/lib/toolCategories';
 
 interface FavoriteTool {
@@ -65,7 +65,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('toolhub-recent', JSON.stringify(recentTools));
   }, [recentTools]);
 
-  const addToFavorites = (toolId: string) => {
+  const addToFavorites = useCallback((toolId: string) => {
     const tool = getToolById(toolId);
     if (!tool) return;
 
@@ -83,7 +83,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       }
       return [favorite, ...prev];
     });
-  };
+  }, []);
 
   const removeFromFavorites = (toolId: string) => {
     setFavorites(prev => prev.filter(f => f.toolId !== toolId));

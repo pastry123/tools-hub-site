@@ -146,7 +146,7 @@ export default function BarcodeScanner() {
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Upload className="w-8 h-8 mb-4 text-gray-500" />
                   <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">{t("barcodeScanner.clickUpload")}</span> {t("barcodeScanner.orDragDrop")}
+                    <span className="font-semibold">{t("barcodeScanner.clickUpload")}</span> {t("barcodeScanner.dragDrop")}
                   </p>
                   <p className="text-xs text-gray-500">PNG, JPG, JPEG, GIF, WEBP</p>
                 </div>
@@ -187,7 +187,7 @@ export default function BarcodeScanner() {
             disabled={!file || isScanning} 
             className="w-full"
           >
-            {isScanning ? t("barcodeScanner.scanning") : t("barcodeScanner.scanButton")}
+            {isScanning ? t("barcodeScanner.scanning") : t("barcodeScanner.scanBarcode")}
           </Button>
 
           {scanResults.length > 0 && (
