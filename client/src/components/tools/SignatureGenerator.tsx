@@ -35,22 +35,40 @@ export default function SignatureGenerator() {
     { value: "strong-confident", label: "Strong Confident", description: "Bold and powerful strokes" }
   ];
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (mode !== "draw") return;
-    setIsDrawing(true);
+  const getEventPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return { x: 0, y: 0 };
     
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
     
+    if ('touches' in e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY
+      };
+    } else {
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (mode !== "draw") return;
+    e.preventDefault();
+    setIsDrawing(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const pos = getEventPos(e);
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.beginPath();
-      ctx.moveTo(x, y);
+      ctx.moveTo(pos.x, pos.y);
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
       ctx.lineCap = "round";
@@ -58,20 +76,16 @@ export default function SignatureGenerator() {
     }
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing || mode !== "draw") return;
+    e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-    
+    const pos = getEventPos(e);
     const ctx = canvas.getContext("2d");
     if (ctx) {
-      ctx.lineTo(x, y);
+      ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
     }
   };
@@ -372,11 +386,15 @@ export default function SignatureGenerator() {
                 width={600}
                 height={200}
                 className="border rounded w-full cursor-crosshair"
-                style={{ maxWidth: '100%', height: 'auto' }}
+                style={{ maxWidth: '100%', height: 'auto', touchAction: 'none' }}
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                onTouchCancel={stopDrawing}
               />
             </div>
             
