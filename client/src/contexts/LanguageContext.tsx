@@ -904,10 +904,7 @@ const translations = {
     "tools.mobile-app-plan.desc": "Planificar aplicaciones móviles",
 
 
-    "barcodeGenerator.downloadSVG": "Descargar SVG",
-    "barcodeGenerator.copyClipboard": "Copiar al Portapapeles",
-    "barcodeGenerator.barcodeGenerated": "Código de Barras Generado",
-    "barcodeGenerator.barcodeGeneratedDesc": "¡Tu código de barras auténtico y escaneable ha sido generado!",
+
     "barcodeGenerator.generationFailed": "Fallo en la Generación",
     "barcodeGenerator.invalidInput": "Entrada Inválida",
     "barcodeGenerator.selectTypeAndEnter": "Por favor selecciona un tipo de código de barras e ingresa datos",

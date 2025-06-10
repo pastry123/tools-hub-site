@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Scan, Upload, Copy, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ScanResult {
   value: string;
@@ -37,6 +38,7 @@ export default function BarcodeScanner() {
   const [scanResults, setScanResults] = useState<ScanResult[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -49,8 +51,8 @@ export default function BarcodeScanner() {
       setPreviewUrl(url);
     } else {
       toast({
-        title: "Error",
-        description: "Please select a valid image file",
+        title: t("barcodeScanner.error"),
+        description: t("barcodeScanner.selectValidImage"),
         variant: "destructive"
       });
     }
@@ -133,18 +135,18 @@ export default function BarcodeScanner() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Scan className="w-5 h-5" />
-            Barcode & QR Code Scanner
+            {t("barcodeScanner.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="file">Upload Image with Barcode/QR Code</Label>
+            <Label htmlFor="file">{t("barcodeScanner.uploadImage")}</Label>
             <div className="mt-2">
               <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Upload className="w-8 h-8 mb-4 text-gray-500" />
                   <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
+                    <span className="font-semibold">{t("barcodeScanner.clickUpload")}</span> {t("barcodeScanner.orDragDrop")}
                   </p>
                   <p className="text-xs text-gray-500">PNG, JPG, JPEG, GIF, WEBP</p>
                 </div>
