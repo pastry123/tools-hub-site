@@ -533,7 +533,7 @@ export default function BarcodeGenerator() {
                     </span>
                   </div>
                   <div className="text-xs mt-2 text-green-600 dark:text-green-300">
-                    {currentBarcodeDef.hint} - Generates professional-grade, scannable barcodes
+                    {currentBarcodeDef.hint} - {t("barcodeGenerator.professionalGrade")}
                   </div>
                 </div>
               )}
@@ -541,7 +541,7 @@ export default function BarcodeGenerator() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label htmlFor="barcode-text">Data to Encode</Label>
+                <Label htmlFor="barcode-text">{t("barcodeGenerator.dataToEncode")}</Label>
                 {currentBarcodeDef && getSampleData(currentBarcodeDef.bcid) && (
                   <Button 
                     onClick={loadSampleData} 
@@ -549,7 +549,7 @@ export default function BarcodeGenerator() {
                     size="sm"
                     className="text-xs"
                   >
-                    Use Sample Data
+                    {t("barcodeGenerator.useSampleData")}
                   </Button>
                 )}
               </div>
@@ -558,14 +558,14 @@ export default function BarcodeGenerator() {
                 value={options.text}
                 onChange={(e) => updateOption('text', e.target.value)}
                 rows={3}
-                placeholder="Enter text, URL, or data to encode..."
+                placeholder={t("barcodeGenerator.enterData")}
                 className="resize-none"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label>Scale: {options.scale}</Label>
+                <Label>{t("barcodeGenerator.scaleLabel")}: {options.scale}</Label>
                 <Slider
                   value={[options.scale]}
                   onValueChange={([value]) => updateOption('scale', value)}
@@ -576,7 +576,7 @@ export default function BarcodeGenerator() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Height: {options.height}</Label>
+                <Label>{t("barcodeGenerator.heightLabel")}: {options.height}</Label>
                 <Slider
                   value={[options.height]}
                   onValueChange={([value]) => updateOption('height', value)}

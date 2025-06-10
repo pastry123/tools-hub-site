@@ -1491,6 +1491,11 @@ const translations = {
     "barcodeGenerator.postalCodes": "أكواد بريدية",
     "barcodeGenerator.twoDCodes": "أكواد ثنائية الأبعاد",
     "barcodeGenerator.specialCodes": "أكواد خاصة",
+    "barcodeGenerator.useSampleData": "استخدام بيانات تجريبية",
+    "barcodeGenerator.enterData": "أدخل النص أو البيانات للترميز...",
+    "barcodeGenerator.scaleLabel": "المقياس",
+    "barcodeGenerator.heightLabel": "الارتفاع",
+    "barcodeGenerator.professionalGrade": "ينتج أكواد باركود احترافية قابلة للمسح",
 
     // Text Tools Error Messages
     "textSlug.error": "خطأ",
