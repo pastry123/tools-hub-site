@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Download, Pen, Type, Trash2, Wand2, MapPin, Check } from "lucide-react";
+import { Download, Pen, Type, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignatureGenerator() {
@@ -14,79 +14,15 @@ export default function SignatureGenerator() {
   const [fontFamily, setFontFamily] = useState("Dancing Script");
   const [fontSize, setFontSize] = useState(48);
   const [color, setColor] = useState("#1a365d");
-  const [mode, setMode] = useState<"draw" | "type" | "ai">("ai");
+  const [mode, setMode] = useState<"draw" | "type">("draw");
   const [currentSignature, setCurrentSignature] = useState<string>("");
   const [brushSize, setBrushSize] = useState<number>(3);
-  const [isPlacingSignature, setIsPlacingSignature] = useState<boolean>(false);
   const { toast } = useToast();
 
   const signatureFonts = [
     "Dancing Script", "Great Vibes", "Allura", "Alex Brush", "Satisfy",
     "Pacifico", "Kaushan Script", "Amatic SC", "Caveat", "Sacramento"
   ];
-
-  const aiSignatureStyles = [
-    { name: "Executive", description: "Professional business style" },
-    { name: "Creative", description: "Artistic and flowing" },
-    { name: "Classic", description: "Traditional cursive" },
-    { name: "Modern", description: "Clean contemporary style" },
-    { name: "Elegant", description: "Sophisticated script" },
-    { name: "Bold", description: "Strong and confident" }
-  ];
-
-  const generateAISignature = async (style: string) => {
-    if (!signatureText.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter your name first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Map frontend style names to backend style names
-    const styleMapping: Record<string, string> = {
-      "Executive": "professional-executive",
-      "Creative": "artistic-flowing", 
-      "Classic": "traditional-formal",
-      "Modern": "contemporary-clean",
-      "Elegant": "sophisticated-cursive",
-      "Bold": "strong-confident"
-    };
-
-    try {
-      const response = await fetch('/api/esign/generate-signature', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: signatureText,
-          style: styleMapping[style] || 'sophisticated-cursive',
-          format: 'svg'
-        })
-      });
-
-      const data = await response.json();
-      if (response.ok && data.signature) {
-        setCurrentSignature(data.signature);
-        toast({
-          title: "Success",
-          description: `${style} signature generated successfully!`,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: data.error || "Failed to generate signature",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate AI signature",
-        variant: "destructive",
-      });
-    }
-  };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (mode !== "draw") return;
@@ -100,15 +36,15 @@ export default function SignatureGenerator() {
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.strokeStyle = color;
-    ctx.lineWidth = brushSize;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+    }
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -122,15 +58,14 @@ export default function SignatureGenerator() {
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.lineTo(x, y);
-    ctx.stroke();
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
   };
 
   const stopDrawing = () => {
-    if (!isDrawing) return;
     setIsDrawing(false);
     const canvas = canvasRef.current;
     if (canvas) {
@@ -142,18 +77,18 @@ export default function SignatureGenerator() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setCurrentSignature("");
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      setCurrentSignature("");
+    }
   };
 
   const generateTypedSignature = () => {
     if (!signatureText.trim()) {
       toast({
         title: "Error",
-        description: "Please enter text for signature",
+        description: "Please enter your name first",
         variant: "destructive",
       });
       return;
@@ -161,21 +96,21 @@ export default function SignatureGenerator() {
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = `${fontSize}px ${fontFamily}`;
-    ctx.fillStyle = color;
-    ctx.textAlign = 'center';
-    ctx.fillText(signatureText, canvas.width / 2, canvas.height / 2 + fontSize / 4);
-    
-    setCurrentSignature(canvas.toDataURL());
-    toast({
-      title: "Success",
-      description: "Typed signature generated!",
-    });
+
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.fillText(signatureText, canvas.width / 2, canvas.height / 2 + fontSize / 4);
+      
+      setCurrentSignature(canvas.toDataURL());
+      toast({
+        title: "Success",
+        description: "Typed signature generated successfully!",
+      });
+    }
   };
 
   const downloadSignature = () => {
@@ -188,203 +123,180 @@ export default function SignatureGenerator() {
       return;
     }
 
-    const link = document.createElement('a');
-    link.download = 'signature.png';
+    const link = document.createElement("a");
+    link.download = "signature.png";
     link.href = currentSignature;
     link.click();
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Pen className="w-5 h-5" />
-            Create Signature
+            Signature Generator
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Button 
-              variant={mode === "ai" ? "default" : "outline"} 
-              onClick={() => setMode("ai")}
-              size="sm"
-            >
-              <Wand2 className="w-4 h-4 mr-2" />
-              AI Generate
-            </Button>
-            <Button 
-              variant={mode === "type" ? "default" : "outline"} 
-              onClick={() => setMode("type")}
-              size="sm"
-            >
-              <Type className="w-4 h-4 mr-2" />
-              Type
-            </Button>
-            <Button 
-              variant={mode === "draw" ? "default" : "outline"} 
+        <CardContent className="space-y-6">
+          {/* Mode Selection */}
+          <div className="flex gap-2">
+            <Button
+              variant={mode === "draw" ? "default" : "outline"}
               onClick={() => setMode("draw")}
-              size="sm"
+              className="flex items-center gap-2"
             >
-              <Pen className="w-4 h-4 mr-2" />
+              <Pen className="w-4 h-4" />
               Draw
+            </Button>
+            <Button
+              variant={mode === "type" ? "default" : "outline"}
+              onClick={() => setMode("type")}
+              className="flex items-center gap-2"
+            >
+              <Type className="w-4 h-4" />
+              Type
             </Button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Your Name</label>
+          {/* Input for Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Your Name</label>
             <Input
               value={signatureText}
               onChange={(e) => setSignatureText(e.target.value)}
-              placeholder="Enter your full name"
+              placeholder="Enter your name"
+              className="max-w-md"
             />
           </div>
 
-          {mode === "ai" && (
-            <div>
-              <label className="block text-sm font-medium mb-2">AI Signature Styles</label>
-              <div className="grid grid-cols-2 gap-2">
-                {aiSignatureStyles.map((style) => (
-                  <Button
-                    key={style.name}
-                    variant="outline"
-                    onClick={() => generateAISignature(style.name)}
-                    className="h-auto p-3 text-left"
-                  >
-                    <div>
-                      <div className="font-medium">{style.name}</div>
-                      <div className="text-xs text-gray-500">{style.description}</div>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {mode === "type" && (
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium mb-2">Font Family</label>
-                <Select value={fontFamily} onValueChange={setFontFamily}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {signatureFonts.map((font) => (
-                      <SelectItem key={font} value={font}>
-                        <span style={{ fontFamily: font }}>{font}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Color</label>
-                  <Input
-                    type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Size</label>
-                  <Input
-                    type="number"
-                    value={fontSize}
-                    onChange={(e) => setFontSize(parseInt(e.target.value) || 48)}
-                    min="20"
-                    max="80"
-                  />
-                </div>
-              </div>
-              <Button onClick={generateTypedSignature} className="w-full">
-                Generate Typed Signature
-              </Button>
-            </div>
-          )}
-
+          {/* Drawing Controls */}
           {mode === "draw" && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Brush Size</label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={brushSize}
-                      onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                      className="flex-1"
-                    />
-                    <Badge variant="outline">{brushSize}px</Badge>
-                  </div>
+            <div className="space-y-4">
+              <div className="flex gap-4 items-center">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Brush Size</label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={brushSize}
+                    onChange={(e) => setBrushSize(Number(e.target.value))}
+                    className="w-32"
+                  />
+                  <div className="text-xs text-muted-foreground">{brushSize}px</div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Color</label>
-                  <Input
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Color</label>
+                  <input
                     type="color"
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
+                    className="w-12 h-8 rounded border"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          <div className="mt-4">
-            <canvas
-              ref={canvasRef}
-              width={500}
-              height={150}
-              className="border rounded bg-white cursor-crosshair w-full"
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-            />
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" onClick={clearSignature} size="sm">
-                <Trash2 className="w-4 h-4 mr-2" />
+          {/* Typography Controls */}
+          {mode === "type" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Font Family</label>
+                  <Select value={fontFamily} onValueChange={setFontFamily}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {signatureFonts.map((font) => (
+                        <SelectItem key={font} value={font}>
+                          <span style={{ fontFamily: font }}>{font}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Font Size</label>
+                  <input
+                    type="range"
+                    min="24"
+                    max="72"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <div className="text-xs text-muted-foreground">{fontSize}px</div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Color</label>
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="w-12 h-8 rounded border"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Canvas */}
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 bg-white dark:bg-gray-50">
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={200}
+                className="border rounded w-full cursor-crosshair"
+                style={{ maxWidth: '100%', height: 'auto' }}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+              />
+            </div>
+            
+            {/* Controls */}
+            <div className="flex flex-wrap gap-2">
+              {mode === "type" && (
+                <Button onClick={generateTypedSignature} className="flex items-center gap-2">
+                  <Type className="w-4 h-4" />
+                  Generate Signature
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={clearSignature}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
                 Clear
               </Button>
-              {currentSignature && (
-                <>
-                  <Button variant="outline" onClick={downloadSignature} size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    Signature Ready
-                  </Badge>
-                </>
-              )}
+              <Button
+                onClick={downloadSignature}
+                disabled={!currentSignature}
+                className="flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </Button>
             </div>
-            {isPlacingSignature && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-                Click on the PDF preview to place your signature
-              </div>
-            )}
           </div>
-          
-          {/* Signature Preview */}
+
+          {/* Preview */}
           {currentSignature && (
-            <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-              <h4 className="text-sm font-medium mb-2">Signature Preview</h4>
-              {currentSignature.trim().startsWith('<svg') ? (
-                <div 
-                  className="text-center bg-white p-4 rounded border"
-                  style={{ minHeight: '120px' }}
-                  dangerouslySetInnerHTML={{ __html: currentSignature }}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Preview</h3>
+              <div className="border rounded-lg p-4 bg-white dark:bg-gray-50">
+                <img 
+                  src={currentSignature} 
+                  alt="Signature Preview" 
+                  className="max-w-full h-auto"
                 />
-              ) : (
-                <div className="text-center bg-white p-4 rounded border" style={{ minHeight: '120px' }}>
-                  <img src={currentSignature} alt="Signature" className="max-w-full h-auto mx-auto" />
-                </div>
-              )}
+              </div>
             </div>
           )}
         </CardContent>
