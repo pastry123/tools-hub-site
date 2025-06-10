@@ -151,30 +151,50 @@ export default function SignatureGenerator() {
       
       if (response.ok && data.signature) {
         // Convert SVG to canvas for consistent handling
-        const img = new Image();
-        img.onload = () => {
-          const canvas = canvasRef.current;
-          if (canvas) {
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              
-              // Calculate scaling and centering
-              const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
-              const scaledWidth = img.width * scale;
-              const scaledHeight = img.height * scale;
-              const x = (canvas.width - scaledWidth) / 2;
-              const y = (canvas.height - scaledHeight) / 2;
-              
-              ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Modify SVG to center it properly
+            let svgString = data.signature;
+            
+            // Calculate centering transform
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const svgWidth = 400;
+            const svgHeight = 120;
+            
+            const scale = Math.min((canvasWidth * 0.8) / svgWidth, (canvasHeight * 0.8) / svgHeight);
+            const scaledWidth = svgWidth * scale;
+            const scaledHeight = svgHeight * scale;
+            const translateX = (canvasWidth - scaledWidth) / 2;
+            const translateY = (canvasHeight - scaledHeight) / 2;
+            
+            // Update SVG viewBox and add centering transform
+            svgString = svgString.replace(
+              `<svg width="400" height="120" viewBox="0 0 400 120"`,
+              `<svg width="${canvasWidth}" height="${canvasHeight}" viewBox="0 0 ${canvasWidth} ${canvasHeight}"`
+            );
+            
+            // Wrap the existing content in a centering group
+            svgString = svgString.replace(
+              '<g transform="translate(20, 60)',
+              `<g transform="translate(${translateX + 20 * scale}, ${translateY + 60 * scale}) scale(${scale})`
+            );
+            
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
               setCurrentSignature(canvas.toDataURL());
-            }
+            };
+            
+            // Create data URL from modified SVG string
+            const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+            img.src = svgDataUrl;
           }
-        };
-        
-        const svgBlob = new Blob([data.signature], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(svgBlob);
-        img.src = url;
+        }
         
         toast({
           title: "Success",
