@@ -481,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Color Palette Extractor
-  app.post('/api/image/palette', imageUpload.single('image'), async (req, res) => {
+  app.post('/api/image/color-palette', imageUpload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file provided' });

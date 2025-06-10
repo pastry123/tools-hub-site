@@ -117,62 +117,63 @@ export class SimpleImageService {
     try {
       const text = options.text || 'WATERMARK';
       const fontSize = options.fontSize || 24;
-      const opacity = options.opacity || 0.7;
-      const color = options.color || 'rgba(255, 255, 255, 0.7)';
+      const opacity = Math.round((options.opacity || 0.7) * 255);
       
       // Get image metadata
       const metadata = await sharp(buffer).metadata();
       const width = metadata.width || 800;
       const height = metadata.height || 600;
       
-      // Create watermark text as SVG
-      const textColor = color.includes('rgba') ? color : `rgba(255, 255, 255, ${opacity})`;
-      let x = 10, y = 30;
+      // Calculate position
+      let x = 10, y = fontSize + 10;
+      const textWidth = text.length * fontSize * 0.6;
       
-      // Position watermark based on options
       switch (options.position) {
         case 'top-right':
-          x = width - (text.length * fontSize * 0.6) - 10;
-          y = 30;
+          x = width - textWidth - 10;
+          y = fontSize + 10;
           break;
         case 'bottom-left':
           x = 10;
           y = height - 10;
           break;
         case 'bottom-right':
-          x = width - (text.length * fontSize * 0.6) - 10;
+          x = width - textWidth - 10;
           y = height - 10;
           break;
         case 'center':
-          x = width / 2 - (text.length * fontSize * 0.3);
+          x = (width - textWidth) / 2;
           y = height / 2;
           break;
         default: // top-left
           x = 10;
-          y = 30;
+          y = fontSize + 10;
       }
       
+      // Create simple SVG watermark
       const watermarkSvg = `
-        <svg width="${width}" height="${height}">
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
           <text x="${x}" y="${y}" 
                 font-family="Arial, sans-serif" 
                 font-size="${fontSize}" 
-                fill="${textColor}" 
+                fill="white" 
+                fill-opacity="${opacity / 255}"
                 font-weight="bold">
             ${text}
           </text>
         </svg>
       `;
       
-      // Apply watermark using composite
+      // Apply watermark
       const result = await sharp(buffer)
         .composite([
           {
             input: Buffer.from(watermarkSvg),
-            blend: 'over'
+            top: 0,
+            left: 0
           }
         ])
-        .png()
+        .jpeg({ quality: 90 })
         .toBuffer();
         
       return result;

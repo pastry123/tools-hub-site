@@ -47,7 +47,7 @@ export default function ColorPaletteExtractor() {
       formData.append('image', file);
       formData.append('colorCount', colorCount);
 
-      const response = await fetch('/api/image/palette', {
+      const response = await fetch('/api/image/color-palette', {
         method: 'POST',
         body: formData
       });
