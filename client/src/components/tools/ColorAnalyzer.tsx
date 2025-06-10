@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Palette, Upload, Copy, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExtractedColor {
   hex: string;
@@ -23,6 +24,7 @@ export default function ColorAnalyzer() {
   const [analysis, setAnalysis] = useState<ColorAnalysis | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -115,12 +117,12 @@ export default function ColorAnalyzer() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="w-5 h-5" />
-            Color Analyzer
+            {t("colorAnalyzer.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="image-upload">Upload Image</Label>
+            <Label htmlFor="image-upload">{t("colorAnalyzer.uploadImage")}</Label>
             <Input
               id="image-upload"
               type="file"
@@ -151,7 +153,7 @@ export default function ColorAnalyzer() {
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Analyze Colors
+                {t("colorAnalyzer.analyzeColors")}
               </>
             )}
           </Button>

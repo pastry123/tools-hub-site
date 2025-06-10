@@ -68,16 +68,16 @@ export default function CategoryDetailPage() {
                     </div>
                     
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                      {tool.name}
+                      {t(`tools.${tool.id}`) || tool.name}
                     </h3>
                     
                     <p className="text-sm text-slate-600 dark:text-gray-300 mb-4 leading-relaxed">
-                      {tool.description}
+                      {t(`tools.${tool.id}.desc`) || tool.description}
                     </p>
                     
                     <div className="flex items-center justify-center w-full pt-2 border-t border-slate-100 dark:border-gray-700">
                       <span className="text-xs font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 flex items-center">
-                        Use Tool <Star className="w-3 h-3 ml-1" />
+                        {t("tools.useTool")} <Star className="w-3 h-3 ml-1" />
                       </span>
                     </div>
                   </div>
