@@ -192,59 +192,63 @@ export class SimpleImageService {
 
   async extractColorPalette(buffer: Buffer, colorCount: number = 5): Promise<ColorPalette> {
     try {
-      // Convert to RGB and resize for processing
+      // Convert to RGB format ensuring 3 channels
       const { data, info } = await sharp(buffer)
-        .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
+        .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
         .raw()
-        .ensureAlpha(false)
+        .toColorspace('srgb')
         .toBuffer({ resolveWithObject: true });
 
       const pixels = data;
       const { width, height, channels } = info;
+      const actualChannels = channels || 3; // Default to 3 if undefined
       
-      console.log(`Processing image: ${width}x${height}, channels: ${channels}, data length: ${pixels.length}`);
+      console.log(`Processing image: ${width}x${height}, channels: ${actualChannels}, data length: ${pixels.length}`);
 
       const colorCounts = new Map<string, { count: number; r: number; g: number; b: number }>();
+      const totalPixels = Math.floor(pixels.length / actualChannels);
 
-      // Process every pixel (no sampling to ensure accuracy)
-      for (let i = 0; i < pixels.length; i += channels) {
-        const r = pixels[i];
-        const g = pixels[i + 1]; 
-        const b = pixels[i + 2];
+      // Process every pixel with proper channel handling
+      for (let i = 0; i < pixels.length; i += actualChannels) {
+        const r = pixels[i] || 0;
+        const g = pixels[i + 1] || 0; 
+        const b = pixels[i + 2] || 0;
 
-        // Skip if any channel is undefined
-        if (r === undefined || g === undefined || b === undefined) continue;
-
-        // Create color key with actual RGB values (no rounding yet)
-        const colorKey = `${Math.floor(r/8)*8},${Math.floor(g/8)*8},${Math.floor(b/8)*8}`;
+        // Group similar colors (reduce to 32 levels per channel)
+        const quantizedR = Math.floor(r / 8) * 8;
+        const quantizedG = Math.floor(g / 8) * 8;
+        const quantizedB = Math.floor(b / 8) * 8;
+        
+        const colorKey = `${quantizedR},${quantizedG},${quantizedB}`;
         
         if (colorCounts.has(colorKey)) {
           colorCounts.get(colorKey)!.count++;
         } else {
           colorCounts.set(colorKey, { 
             count: 1, 
-            r: Math.floor(r/8)*8, 
-            g: Math.floor(g/8)*8, 
-            b: Math.floor(b/8)*8 
+            r: quantizedR, 
+            g: quantizedG, 
+            b: quantizedB 
           });
         }
       }
 
-      console.log(`Found ${colorCounts.size} unique colors`);
+      console.log(`Found ${colorCounts.size} unique color groups from ${totalPixels} pixels`);
 
-      // Sort by frequency and get top colors
+      // Get all colors with at least 0.5% representation
+      const minPixelThreshold = Math.max(5, Math.floor(totalPixels * 0.005));
       const sortedColors = Array.from(colorCounts.entries())
-        .sort(([,a], [,b]) => b.count - a.count)
-        .slice(0, colorCount);
+        .filter(([, data]) => data.count >= minPixelThreshold)
+        .sort(([,a], [,b]) => b.count - a.count);
 
-      const totalPixels = pixels.length / channels;
+      console.log(`Showing ${sortedColors.length} significant colors (threshold: ${minPixelThreshold} pixels)`);
 
       const colors = sortedColors.map(([colorKey, data]) => {
         const { r, g, b, count } = data;
         const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
         const percentage = Math.round((count / totalPixels) * 100);
         
-        console.log(`Color: ${hex} (${r},${g},${b}) - ${percentage}% (${count} pixels)`);
+        console.log(`Color: ${hex} (RGB: ${r},${g},${b}) - ${percentage}% (${count} pixels)`);
         
         return {
           hex,
