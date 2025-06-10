@@ -1524,6 +1524,13 @@ const translations = {
     "bulkBarcode.generateAll": "إنشاء جميع الباركودات",
     "bulkBarcode.generating": "جارٍ الإنشاء...",
     "bulkBarcode.downloadAll": "تحميل الكل",
+    "bulkBarcode.generationResults": "نتائج الإنشاء",
+    "bulkBarcode.generateToSeeResults": "أنشئ باركودات لرؤية النتائج",
+    "bulkBarcode.generated": "تم الإنشاء",
+    "bulkBarcode.failed": "فشل",
+    "bulkBarcode.total": "المجموع",
+    "bulkBarcode.selectJobToStart": "اختر مهمة للبدء",
+    "bulkBarcode.chooseJobOrCreate": "اختر مهمة من القائمة أو أنشئ واحدة جديدة",
 
     // Text Tools Error Messages
     "textSlug.error": "خطأ",

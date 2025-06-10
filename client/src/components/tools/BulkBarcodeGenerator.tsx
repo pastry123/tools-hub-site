@@ -528,11 +528,11 @@ export default function BulkBarcodeGenerator() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
-                        Generation Results
+                        {t("bulkBarcode.generationResults")}
                         {currentJob.status === 'completed' && (
                           <Button onClick={downloadResults}>
                             <Download className="w-4 h-4 mr-2" />
-                            Download All
+                            {t("bulkBarcode.downloadAll")}
                           </Button>
                         )}
                       </CardTitle>
@@ -541,7 +541,7 @@ export default function BulkBarcodeGenerator() {
                       {currentJob.status === 'preparing' ? (
                         <div className="text-center py-8">
                           <AlertCircle className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                          <p className="text-gray-600">Generate barcodes to see results</p>
+                          <p className="text-gray-600">{t("bulkBarcode.generateToSeeResults")}</p>
                         </div>
                       ) : (
                         <div className="space-y-4">
@@ -550,19 +550,19 @@ export default function BulkBarcodeGenerator() {
                               <div className="text-2xl font-bold text-green-600">
                                 {currentJob.items.filter(item => item.status === 'generated').length}
                               </div>
-                              <div className="text-sm text-gray-600">Generated</div>
+                              <div className="text-sm text-gray-600">{t("bulkBarcode.generated")}</div>
                             </div>
                             <div>
                               <div className="text-2xl font-bold text-red-600">
                                 {currentJob.items.filter(item => item.status === 'error').length}
                               </div>
-                              <div className="text-sm text-gray-600">Failed</div>
+                              <div className="text-sm text-gray-600">{t("bulkBarcode.failed")}</div>
                             </div>
                             <div>
                               <div className="text-2xl font-bold text-gray-600">
                                 {currentJob.items.length}
                               </div>
-                              <div className="text-sm text-gray-600">Total</div>
+                              <div className="text-sm text-gray-600">{t("bulkBarcode.total")}</div>
                             </div>
                           </div>
 
@@ -597,8 +597,8 @@ export default function BulkBarcodeGenerator() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-2">Select a job to get started</h3>
-                  <p className="text-gray-600">Choose a job from the list or create a new one</p>
+                  <h3 className="text-lg font-medium mb-2">{t("bulkBarcode.selectJobToStart")}</h3>
+                  <p className="text-gray-600">{t("bulkBarcode.chooseJobOrCreate")}</p>
                 </CardContent>
               </Card>
             )}
