@@ -480,21 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Color Palette Extractor
-  app.post('/api/image/color-palette', imageUpload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No image file provided' });
-      }
 
-      const palette = await simpleImageService.extractColorPalette(req.file.buffer);
-
-      res.json(palette);
-    } catch (error) {
-      console.error('Color palette error:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to extract color palette' });
-    }
-  });
 
   // Add Watermark
   app.post('/api/image/watermark', imageUpload.single('image'), async (req, res) => {

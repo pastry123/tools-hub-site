@@ -3,33 +3,43 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Palette, Upload, Copy } from 'lucide-react';
+import { Palette, Upload, Copy, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface ColorInfo {
+interface ExtractedColor {
   hex: string;
   rgb: { r: number; g: number; b: number };
   percentage: number;
 }
 
-interface ColorPalette {
+interface ColorAnalysis {
   dominant: string;
-  colors: ColorInfo[];
+  colors: ExtractedColor[];
 }
 
-export default function ColorPaletteExtractor() {
+export default function ColorAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
-  const [palette, setPalette] = useState<ColorPalette | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [analysis, setAnalysis] = useState<ColorAnalysis | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setAnalysis(null);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
     }
   };
 
-  const handleExtract = async () => {
+  const analyzeColors = async () => {
     if (!file) {
       toast({
         title: "Error",
@@ -45,26 +55,26 @@ export default function ColorPaletteExtractor() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/image/color-palette', {
+      const response = await fetch('/api/analyze-colors', {
         method: 'POST',
         body: formData
       });
 
       if (!response.ok) {
-        throw new Error('Failed to extract color palette');
+        throw new Error('Failed to analyze colors');
       }
 
       const data = await response.json();
-      setPalette(data);
+      setAnalysis(data);
 
       toast({
         title: "Success",
-        description: "Color palette extracted successfully"
+        description: `Found ${data.colors.length} distinct colors`
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to extract color palette",
+        description: "Failed to analyze image colors",
         variant: "destructive"
       });
     } finally {
@@ -76,8 +86,27 @@ export default function ColorPaletteExtractor() {
     navigator.clipboard.writeText(color);
     toast({
       title: "Copied",
-      description: `Color ${color} copied to clipboard`
+      description: `${color} copied to clipboard`
     });
+  };
+
+  const exportPalette = () => {
+    if (!analysis) return;
+    
+    const paletteData = {
+      image: file?.name,
+      dominant: analysis.dominant,
+      colors: analysis.colors,
+      extracted: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(paletteData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'color-palette.json';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -86,7 +115,7 @@ export default function ColorPaletteExtractor() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="w-5 h-5" />
-            Color Palette Extractor
+            Color Analyzer
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -106,32 +135,50 @@ export default function ColorPaletteExtractor() {
             )}
           </div>
 
+          {imagePreview && (
+            <div className="text-center">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-w-full h-64 object-contain mx-auto rounded-lg border"
+              />
+            </div>
+          )}
 
-
-          <Button onClick={handleExtract} disabled={isProcessing} className="w-full">
+          <Button onClick={analyzeColors} disabled={isProcessing || !file} className="w-full">
             {isProcessing ? (
-              'Extracting...'
+              'Analyzing Colors...'
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Extract Color Palette
+                Analyze Colors
               </>
             )}
           </Button>
 
-          {palette && (
-            <div className="space-y-4">
+          {analysis && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  Color Analysis ({analysis.colors.length} colors found)
+                </h3>
+                <Button onClick={exportPalette} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </div>
+
               <div>
-                <Label className="text-lg font-semibold">Dominant Color</Label>
-                <div className="flex items-center gap-3 mt-2">
+                <Label className="text-base font-medium">Dominant Color</Label>
+                <div className="flex items-center gap-3 mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <div 
                     className="w-16 h-16 rounded-lg border-2 border-gray-300 cursor-pointer"
-                    style={{ backgroundColor: palette.dominant }}
-                    onClick={() => copyColor(palette.dominant)}
+                    style={{ backgroundColor: analysis.dominant }}
+                    onClick={() => copyColor(analysis.dominant)}
                   />
-                  <div>
-                    <p className="font-mono text-sm">{palette.dominant}</p>
-                    <Button variant="ghost" size="sm" onClick={() => copyColor(palette.dominant)}>
+                  <div className="flex-1">
+                    <p className="font-mono text-lg">{analysis.dominant}</p>
+                    <Button variant="ghost" size="sm" onClick={() => copyColor(analysis.dominant)}>
                       <Copy className="w-3 h-3 mr-1" />
                       Copy
                     </Button>
@@ -140,16 +187,16 @@ export default function ColorPaletteExtractor() {
               </div>
 
               <div>
-                <Label className="text-lg font-semibold">All Extracted Colors ({palette.colors.length})</Label>
-                <div className="grid grid-cols-1 gap-3 mt-2 max-h-96 overflow-y-auto">
-                  {palette.colors.map((color, index) => (
+                <Label className="text-base font-medium">All Colors</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 max-h-96 overflow-y-auto">
+                  {analysis.colors.map((color, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                       <div 
-                        className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
+                        className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer flex-shrink-0"
                         style={{ backgroundColor: color.hex }}
                         onClick={() => copyColor(color.hex)}
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="font-mono text-sm">{color.hex}</p>
                         <p className="text-xs text-gray-500">
                           RGB({color.rgb.r}, {color.rgb.g}, {color.rgb.b}) • {color.percentage}%

@@ -30,7 +30,7 @@ export interface FaviconOptions {
   backgroundColor?: string;
 }
 
-export interface ColorPalette {
+export interface ColorAnalysis {
   dominant: string;
   colors: Array<{
     hex: string;
@@ -38,6 +38,8 @@ export interface ColorPalette {
     percentage: number;
   }>;
 }
+
+
 
 export class SimpleImageService {
   async resizeImage(buffer: Buffer, options: ImageResizeOptions): Promise<Buffer> {
@@ -190,46 +192,49 @@ export class SimpleImageService {
     return sizes.map(size => ({ size, data: buffer }));
   }
 
-  async extractColorPalette(buffer: Buffer): Promise<ColorPalette> {
+  async analyzeImageColors(buffer: Buffer): Promise<ColorAnalysis> {
     try {
-      // Convert image to raw pixel data
+      // Process image to extract pixel data
       const { data, info } = await sharp(buffer)
-        .resize(150, 150, { fit: 'cover' })
+        .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
         .raw()
         .toBuffer({ resolveWithObject: true });
 
-      const pixels = data;
       const { width, height, channels } = info;
+      const colorFreq = new Map<string, number>();
       
-      // Map to store color frequencies
-      const colors = new Map<string, { r: number; g: number; b: number; count: number }>();
+      // Process pixels with reduced sampling for performance
+      const step = Math.max(1, Math.floor(data.length / (channels * 5000))); // Sample ~5k pixels
       
-      // Sample pixels (every 4th pixel for performance)
-      for (let i = 0; i < pixels.length; i += channels * 4) {
-        const r = pixels[i] || 0;
-        const g = pixels[i + 1] || 0;
-        const b = pixels[i + 2] || 0;
-        
-        // Create color key
-        const key = `${r}-${g}-${b}`;
-        
-        if (colors.has(key)) {
-          colors.get(key)!.count++;
-        } else {
-          colors.set(key, { r, g, b, count: 1 });
+      for (let i = 0; i < data.length; i += channels * step) {
+        if (i + 2 < data.length) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // Group similar colors
+          const qR = Math.floor(r / 15) * 15;
+          const qG = Math.floor(g / 15) * 15;
+          const qB = Math.floor(b / 15) * 15;
+          
+          const key = `${qR},${qG},${qB}`;
+          colorFreq.set(key, (colorFreq.get(key) || 0) + 1);
         }
       }
-      
-      // Convert to array and sort by frequency
-      const colorArray = Array.from(colors.values())
+
+      // Sort by frequency
+      const sortedColors = Array.from(colorFreq.entries())
+        .map(([key, count]) => {
+          const [r, g, b] = key.split(',').map(Number);
+          return { r, g, b, count };
+        })
         .sort((a, b) => b.count - a.count);
+
+      const totalSamples = sortedColors.reduce((sum, c) => sum + c.count, 0);
       
-      // Calculate total samples
-      const totalSamples = colorArray.reduce((sum, color) => sum + color.count, 0);
-      
-      // Get colors with at least 0.5% representation
-      const significantColors = colorArray
-        .filter(color => (color.count / totalSamples) >= 0.005)
+      // Filter colors with meaningful representation
+      const significantColors = sortedColors
+        .filter(color => color.count / totalSamples >= 0.01) // At least 1%
         .map(color => ({
           hex: `#${color.r.toString(16).padStart(2, '0')}${color.g.toString(16).padStart(2, '0')}${color.b.toString(16).padStart(2, '0')}`,
           rgb: { r: color.r, g: color.g, b: color.b },
@@ -241,11 +246,8 @@ export class SimpleImageService {
         colors: significantColors
       };
     } catch (error) {
-      console.error('Color extraction failed:', error);
-      return {
-        dominant: '#000000',
-        colors: []
-      };
+      console.error('Color analysis error:', error);
+      throw new Error('Failed to analyze image colors');
     }
   }
 
