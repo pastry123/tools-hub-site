@@ -1,246 +1,161 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Clock, Plus, Trash2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Clock, MapPin, X } from 'lucide-react';
 
-interface TimeZone {
-  id: string;
-  name: string;
-  offset: string;
-  time: string;
-}
+const timezones = [
+  { value: 'UTC', label: 'UTC', name: 'Coordinated Universal Time', offset: 0 },
+  { value: 'America/New_York', label: 'New York', name: 'Eastern Time', offset: -5 },
+  { value: 'America/Los_Angeles', label: 'Los Angeles', name: 'Pacific Time', offset: -8 },
+  { value: 'Europe/London', label: 'London', name: 'Greenwich Mean Time', offset: 0 },
+  { value: 'Europe/Paris', label: 'Paris', name: 'Central European Time', offset: 1 },
+  { value: 'Asia/Tokyo', label: 'Tokyo', name: 'Japan Standard Time', offset: 9 },
+  { value: 'Asia/Shanghai', label: 'Shanghai', name: 'China Standard Time', offset: 8 },
+  { value: 'Australia/Sydney', label: 'Sydney', name: 'Australian Eastern Time', offset: 10 },
+  { value: 'America/Chicago', label: 'Chicago', name: 'Central Time', offset: -6 },
+  { value: 'Asia/Kolkata', label: 'Mumbai', name: 'India Standard Time', offset: 5.5 },
+  { value: 'Europe/Berlin', label: 'Berlin', name: 'Central European Time', offset: 1 },
+  { value: 'America/Denver', label: 'Denver', name: 'Mountain Time', offset: -7 },
+  { value: 'Asia/Dubai', label: 'Dubai', name: 'Gulf Standard Time', offset: 4 },
+  { value: 'Asia/Singapore', label: 'Singapore', name: 'Singapore Standard Time', offset: 8 },
+  { value: 'America/Sao_Paulo', label: 'São Paulo', name: 'Brasília Time', offset: -3 },
+];
 
 export default function TimezoneConverter() {
-  const [selectedDateTime, setSelectedDateTime] = useState(() => {
-    const now = new Date();
-    const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
-    return localISOTime;
-  });
-  
-  const [timeZones, setTimeZones] = useState<TimeZone[]>([
-    { id: 'UTC', name: 'UTC (Coordinated Universal Time)', offset: '+00:00', time: '' },
-    { id: 'America/New_York', name: 'New York (EST/EDT)', offset: '', time: '' },
-    { id: 'America/Los_Angeles', name: 'Los Angeles (PST/PDT)', offset: '', time: '' },
-    { id: 'Europe/London', name: 'London (GMT/BST)', offset: '', time: '' },
-    { id: 'Europe/Paris', name: 'Paris (CET/CEST)', offset: '', time: '' },
-    { id: 'Asia/Tokyo', name: 'Tokyo (JST)', offset: '', time: '' },
-    { id: 'Asia/Shanghai', name: 'Shanghai (CST)', offset: '', time: '' },
-    { id: 'Australia/Sydney', name: 'Sydney (AEST/AEDT)', offset: '', time: '' }
-  ]);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedZones, setSelectedZones] = useState(['America/New_York', 'Europe/London']);
 
-  const [newTimeZone, setNewTimeZone] = useState('');
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
-  const popularTimeZones = [
-    'UTC',
-    'America/New_York',
-    'America/Chicago',
-    'America/Denver',
-    'America/Los_Angeles',
-    'Europe/London',
-    'Europe/Paris',
-    'Europe/Berlin',
-    'Europe/Rome',
-    'Asia/Tokyo',
-    'Asia/Shanghai',
-    'Asia/Kolkata',
-    'Asia/Dubai',
-    'Australia/Sydney',
-    'Australia/Melbourne',
-    'Pacific/Auckland',
-    'America/Sao_Paulo',
-    'America/Mexico_City',
-    'Asia/Singapore',
-    'Asia/Hong_Kong'
-  ];
+    return () => clearInterval(timer);
+  }, []);
 
-  const formatTimeZoneName = (tz: string) => {
-    if (tz === 'UTC') return 'UTC (Coordinated Universal Time)';
-    const parts = tz.split('/');
-    if (parts.length === 2) {
-      const city = parts[1].replace(/_/g, ' ');
-      const region = parts[0];
-      return `${city} (${region})`;
+  const addZone = (zoneValue: string) => {
+    if (!selectedZones.includes(zoneValue) && selectedZones.length < 6) {
+      setSelectedZones([...selectedZones, zoneValue]);
     }
-    return tz.replace(/_/g, ' ');
   };
 
-  const convertTime = () => {
-    if (!selectedDateTime) return;
+  const removeZone = (zoneValue: string) => {
+    if (selectedZones.length > 1) {
+      setSelectedZones(selectedZones.filter(zone => zone !== zoneValue));
+    }
+  };
 
-    const inputDate = new Date(selectedDateTime);
-    
-    const updatedTimeZones = timeZones.map(tz => {
-      try {
-        const convertedTime = new Date(inputDate.toLocaleString("en-US", {timeZone: tz.id}));
-        const utcTime = new Date(inputDate.getTime() + inputDate.getTimezoneOffset() * 60000);
-        const targetTime = new Date(utcTime.toLocaleString("en-US", {timeZone: tz.id}));
-        
-        const timeString = targetTime.toLocaleString('en-US', {
-          timeZone: tz.id,
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false
-        });
-
-        // Calculate offset
-        const now = new Date();
-        const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-        const targetNow = new Date(utcNow.toLocaleString("en-US", {timeZone: tz.id}));
-        const offsetMinutes = (targetNow.getTime() - utcNow.getTime()) / (1000 * 60);
-        const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
-        const offsetMins = Math.abs(offsetMinutes) % 60;
-        const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-        const offset = `${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMins.toString().padStart(2, '0')}`;
-
-        return {
-          ...tz,
-          time: timeString,
-          offset: offset
-        };
-      } catch (error) {
-        return {
-          ...tz,
-          time: 'Invalid timezone',
-          offset: 'N/A'
-        };
-      }
+  const getZoneTime = (timezone: string) => {
+    return new Date().toLocaleString('en-US', {
+      timeZone: timezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
     });
-
-    setTimeZones(updatedTimeZones);
   };
 
-  const addTimeZone = () => {
-    if (!newTimeZone || timeZones.some(tz => tz.id === newTimeZone)) return;
-
-    const newTz: TimeZone = {
-      id: newTimeZone,
-      name: formatTimeZoneName(newTimeZone),
-      offset: '',
-      time: ''
-    };
-
-    setTimeZones([...timeZones, newTz]);
-    setNewTimeZone('');
+  const getZoneDate = (timezone: string) => {
+    return new Date().toLocaleDateString('en-US', {
+      timeZone: timezone,
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
-  const removeTimeZone = (id: string) => {
-    setTimeZones(timeZones.filter(tz => tz.id !== id));
+  const getTimezoneInfo = (timezone: string) => {
+    return timezones.find(tz => tz.value === timezone);
   };
 
-  useEffect(() => {
-    convertTime();
-  }, [selectedDateTime]);
-
-  useEffect(() => {
-    // Update times every minute
-    const interval = setInterval(() => {
-      if (selectedDateTime) {
-        convertTime();
-      }
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [selectedDateTime, timeZones]);
+  const availableZones = timezones.filter(tz => !selectedZones.includes(tz.value));
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto p-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5" />
+            <Clock className="w-5 h-5" />
             Time Zone Converter
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Select Date & Time
-            </label>
-            <Input
-              type="datetime-local"
-              value={selectedDateTime}
-              onChange={(e) => setSelectedDateTime(e.target.value)}
-              className="w-full"
-            />
+          <div className="text-center text-xl font-mono text-muted-foreground">
+            {currentTime.toLocaleTimeString('en-US', { hour12: false })}
           </div>
-
-          <div className="flex gap-2">
-            <Select value={newTimeZone} onValueChange={setNewTimeZone}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Add a timezone..." />
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Zone Selection */}
+          <div className="flex items-center gap-4">
+            <Label className="text-sm font-medium">Add Time Zone:</Label>
+            <Select onValueChange={addZone}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select a timezone to add" />
               </SelectTrigger>
               <SelectContent>
-                {popularTimeZones
-                  .filter(tz => !timeZones.some(existing => existing.id === tz))
-                  .map(tz => (
-                    <SelectItem key={tz} value={tz}>
-                      {formatTimeZoneName(tz)}
-                    </SelectItem>
-                  ))}
+                {availableZones.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    {tz.label} ({tz.name})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Button onClick={addTimeZone} disabled={!newTimeZone}>
-              <Plus className="w-4 h-4" />
-            </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      <div className="space-y-3">
-        {timeZones.map((tz) => (
-          <Card key={tz.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <h3 className="font-medium">{tz.name}</h3>
-                      <p className="text-sm text-gray-600">UTC {tz.offset}</p>
+          {/* Time Zone Display Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {selectedZones.map((zone) => {
+              const zoneInfo = getTimezoneInfo(zone);
+              const time = getZoneTime(zone);
+              const date = getZoneDate(zone);
+              
+              return (
+                <Card key={zone} className="p-4 relative">
+                  {selectedZones.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 h-6 w-6 p-0"
+                      onClick={() => removeZone(zone)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <div className="font-semibold">{zoneInfo?.label}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {zoneInfo?.name}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-3xl font-mono font-bold">
+                        {time}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {date}
+                      </div>
+                    </div>
+
+                    <div className="text-center text-xs text-muted-foreground">
+                      UTC{zoneInfo?.offset === 0 ? '' : zoneInfo?.offset && zoneInfo.offset > 0 ? `+${zoneInfo.offset}` : zoneInfo?.offset}
                     </div>
                   </div>
-                </div>
-                <div className="text-right space-y-1">
-                  {tz.time ? (
-                    <>
-                      <p className="text-sm text-gray-500">
-                        {tz.time.split(' ')[0]}
-                      </p>
-                      <p className="text-lg font-mono font-bold">
-                        {tz.time.split(' ')[1]}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="text-lg font-mono font-bold">Converting...</p>
-                  )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeTimeZone(tz.id)}
-                  className="ml-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                </Card>
+              );
+            })}
+          </div>
 
-      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-        <CardContent className="p-4">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            💡 <strong>Tip:</strong> Times automatically update every minute. The converter accounts for daylight saving time when applicable.
-          </p>
+          {selectedZones.length < 6 && availableZones.length > 0 && (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                You can add up to 6 time zones for comparison
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
