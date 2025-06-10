@@ -401,7 +401,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Generate professional invoices',
         icon: 'fa-receipt'
       },
-
+      {
+        id: 'signature-generator',
+        name: 'Signature Generator',
+        description: 'Create digital signatures',
+        icon: 'fa-signature'
+      },
       {
         id: 'gradient-generator',
         name: 'CSS Gradient Generator',
