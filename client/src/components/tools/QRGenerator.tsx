@@ -123,7 +123,7 @@ export default function QRGenerator() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="size">Size</Label>
+            <Label htmlFor="size">{t("qrGenerator.size")}</Label>
             <Select value={size} onValueChange={setSize}>
               <SelectTrigger>
                 <SelectValue />
@@ -138,7 +138,7 @@ export default function QRGenerator() {
           </div>
           
           <div>
-            <Label htmlFor="format">Format</Label>
+            <Label htmlFor="format">{t("qrGenerator.format")}</Label>
             <Select value={format} onValueChange={setFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -158,7 +158,7 @@ export default function QRGenerator() {
           disabled={isGenerating || !content.trim()}
         >
           <QrCode className="w-4 h-4 mr-2" />
-          {isGenerating ? "Generating..." : "Generate QR Code"}
+          {isGenerating ? t("qrGenerator.generating") : t("qrGenerator.generate")}
         </Button>
       </div>
 
@@ -166,19 +166,19 @@ export default function QRGenerator() {
       <div>
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Generated QR Code</h3>
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">{t("qrGenerator.preview")}</h3>
             
             <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-8 mb-6 min-h-[300px]">
               {qrCodeUrl ? (
                 <img 
                   src={qrCodeUrl} 
-                  alt="Generated QR Code" 
+                  alt={t("qrGenerator.preview")} 
                   className="max-w-full h-auto rounded-lg shadow-sm"
                 />
               ) : (
                 <>
                   <QrCode className="w-16 h-16 text-slate-300 mb-4" />
-                  <p className="text-slate-500 text-center">Your generated QR code will appear here</p>
+                  <p className="text-slate-500 text-center">{t("qrGenerator.preview")}</p>
                 </>
               )}
             </div>
@@ -187,11 +187,11 @@ export default function QRGenerator() {
               <div className="space-y-3">
                 <Button onClick={handleDownload} className="w-full bg-accent hover:bg-emerald-600">
                   <Download className="w-4 h-4 mr-2" />
-                  Download {format.toUpperCase()}
+                  {t("qrGenerator.download")} {format.toUpperCase()}
                 </Button>
                 <Button onClick={handleCopy} variant="outline" className="w-full">
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy to Clipboard
+                  {t("qrGenerator.copy")}
                 </Button>
               </div>
             )}
