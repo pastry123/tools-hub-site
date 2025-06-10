@@ -17,30 +17,25 @@ export default function LoremPicsum() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/developer/lorem-picsum', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          width,
-          height,
-          grayscale,
-          blur,
-          specificId: specificId || undefined
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate Lorem Picsum URL');
+      let url = `https://picsum.photos/${width}/${height}`;
+      
+      if (specificId) {
+        url = `https://picsum.photos/seed/${specificId}/${width}/${height}`;
+      }
+      
+      const params = [];
+      if (blur) params.push('blur=2');
+      if (grayscale) params.push('grayscale');
+      
+      if (params.length > 0) {
+        url += `?${params.join('&')}`;
       }
 
-      const data = await response.json();
-      setResult(data.result);
+      setResult(url);
 
       toast({
         title: "Success",

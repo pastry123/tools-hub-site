@@ -21,7 +21,7 @@ export default function MetaTagGenerator() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     if (!title.trim()) {
       toast({
         title: "Error",
@@ -34,30 +34,28 @@ export default function MetaTagGenerator() {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/generator/meta-tags', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          keywords,
-          author: author || undefined,
-          viewport: viewport || undefined,
-          ogTitle: ogTitle || undefined,
-          ogDescription: ogDescription || undefined,
-          ogImage: ogImage || undefined,
-          twitterCard: twitterCard || undefined
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate meta tags');
-      }
-
-      const data = await response.json();
-      setResult(data.result);
+      const metaTags = [];
+      
+      // Basic meta tags
+      metaTags.push(`<title>${title}</title>`);
+      if (description) metaTags.push(`<meta name="description" content="${description}">`);
+      if (keywords) metaTags.push(`<meta name="keywords" content="${keywords}">`);
+      if (author) metaTags.push(`<meta name="author" content="${author}">`);
+      if (viewport) metaTags.push(`<meta name="viewport" content="${viewport}">`);
+      
+      // Open Graph tags
+      metaTags.push(`<meta property="og:title" content="${ogTitle || title}">`);
+      if (ogDescription || description) metaTags.push(`<meta property="og:description" content="${ogDescription || description}">`);
+      if (ogImage) metaTags.push(`<meta property="og:image" content="${ogImage}">`);
+      metaTags.push(`<meta property="og:type" content="website">`);
+      
+      // Twitter Card tags
+      metaTags.push(`<meta name="twitter:card" content="${twitterCard}">`);
+      metaTags.push(`<meta name="twitter:title" content="${ogTitle || title}">`);
+      if (ogDescription || description) metaTags.push(`<meta name="twitter:description" content="${ogDescription || description}">`);
+      if (ogImage) metaTags.push(`<meta name="twitter:image" content="${ogImage}">`);
+      
+      setResult(metaTags.join('\n'));
 
       toast({
         title: "Success",
