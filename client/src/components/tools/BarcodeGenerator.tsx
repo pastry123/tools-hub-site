@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, Download, Copy } from "lucide-react";
 import bwipjs from "bwip-js";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BarcodeOptions {
   text: string;
