@@ -139,8 +139,8 @@ export default function Dashboard() {
                   <div className={`w-12 h-12 bg-${category.color}-100 dark:bg-${category.color}-900 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors`}>
                     <i className={`fas ${category.icon} text-${category.color}-500 group-hover:text-white`}></i>
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">{category.title}</h3>
-                  <p className="text-slate-600 dark:text-gray-300 text-sm mb-4">{category.description}</p>
+                  <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">{t(`category.${category.id}.title`)}</h3>
+                  <p className="text-slate-600 dark:text-gray-300 text-sm mb-4">{t(`category.${category.id}.description`)}</p>
                   <div className="flex items-center justify-between">
                     <Badge variant="secondary" className="text-xs">
                       {formatTranslation("dashboard.categories.toolsCount", { count: category.tools.length.toString() })}
@@ -231,36 +231,36 @@ export default function Dashboard() {
 
       {/* Comprehensive Tool Overview */}
       <div className="mb-12">
-        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Complete Tool Suite Overview</h2>
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">{t("dashboard.tools.overview.title")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="prose prose-lg dark:prose-invert">
-            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Business Tools</h3>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">{t("dashboard.tools.business.title")}</h3>
             <ul className="list-disc pl-6 text-slate-600 dark:text-gray-300 space-y-2">
-              <li><a href="/tool/invoice-generator" className="text-primary hover:underline">Invoice Generator</a> - Create professional invoices instantly</li>
-              <li><a href="/tool/barcode-generator" className="text-primary hover:underline">Barcode Generator</a> - Support for 15+ barcode formats</li>
-              <li><a href="/tool/qr-code-generator" className="text-primary hover:underline">QR Code Generator</a> - Custom QR codes with logos</li>
-              <li><a href="/tool/signature-generator" className="text-primary hover:underline">Digital Signatures</a> - AI-powered signature creation</li>
-              <li><a href="/tool/pdf-esign" className="text-primary hover:underline">PDF E-Sign</a> - Legal document signing solution</li>
+              <li><a href="/tool/invoice-generator" className="text-primary hover:underline">{t("dashboard.tools.invoice")}</a> - {t("dashboard.tools.invoiceDesc")}</li>
+              <li><a href="/tool/barcode-generator" className="text-primary hover:underline">{t("dashboard.tools.barcode")}</a> - {t("dashboard.tools.barcodeDesc")}</li>
+              <li><a href="/tool/qr-code-generator" className="text-primary hover:underline">{t("dashboard.tools.qrcode")}</a> - {t("dashboard.tools.qrcodeDesc")}</li>
+              <li><a href="/tool/signature-generator" className="text-primary hover:underline">{t("dashboard.tools.signature")}</a> - {t("dashboard.tools.signatureDesc")}</li>
+              <li><a href="/tool/pdf-esign" className="text-primary hover:underline">{t("dashboard.tools.pdfsign")}</a> - {t("dashboard.tools.pdfsignDesc")}</li>
             </ul>
           </div>
           <div className="prose prose-lg dark:prose-invert">
-            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Developer Tools</h3>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">{t("dashboard.tools.developer.title")}</h3>
             <ul className="list-disc pl-6 text-slate-600 dark:text-gray-300 space-y-2">
-              <li><a href="/tool/regex-tester" className="text-primary hover:underline">Regex Tester</a> - Pattern matching and validation</li>
-              <li><a href="/tool/jwt-decoder" className="text-primary hover:underline">JWT Decoder</a> - Token parsing and verification</li>
-              <li><a href="/tool/api-tester" className="text-primary hover:underline">API Tester</a> - REST endpoint testing</li>
-              <li><a href="/tool/css-minifier" className="text-primary hover:underline">CSS Minifier</a> - Code optimization and compression</li>
-              <li><a href="/tool/js-minifier" className="text-primary hover:underline">JS Minifier</a> - JavaScript file optimization</li>
+              <li><a href="/tool/regex-tester" className="text-primary hover:underline">{t("dashboard.tools.regex")}</a> - {t("dashboard.tools.regexDesc")}</li>
+              <li><a href="/tool/jwt-decoder" className="text-primary hover:underline">{t("dashboard.tools.jwt")}</a> - {t("dashboard.tools.jwtDesc")}</li>
+              <li><a href="/tool/api-tester" className="text-primary hover:underline">{t("dashboard.tools.api")}</a> - {t("dashboard.tools.apiDesc")}</li>
+              <li><a href="/tool/css-minifier" className="text-primary hover:underline">{t("dashboard.tools.cssmin")}</a> - {t("dashboard.tools.cssminDesc")}</li>
+              <li><a href="/tool/js-minifier" className="text-primary hover:underline">{t("dashboard.tools.jsmin")}</a> - {t("dashboard.tools.jsminDesc")}</li>
             </ul>
           </div>
           <div className="prose prose-lg dark:prose-invert">
-            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Content Tools</h3>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">{t("dashboard.tools.content.title")}</h3>
             <ul className="list-disc pl-6 text-slate-600 dark:text-gray-300 space-y-2">
-              <li><a href="/tool/image-compressor" className="text-primary hover:underline">Image Compressor</a> - Reduce file sizes by 80%</li>
-              <li><a href="/tool/pdf-merger" className="text-primary hover:underline">PDF Merger</a> - Combine multiple documents</li>
-              <li><a href="/tool/text-converter" className="text-primary hover:underline">Text Converter</a> - Format transformation</li>
-              <li><a href="/tool/color-converter" className="text-primary hover:underline">Color Converter</a> - HEX, RGB, HSL conversion</li>
-              <li><a href="/tool/password-generator" className="text-primary hover:underline">Password Generator</a> - Secure password creation</li>
+              <li><a href="/tool/image-compressor" className="text-primary hover:underline">{t("dashboard.tools.imagecomp")}</a> - {t("dashboard.tools.imagecompDesc")}</li>
+              <li><a href="/tool/pdf-merger" className="text-primary hover:underline">{t("dashboard.tools.pdfmerge")}</a> - {t("dashboard.tools.pdfmergeDesc")}</li>
+              <li><a href="/tool/text-converter" className="text-primary hover:underline">{t("dashboard.tools.textconv")}</a> - {t("dashboard.tools.textconvDesc")}</li>
+              <li><a href="/tool/color-converter" className="text-primary hover:underline">{t("dashboard.tools.colorconv")}</a> - {t("dashboard.tools.colorconvDesc")}</li>
+              <li><a href="/tool/password-generator" className="text-primary hover:underline">{t("dashboard.tools.password")}</a> - {t("dashboard.tools.passwordDesc")}</li>
             </ul>
           </div>
         </div>
@@ -268,15 +268,19 @@ export default function Dashboard() {
 
       {/* Security and Privacy */}
       <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-8 mb-12">
-        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6 text-center">Security and Privacy Commitment</h2>
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6 text-center">{t("dashboard.security.title")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Data Protection</h3>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">{t("dashboard.security.protection.title")}</h3>
             <p className="text-slate-600 dark:text-gray-300 mb-4">
-              All processing happens locally in your browser. Files uploaded to tools like our 
-              <a href="/tool/pdf-merger" className="text-primary hover:underline">PDF merger</a> or 
-              <a href="/tool/image-compressor" className="text-primary hover:underline">image compressor</a> 
-              are never stored on our servers. Data is processed client-side and immediately discarded after use.
+              <span 
+                dangerouslySetInnerHTML={{
+                  __html: formatTranslation("dashboard.security.protection.description", {
+                    pdfMerger: `<a href="/tool/pdf-merger" class="text-primary hover:underline">PDF merger</a>`,
+                    imageCompressor: `<a href="/tool/image-compressor" class="text-primary hover:underline">image compressor</a>`
+                  })
+                }}
+              />
             </p>
             <p className="text-slate-600 dark:text-gray-300">
               Zero data collection policy ensures your privacy. No registration required, no tracking cookies, 
