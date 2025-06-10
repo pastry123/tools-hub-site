@@ -193,11 +193,6 @@ export default function UnitConverter() {
     }
 
     setResult(formattedResult);
-    
-    toast({
-      title: "Conversion Complete",
-      description: toastDescription,
-    });
   };
 
   const convertTemperature = (value: number, from: string, to: string): number => {
@@ -341,7 +336,7 @@ export default function UnitConverter() {
                       placeholder="Result"
                       value={result}
                       readOnly
-                      className="bg-slate-50"
+                      className="bg-slate-50 dark:bg-slate-800 font-mono text-lg"
                     />
                   </div>
                 </div>

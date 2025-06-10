@@ -693,17 +693,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Base64 Encoder/Decoder
-  app.post('/api/converter/base64', async (req, res) => {
+  app.post('/api/converter/base64/encode', async (req, res) => {
     try {
-      const { text, operation } = req.body;
-      if (!text || !operation) {
-        return res.status(400).json({ error: 'Text and operation are required' });
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
       }
 
-      const result = operation === 'encode' 
-        ? converterService.encodeBase64(text)
-        : converterService.decodeBase64(text);
-      
+      const result = converterService.encodeBase64(text);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/converter/base64/decode', async (req, res) => {
+    try {
+      const { base64 } = req.body;
+      if (!base64) {
+        return res.status(400).json({ error: 'Base64 text is required' });
+      }
+
+      const result = converterService.decodeBase64(base64);
       res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -711,17 +722,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // URL Encoder/Decoder
-  app.post('/api/converter/url', async (req, res) => {
+  app.post('/api/converter/url/encode', async (req, res) => {
     try {
-      const { text, operation } = req.body;
-      if (!text || !operation) {
-        return res.status(400).json({ error: 'Text and operation are required' });
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
       }
 
-      const result = operation === 'encode' 
-        ? converterService.encodeURL(text)
-        : converterService.decodeURL(text);
-      
+      const result = converterService.encodeURL(text);
+      res.json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/converter/url/decode', async (req, res) => {
+    try {
+      const { encoded } = req.body;
+      if (!encoded) {
+        return res.status(400).json({ error: 'Encoded text is required' });
+      }
+
+      const result = converterService.decodeURL(encoded);
       res.json({ result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });

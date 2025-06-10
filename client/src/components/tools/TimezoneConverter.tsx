@@ -208,10 +208,19 @@ export default function TimezoneConverter() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-mono font-bold">
-                    {tz.time || 'Converting...'}
-                  </p>
+                <div className="text-right space-y-1">
+                  {tz.time ? (
+                    <>
+                      <p className="text-sm text-gray-500">
+                        {tz.time.split(' ')[0]}
+                      </p>
+                      <p className="text-lg font-mono font-bold">
+                        {tz.time.split(' ')[1]}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-lg font-mono font-bold">Converting...</p>
+                  )}
                 </div>
                 <Button
                   variant="ghost"

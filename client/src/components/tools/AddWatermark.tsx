@@ -16,11 +16,22 @@ export default function AddWatermark() {
   const [fontSize, setFontSize] = useState('24');
   const [color, setColor] = useState('#ffffff');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [watermarkedPreview, setWatermarkedPreview] = useState<string>('');
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setWatermarkedPreview('');
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
     }
   };
 
@@ -65,12 +76,16 @@ export default function AddWatermark() {
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
+      
+      // Set preview
+      setWatermarkedPreview(url);
+      
+      // Also trigger download
       const a = document.createElement('a');
       a.href = url;
       a.download = 'watermarked.png';
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       toast({
@@ -197,6 +212,39 @@ export default function AddWatermark() {
               </>
             )}
           </Button>
+
+          {/* Image Previews */}
+          {imagePreview && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Original Image */}
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Original Image</Label>
+                  <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                    <img 
+                      src={imagePreview} 
+                      alt="Original" 
+                      className="w-full h-48 object-contain rounded"
+                    />
+                  </div>
+                </div>
+
+                {/* Watermarked Preview */}
+                {watermarkedPreview && (
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Watermarked Result</Label>
+                    <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                      <img 
+                        src={watermarkedPreview} 
+                        alt="Watermarked" 
+                        className="w-full h-48 object-contain rounded"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
