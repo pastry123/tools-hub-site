@@ -1466,6 +1466,20 @@ const translations = {
     "barcodeGenerator.invalidContent": "محتوى غير صالح",
     "barcodeGenerator.selectType": "اختر نوع الباركود",
     "barcodeGenerator.enterValidText": "يرجى إدخال نص صالح",
+
+    // Text Tools Error Messages
+    "textSlug.error": "خطأ",
+    "textSlug.enterTextFirst": "يرجى إدخال نص للتحويل",
+    "caseConverter.error": "خطأ", 
+    "caseConverter.enterTextFirst": "يرجى إدخال نص للتحويل",
+
+    // Color Analyzer additional keys
+    "colorAnalyzer.processing": "جاري تحليل الألوان...",
+    "colorAnalyzer.colorAnalysis": "تحليل الألوان",
+    "colorAnalyzer.colorsFound": "ألوان تم العثور عليها",
+    "colorAnalyzer.export": "تصدير",
+    "colorAnalyzer.dominantColor": "اللون السائد",
+    "colorAnalyzer.colorPalette": "لوحة الألوان",
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",

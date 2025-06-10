@@ -19,8 +19,8 @@ export default function CaseConverter() {
   const handleConvert = async () => {
     if (!inputText.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter some text to convert",
+        title: t("caseConverter.error"),
+        description: t("caseConverter.enterTextFirst"),
         variant: "destructive"
       });
       return;

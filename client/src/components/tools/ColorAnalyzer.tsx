@@ -149,7 +149,7 @@ export default function ColorAnalyzer() {
 
           <Button onClick={analyzeColors} disabled={isProcessing || !file} className="w-full">
             {isProcessing ? (
-              'Analyzing Colors...'
+              t("colorAnalyzer.processing")
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
@@ -162,11 +162,11 @@ export default function ColorAnalyzer() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">
-                  Color Analysis ({analysis.colors.length} colors found)
+                  {t("colorAnalyzer.colorAnalysis")} ({analysis.colors.length} {t("colorAnalyzer.colorsFound")})
                 </h3>
                 <Button onClick={exportPalette} variant="outline" size="sm">
                   <Download className="w-4 h-4 mr-2" />
-                  Export
+                  {t("colorAnalyzer.export")}
                 </Button>
               </div>
 

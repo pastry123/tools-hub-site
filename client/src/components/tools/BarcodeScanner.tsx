@@ -281,9 +281,7 @@ export default function BarcodeScanner() {
 
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
             <p className="text-blue-700 dark:text-blue-300 text-sm">
-              <strong>Supported formats:</strong> QR Code, Code 128, Code 39, EAN-13, EAN-8, 
-              UPC-A, UPC-E, Data Matrix, Aztec, PDF 417, and more. For best results, 
-              ensure the barcode is clear, well-lit, and properly aligned in the image.
+              {t("barcodeScanner.supportedFormats")}
             </p>
           </div>
         </CardContent>

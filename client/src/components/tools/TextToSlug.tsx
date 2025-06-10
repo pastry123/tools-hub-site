@@ -23,8 +23,8 @@ export default function TextToSlug() {
   const handleGenerate = async () => {
     if (!inputText.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter some text to convert",
+        title: t("textSlug.error"),
+        description: t("textSlug.enterTextFirst"),
         variant: "destructive"
       });
       return;
