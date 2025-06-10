@@ -179,8 +179,10 @@ export class GeneratorService {
     let yPosition = 750;
     const leftMargin = 50;
     const rightMargin = 562;
+    const pageWidth = 612;
+    const centerX = pageWidth / 2;
     
-    // Add logo if provided
+    // Add logo if provided (centered at top)
     if (logoBuffer) {
       try {
         let logoImage;
@@ -191,17 +193,42 @@ export class GeneratorService {
           logoImage = await pdfDoc.embedJpg(logoBuffer);
         }
         
-        const logoSize = 60;
+        const logoSize = 80;
         page.drawImage(logoImage, {
-          x: rightMargin - logoSize,
+          x: centerX - logoSize / 2,
           y: yPosition - logoSize,
           width: logoSize,
           height: logoSize,
         });
+        yPosition -= logoSize + 20;
       } catch (error) {
         console.warn('Failed to embed logo:', error);
       }
     }
+    
+    // Company info (centered below logo)
+    page.drawText(data.companyName, {
+      x: centerX - (data.companyName.length * 3.5), // Approximate centering
+      y: yPosition,
+      size: 16,
+      font: boldFont,
+    });
+    
+    yPosition -= 20;
+    if (data.companyAddress) {
+      const addressLines = data.companyAddress.split('\n');
+      for (const line of addressLines) {
+        page.drawText(line, {
+          x: centerX - (line.length * 2.5), // Approximate centering
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        yPosition -= 15;
+      }
+    }
+    
+    yPosition -= 30;
     
     // Header
     page.drawText('INVOICE', {
@@ -238,38 +265,8 @@ export class GeneratorService {
       });
     }
     
-    // Company info
-    yPosition -= 50;
-    page.drawText('From:', {
-      x: leftMargin,
-      y: yPosition,
-      size: 12,
-      font: boldFont,
-    });
-    
-    yPosition -= 20;
-    page.drawText(data.companyName, {
-      x: leftMargin,
-      y: yPosition,
-      size: 12,
-      font: font,
-    });
-    
-    if (data.companyAddress) {
-      const addressLines = data.companyAddress.split('\n');
-      for (const line of addressLines) {
-        yPosition -= 15;
-        page.drawText(line, {
-          x: leftMargin,
-          y: yPosition,
-          size: 10,
-          font: font,
-        });
-      }
-    }
-    
     // Client info
-    yPosition -= 40;
+    yPosition -= 50;
     page.drawText('To:', {
       x: leftMargin,
       y: yPosition,
