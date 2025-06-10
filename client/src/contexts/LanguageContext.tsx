@@ -110,9 +110,6 @@ const translations = {
     "dashboard.benefits.developer.title": "Developer & Business Tools",
     "dashboard.benefits.developer.description1": "Essential {developerTools} including regex testers, API validators, JWT decoders, and code formatters. The {invoiceGenerator} creates professional invoices with customizable templates and automatic calculations.",
     "dashboard.benefits.developer.description2": "Text processing tools for case conversion, hash generation, and content analysis. Currency converters with real-time exchange rates for international business operations.",
-    
-    // Features Section
-    "dashboard.features.title": "Core Platform Features",
     "dashboard.features.security.title": "Enterprise-Grade Security",
     "dashboard.features.security.description": "All processing occurs client-side in your browser. Zero data transmission to external servers ensures complete privacy. Your sensitive documents and information never leave your device.",
     "dashboard.features.performance.title": "Optimized Performance",
@@ -264,9 +261,6 @@ const translations = {
     "dashboard.benefits.developer.title": "Herramientas para Desarrolladores y Empresas",
     "dashboard.benefits.developer.description1": "{developerTools} esenciales incluyendo probadores de regex, validadores de API, decodificadores JWT y formateadores de código. El {invoiceGenerator} crea facturas profesionales con plantillas personalizables y cálculos automáticos.",
     "dashboard.benefits.developer.description2": "Herramientas de procesamiento de texto para conversión de casos, generación de hash y análisis de contenido. Convertidores de moneda con tasas de cambio en tiempo real para operaciones comerciales internacionales.",
-    
-    // Features Section
-    "dashboard.features.title": "Características Principales de la Plataforma",
     "dashboard.features.security.title": "Seguridad de Nivel Empresarial",
     "dashboard.features.security.description": "Todo el procesamiento ocurre del lado del cliente en tu navegador. Cero transmisión de datos a servidores externos garantiza privacidad completa. Tus documentos e información sensibles nunca salen de tu dispositivo.",
     "dashboard.features.performance.title": "Rendimiento Optimizado",
@@ -418,9 +412,6 @@ const translations = {
     "dashboard.benefits.developer.title": "أدوات المطورين والأعمال",
     "dashboard.benefits.developer.description1": "{developerTools} أساسية بما في ذلك مختبري regex ومدققي API ومفكك تشفير JWT ومنسقي الكود. ينشئ {invoiceGenerator} فواتير احترافية مع قوالب قابلة للتخصيص وحسابات تلقائية.",
     "dashboard.benefits.developer.description2": "أدوات معالجة النص لتحويل الحالات وإنشاء التجزئة وتحليل المحتوى. محولات العملة مع أسعار الصرف في الوقت الفعلي للعمليات التجارية الدولية.",
-    
-    // Features Section
-    "dashboard.features.title": "ميزات المنصة الأساسية",
     "dashboard.features.security.title": "أمان على مستوى المؤسسات",
     "dashboard.features.security.description": "تتم جميع العمليات من جانب العميل في متصفحك. عدم نقل البيانات إلى خوادم خارجية يضمن الخصوصية الكاملة. مستنداتك ومعلوماتك الحساسة لا تغادر جهازك أبداً.",
     "dashboard.features.performance.title": "أداء محسن",
@@ -429,6 +420,47 @@ const translations = {
     "dashboard.features.accessibility.description": "دعم متعدد اللغات كامل مع توافق للغات من اليمين إلى اليسار. التصميم المتجاوب يعمل بسلاسة على الهواتف الذكية والأجهزة اللوحية وأجهزة الكمبيوتر المكتبية.",
     "dashboard.features.business.title": "ميزات جاهزة للأعمال",
     "dashboard.features.business.description": "قوالب احترافية للفواتير والشهادات والوثائق التجارية. قدرات المعالجة المجمعة تتعامل مع أحجام كبيرة بكفاءة لسير العمل المؤسسي.",
+    
+    // Tool Overview Section
+    "dashboard.tools.overview.title": "نظرة شاملة على مجموعة الأدوات الكاملة",
+    "dashboard.tools.business.title": "أدوات الأعمال",
+    "dashboard.tools.developer.title": "أدوات المطورين", 
+    "dashboard.tools.content.title": "أدوات المحتوى",
+    "dashboard.tools.invoice": "مولد الفواتير",
+    "dashboard.tools.invoiceDesc": "إنشاء فواتير احترافية فورياً",
+    "dashboard.tools.barcode": "مولد الباركود",
+    "dashboard.tools.barcodeDesc": "دعم لأكثر من 15 تنسيق باركود",
+    "dashboard.tools.qrcode": "مولد رمز QR",
+    "dashboard.tools.qrcodeDesc": "رموز QR مخصصة مع الشعارات",
+    "dashboard.tools.signature": "التوقيعات الرقمية",
+    "dashboard.tools.signatureDesc": "إنشاء التوقيعات بقوة الذكاء الاصطناعي",
+    "dashboard.tools.pdfsign": "التوقيع الإلكتروني PDF",
+    "dashboard.tools.pdfsignDesc": "حل توقيع الوثائق القانونية",
+    "dashboard.tools.regex": "اختبار Regex",
+    "dashboard.tools.regexDesc": "مطابقة الأنماط والتحقق",
+    "dashboard.tools.jwt": "فك تشفير JWT",
+    "dashboard.tools.jwtDesc": "تحليل والتحقق من الرموز",
+    "dashboard.tools.api": "اختبار API",
+    "dashboard.tools.apiDesc": "اختبار نقاط نهاية REST",
+    "dashboard.tools.cssmin": "مضغط CSS",
+    "dashboard.tools.cssminDesc": "تحسين وضغط الكود",
+    "dashboard.tools.jsmin": "مضغط JS",
+    "dashboard.tools.jsminDesc": "تحسين ملفات JavaScript",
+    "dashboard.tools.imagecomp": "ضاغط الصور",
+    "dashboard.tools.imagecompDesc": "تقليل أحجام الملفات بنسبة 80%",
+    "dashboard.tools.pdfmerge": "دمج PDF",
+    "dashboard.tools.pdfmergeDesc": "دمج عدة مستندات",
+    "dashboard.tools.textconv": "محول النص",
+    "dashboard.tools.textconvDesc": "تحويل التنسيق",
+    "dashboard.tools.colorconv": "محول الألوان",
+    "dashboard.tools.colorconvDesc": "تحويل HEX، RGB، HSL",
+    "dashboard.tools.password": "مولد كلمات المرور",
+    "dashboard.tools.passwordDesc": "إنشاء كلمات مرور آمنة",
+    
+    // Security Section
+    "dashboard.security.title": "التزام الأمان والخصوصية",
+    "dashboard.security.protection.title": "حماية البيانات",
+    "dashboard.security.protection.description": "تتم جميع العمليات محلياً في متصفحك. الملفات المرفوعة لأدوات مثل {pdfMerger} أو {imageCompressor} لا تُخزن أبداً على خوادمنا. تتم معالجة البيانات من جانب العميل ويتم التخلص منها فوراً بعد الاستخدام.",
   }
 };
 
