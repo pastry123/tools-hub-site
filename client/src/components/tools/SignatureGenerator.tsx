@@ -246,20 +246,6 @@ export default function SignatureGenerator() {
                 </div>
               </div>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <SignatureCanvas
-                  ref={sigCanvasRef}
-                  canvasProps={{
-                    width: 600,
-                    height: 200,
-                    className: 'signature-canvas border rounded',
-                    style: { backgroundColor: backgroundColor }
-                  }}
-                  penColor={color}
-                  minWidth={lineWidth}
-                  maxWidth={lineWidth + 1}
-                />
-              </div>
             </TabsContent>
 
             <TabsContent value="type" className="space-y-4">
@@ -329,23 +315,30 @@ export default function SignatureGenerator() {
                 <Type className="w-4 h-4 mr-2" />
                 Generate Text Signature
               </Button>
+            </TabsContent>
+          </Tabs>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+          {/* Shared Signature Preview */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Signature Preview</h3>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <div className="w-full overflow-hidden rounded" style={{ backgroundColor: backgroundColor }}>
                 <SignatureCanvas
                   ref={sigCanvasRef}
                   canvasProps={{
                     width: 600,
                     height: 200,
-                    className: 'signature-canvas border rounded',
-                    style: { backgroundColor: backgroundColor }
+                    className: 'signature-canvas w-full block',
+                    style: { backgroundColor: backgroundColor, display: 'block' }
                   }}
                   penColor={color}
                   minWidth={lineWidth}
                   maxWidth={lineWidth + 1}
+                  backgroundColor={backgroundColor}
                 />
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
