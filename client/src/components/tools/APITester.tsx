@@ -38,34 +38,89 @@ export default function APITester() {
       }, {});
 
       const startTime = Date.now();
-      const response = await fetch('/api/developer/api-test', {
-        method: 'POST',
+      
+      const fetchOptions: RequestInit = {
+        method: method.toUpperCase(),
         headers: {
-          'Content-Type': 'application/json'
+          'User-Agent': 'ToolHub-API-Tester/1.0',
+          ...headersObj
         },
-        body: JSON.stringify({
-          url,
-          method,
-          headers: headersObj,
-          body: body || undefined
-        })
-      });
+        mode: 'cors'
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to test API');
+      if (body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
+        fetchOptions.body = body;
+        if (!headersObj['Content-Type'] && !headersObj['content-type']) {
+          fetchOptions.headers = {
+            ...fetchOptions.headers,
+            'Content-Type': 'application/json'
+          };
+        }
       }
 
-      const data = await response.json();
-      setResult(data.result);
+      const response = await fetch(url, fetchOptions);
+      const responseTime = Date.now() - startTime;
+      
+      let responseData;
+      const contentType = response.headers.get('content-type') || '';
+      
+      try {
+        if (contentType.includes('application/json')) {
+          responseData = await response.json();
+        } else if (contentType.includes('text/')) {
+          responseData = await response.text();
+        } else {
+          responseData = `[Binary data - ${contentType}]`;
+        }
+      } catch (parseError) {
+        responseData = await response.text();
+      }
+
+      const responseHeaders: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
+      const result = {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+        data: responseData,
+        responseTime
+      };
+
+      setResult(result);
 
       toast({
         title: "Success",
-        description: `API tested - ${data.result.status} ${data.result.statusText}`
+        description: `API tested - ${result.status} ${result.statusText}`
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      let userFriendlyMessage = "Failed to test API";
+      
+      if (errorMessage.includes('CORS')) {
+        userFriendlyMessage = "CORS error - API doesn't allow browser requests";
+      } else if (errorMessage.includes('Failed to fetch')) {
+        userFriendlyMessage = "Network error - check URL and connection";
+      } else if (errorMessage.includes('net::ERR_')) {
+        userFriendlyMessage = "Network blocked - check URL or try a public API";
+      }
+
+      const result = {
+        status: 0,
+        statusText: 'Network Error',
+        headers: {},
+        data: null,
+        responseTime: 0,
+        error: errorMessage
+      };
+
+      setResult(result);
+
       toast({
         title: "Error",
-        description: "Failed to test API",
+        description: userFriendlyMessage,
         variant: "destructive"
       });
     } finally {
