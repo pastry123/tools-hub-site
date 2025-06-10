@@ -114,9 +114,72 @@ export class SimpleImageService {
   }
 
   async addWatermark(buffer: Buffer, options: WatermarkOptions): Promise<Buffer> {
-    // For demonstration - returns original buffer
-    // In production, would use Sharp or Canvas to add watermarks
-    return buffer;
+    try {
+      const text = options.text || 'WATERMARK';
+      const fontSize = options.fontSize || 24;
+      const opacity = options.opacity || 0.7;
+      const color = options.color || 'rgba(255, 255, 255, 0.7)';
+      
+      // Get image metadata
+      const metadata = await sharp(buffer).metadata();
+      const width = metadata.width || 800;
+      const height = metadata.height || 600;
+      
+      // Create watermark text as SVG
+      const textColor = color.includes('rgba') ? color : `rgba(255, 255, 255, ${opacity})`;
+      let x = 10, y = 30;
+      
+      // Position watermark based on options
+      switch (options.position) {
+        case 'top-right':
+          x = width - (text.length * fontSize * 0.6) - 10;
+          y = 30;
+          break;
+        case 'bottom-left':
+          x = 10;
+          y = height - 10;
+          break;
+        case 'bottom-right':
+          x = width - (text.length * fontSize * 0.6) - 10;
+          y = height - 10;
+          break;
+        case 'center':
+          x = width / 2 - (text.length * fontSize * 0.3);
+          y = height / 2;
+          break;
+        default: // top-left
+          x = 10;
+          y = 30;
+      }
+      
+      const watermarkSvg = `
+        <svg width="${width}" height="${height}">
+          <text x="${x}" y="${y}" 
+                font-family="Arial, sans-serif" 
+                font-size="${fontSize}" 
+                fill="${textColor}" 
+                font-weight="bold">
+            ${text}
+          </text>
+        </svg>
+      `;
+      
+      // Apply watermark using composite
+      const result = await sharp(buffer)
+        .composite([
+          {
+            input: Buffer.from(watermarkSvg),
+            blend: 'over'
+          }
+        ])
+        .png()
+        .toBuffer();
+        
+      return result;
+    } catch (error) {
+      console.error('Watermark error:', error);
+      throw new Error('Failed to add watermark');
+    }
   }
 
   async generateFavicons(buffer: Buffer, options: FaviconOptions = {}): Promise<Array<{ size: number; data: Buffer }>> {
@@ -127,20 +190,59 @@ export class SimpleImageService {
   }
 
   async extractColorPalette(buffer: Buffer, colorCount: number = 5): Promise<ColorPalette> {
-    // For demonstration - returns sample color palette
-    // In production, would analyze actual image pixels
-    const sampleColors = [
-      { hex: '#3B82F6', rgb: { r: 59, g: 130, b: 246 }, percentage: 35 },
-      { hex: '#EF4444', rgb: { r: 239, g: 68, b: 68 }, percentage: 20 },
-      { hex: '#10B981', rgb: { r: 16, g: 185, b: 129 }, percentage: 18 },
-      { hex: '#F59E0B', rgb: { r: 245, g: 158, b: 11 }, percentage: 15 },
-      { hex: '#8B5CF6', rgb: { r: 139, g: 92, b: 246 }, percentage: 12 }
-    ];
+    try {
+      // Resize image for faster processing
+      const processedBuffer = await sharp(buffer)
+        .resize(200, 200, { fit: 'inside' })
+        .raw()
+        .toBuffer({ resolveWithObject: true });
 
-    return {
-      dominant: '#3B82F6',
-      colors: sampleColors.slice(0, colorCount)
-    };
+      const { data, info } = processedBuffer;
+      const pixels = data;
+      const colorMap = new Map<string, number>();
+
+      // Sample pixels to find dominant colors
+      for (let i = 0; i < pixels.length; i += 12) { // Sample every 4th pixel
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        
+        // Group similar colors by rounding to nearest 32
+        const roundedR = Math.round(r / 32) * 32;
+        const roundedG = Math.round(g / 32) * 32;
+        const roundedB = Math.round(b / 32) * 32;
+        
+        const colorKey = `${roundedR},${roundedG},${roundedB}`;
+        colorMap.set(colorKey, (colorMap.get(colorKey) || 0) + 1);
+      }
+
+      // Sort colors by frequency
+      const sortedColors = Array.from(colorMap.entries())
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, colorCount);
+
+      const totalPixels = pixels.length / 3;
+      
+      const colors = sortedColors.map(([colorKey, count]) => {
+        const [r, g, b] = colorKey.split(',').map(Number);
+        const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        const percentage = Math.round((count / totalPixels) * 100);
+        
+        return {
+          hex,
+          rgb: { r, g, b },
+          percentage
+        };
+      });
+
+      return {
+        dominant: colors[0]?.hex || '#000000',
+        colors
+      };
+    } catch (error) {
+      console.error('Color palette extraction error:', error);
+      throw new Error('Failed to extract color palette');
+    }
   }
 
   async imageToText(buffer: Buffer): Promise<string> {

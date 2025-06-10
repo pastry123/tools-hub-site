@@ -1381,6 +1381,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // VIDEO & AUDIO CONVERSION ENDPOINTS
+  
+  // Video Converter
+  app.post('/api/video/convert', upload.single('video'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No video file provided' });
+      }
+
+      const { outputFormat, quality } = req.body;
+      
+      // Return error indicating server-side setup needed
+      res.status(501).json({ 
+        error: 'Video conversion requires FFmpeg installation on the server. This feature is available in the UI but needs server-side setup for full functionality.' 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Audio Converter  
+  app.post('/api/audio/convert', upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No audio file provided' });
+      }
+
+      const { outputFormat, bitrate } = req.body;
+      
+      // Return error indicating server-side setup needed
+      res.status(501).json({ 
+        error: 'Audio conversion requires FFmpeg installation on the server. This feature is available in the UI but needs server-side setup for full functionality.' 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Unlock PDF
   app.post('/api/pdf/unlock', uploadPDF.single('pdf'), async (req, res) => {
     try {

@@ -30,7 +30,7 @@ export default function CSVToJSON() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ csvString: input })
+        body: JSON.stringify({ csv: input })
       });
 
       if (!response.ok) {
