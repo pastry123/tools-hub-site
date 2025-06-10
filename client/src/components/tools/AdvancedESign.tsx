@@ -46,6 +46,8 @@ export default function AdvancedESign() {
     id: string;
   }>>([]);
   const [isPlacingSignature, setIsPlacingSignature] = useState<boolean>(false);
+  const [aiStyle, setAiStyle] = useState("professional-executive");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const { toast } = useToast();
 
@@ -55,12 +57,12 @@ export default function AdvancedESign() {
   ];
 
   const aiSignatureStyles = [
-    { name: "Executive", description: "Professional business style" },
-    { name: "Creative", description: "Artistic and flowing" },
-    { name: "Classic", description: "Traditional cursive" },
-    { name: "Modern", description: "Clean contemporary style" },
-    { name: "Elegant", description: "Sophisticated script" },
-    { name: "Bold", description: "Strong and confident" }
+    { value: "professional-executive", label: "Professional Executive", description: "Clean business style" },
+    { value: "artistic-flowing", label: "Artistic Flowing", description: "Creative with fluid curves" },
+    { value: "traditional-formal", label: "Traditional Formal", description: "Classic elegant style" },
+    { value: "contemporary-clean", label: "Contemporary Clean", description: "Modern minimalist design" },
+    { value: "sophisticated-cursive", label: "Sophisticated Cursive", description: "Refined with flourishes" },
+    { value: "strong-confident", label: "Strong Confident", description: "Bold and powerful strokes" }
   ];
 
   const addSigner = () => {
@@ -293,7 +295,7 @@ export default function AdvancedESign() {
     }
   };
 
-  const generateAISignature = async (style: string) => {
+  const generateAISignature = async () => {
     if (!signatureText.trim()) {
       toast({
         title: "Error",
@@ -303,23 +305,46 @@ export default function AdvancedESign() {
       return;
     }
 
+    setIsGeneratingAI(true);
+    
     try {
       const response = await fetch('/api/esign/generate-signature', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: signatureText,
-          style: style,
+          style: aiStyle,
           format: 'svg'
         })
       });
 
       const data = await response.json();
-      if (data.success && data.signature) {
-        setCurrentSignature(data.signature);
+      
+      if (response.ok && data.signature) {
+        // Render AI-generated text signature on canvas
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Style the AI signature text
+            const fontSize = Math.min(canvas.width / 12, 48);
+            ctx.font = `${fontSize}px "Dancing Script", cursive`;
+            ctx.fillStyle = color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            // Draw the signature in the center
+            ctx.fillText(data.signature, canvas.width / 2, canvas.height / 2);
+            
+            setCurrentSignature(canvas.toDataURL());
+          }
+        }
+        
         toast({
           title: "Success",
-          description: `${style} signature generated successfully!`,
+          description: `AI signature generated successfully!`,
         });
       } else {
         toast({
@@ -334,6 +359,8 @@ export default function AdvancedESign() {
         description: "Failed to generate AI signature",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingAI(false);
     }
   };
 
@@ -692,23 +719,34 @@ export default function AdvancedESign() {
             </div>
 
             {mode === "ai" && (
-              <div>
-                <label className="block text-sm font-medium mb-2">AI Signature Styles</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {aiSignatureStyles.map((style) => (
-                    <Button
-                      key={style.name}
-                      variant="outline"
-                      onClick={() => generateAISignature(style.name)}
-                      className="h-auto p-3 text-left"
-                    >
-                      <div>
-                        <div className="font-medium">{style.name}</div>
-                        <div className="text-xs text-gray-500">{style.description}</div>
-                      </div>
-                    </Button>
-                  ))}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Signature Style</label>
+                  <Select value={aiStyle} onValueChange={setAiStyle}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aiSignatureStyles.map((style) => (
+                        <SelectItem key={style.value} value={style.value}>
+                          <div className="flex flex-col">
+                            <span>{style.label}</span>
+                            <span className="text-xs text-muted-foreground">{style.description}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+                
+                <Button 
+                  onClick={generateAISignature} 
+                  disabled={isGeneratingAI || !signatureText.trim()}
+                  className="flex items-center gap-2"
+                >
+                  <Wand2 className="w-4 h-4" />
+                  {isGeneratingAI ? "Generating..." : "Generate AI Signature"}
+                </Button>
               </div>
             )}
 
