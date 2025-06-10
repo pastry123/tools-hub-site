@@ -480,7 +480,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Color Analyzer
+  app.post('/api/analyze-colors', imageUpload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
 
+      const analysis = await simpleImageService.analyzeImageColors(req.file.buffer);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Color analysis error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to analyze colors' });
+    }
+  });
 
   // Add Watermark
   app.post('/api/image/watermark', imageUpload.single('image'), async (req, res) => {

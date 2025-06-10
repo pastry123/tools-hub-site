@@ -22,6 +22,7 @@ import ImageResizer from "@/components/tools/ImageResizer";
 import ImageConverter from "@/components/tools/ImageConverter";
 import ImageCropper from "@/components/tools/ImageCropper";
 import FaviconGenerator from "@/components/tools/FaviconGenerator";
+import ColorAnalyzer from "@/components/tools/ColorAnalyzer";
 
 import AddWatermark from "@/components/tools/AddWatermark";
 import ImageWatermark from "@/components/tools/ImageWatermark";
@@ -179,6 +180,8 @@ export default function ToolPage() {
         return <UnitConverter />;
       case 'favicon-generator':
         return <FaviconGenerator />;
+      case 'color-palette-generator':
+        return <ColorAnalyzer />;
       case 'add-watermark':
       case 'image-watermark':
         return <AddWatermark />;
