@@ -16,7 +16,7 @@ export default function HTMLEncoder() {
   const [isDecoding, setIsDecoding] = useState(false);
   const { toast } = useToast();
 
-  const handleEncode = async () => {
+  const handleEncode = () => {
     if (!encodeInput.trim()) {
       toast({
         title: "Error",
@@ -29,20 +29,15 @@ export default function HTMLEncoder() {
     setIsEncoding(true);
 
     try {
-      const response = await fetch('/api/developer/html-encode', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ text: encodeInput })
-      });
+      const encoded = encodeInput
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
 
-      if (!response.ok) {
-        throw new Error('Failed to encode HTML');
-      }
-
-      const data = await response.json();
-      setEncodeResult(data.result);
+      setEncodeResult(encoded);
 
       toast({
         title: "Success",
@@ -59,7 +54,7 @@ export default function HTMLEncoder() {
     }
   };
 
-  const handleDecode = async () => {
+  const handleDecode = () => {
     if (!decodeInput.trim()) {
       toast({
         title: "Error",
@@ -72,20 +67,15 @@ export default function HTMLEncoder() {
     setIsDecoding(true);
 
     try {
-      const response = await fetch('/api/developer/html-decode', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ html: decodeInput })
-      });
+      const decoded = decodeInput
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;/g, "'")
+        .replace(/&#x2F;/g, '/');
 
-      if (!response.ok) {
-        throw new Error('Failed to decode HTML');
-      }
-
-      const data = await response.json();
-      setDecodeResult(data.result);
+      setDecodeResult(decoded);
 
       toast({
         title: "Success",

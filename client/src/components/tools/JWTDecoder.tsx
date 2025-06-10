@@ -13,7 +13,7 @@ export default function JWTDecoder() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleDecode = async () => {
+  const handleDecode = () => {
     if (!input.trim()) {
       toast({
         title: "Error",
@@ -26,29 +26,48 @@ export default function JWTDecoder() {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/developer/jwt-decode', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token: input })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to decode JWT');
+      const parts = input.trim().split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid JWT format - must have 3 parts separated by dots');
       }
 
-      const data = await response.json();
-      setResult(data.result);
+      const [headerB64, payloadB64, signature] = parts;
+      
+      // Decode header and payload
+      const header = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/')));
+      const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+      
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      const expired = payload.exp && payload.exp < now;
+      
+      const result = {
+        header,
+        payload,
+        signature,
+        valid: true,
+        expired,
+        error: expired ? 'Token has expired' : undefined
+      };
+
+      setResult(result);
 
       toast({
         title: "Success",
-        description: data.result.valid ? "JWT decoded successfully" : "JWT decoded with warnings"
+        description: expired ? "JWT decoded but expired" : "JWT decoded successfully"
       });
     } catch (error) {
+      setResult({
+        header: null,
+        payload: null,
+        signature: null,
+        valid: false,
+        error: error instanceof Error ? error.message : 'Invalid JWT token'
+      });
+      
       toast({
         title: "Error",
-        description: "Failed to decode JWT",
+        description: error instanceof Error ? error.message : "Invalid JWT token",
         variant: "destructive"
       });
     } finally {

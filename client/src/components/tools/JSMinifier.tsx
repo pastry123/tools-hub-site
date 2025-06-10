@@ -12,7 +12,7 @@ export default function JSMinifier() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleMinify = async () => {
+  const handleMinify = () => {
     if (!input.trim()) {
       toast({
         title: "Error",
@@ -25,24 +25,44 @@ export default function JSMinifier() {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/developer/js-minify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ js: input })
+      const original = input;
+      const originalSize = original.length;
+      
+      // JavaScript minification
+      const minified = original
+        // Remove single-line comments
+        .replace(/\/\/.*$/gm, '')
+        // Remove multi-line comments
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        // Remove unnecessary whitespace
+        .replace(/\s+/g, ' ')
+        .replace(/\s*{\s*/g, '{')
+        .replace(/;\s*/g, ';')
+        .replace(/\s*}\s*/g, '}')
+        .replace(/\s*,\s*/g, ',')
+        .replace(/\s*\(\s*/g, '(')
+        .replace(/\s*\)\s*/g, ')')
+        .replace(/\s*=\s*/g, '=')
+        .replace(/\s*\+\s*/g, '+')
+        .replace(/\s*-\s*/g, '-')
+        .trim();
+
+      const minifiedSize = minified.length;
+      const savings = originalSize - minifiedSize;
+      const compressionRatio = originalSize > 0 ? (savings / originalSize) * 100 : 0;
+
+      setResult({
+        original,
+        minified,
+        originalSize,
+        minifiedSize,
+        savings: compressionRatio,
+        compressionRatio: originalSize > 0 ? originalSize / minifiedSize : 1
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to minify JavaScript');
-      }
-
-      const data = await response.json();
-      setResult(data.result);
 
       toast({
         title: "Success",
-        description: `JavaScript minified - ${data.result.savings.toFixed(1)}% size reduction`
+        description: `JavaScript minified - ${compressionRatio.toFixed(1)}% size reduction`
       });
     } catch (error) {
       toast({

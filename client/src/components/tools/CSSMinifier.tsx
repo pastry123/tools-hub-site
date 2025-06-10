@@ -12,7 +12,7 @@ export default function CSSMinifier() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleMinify = async () => {
+  const handleMinify = () => {
     if (!input.trim()) {
       toast({
         title: "Error",
@@ -25,24 +25,41 @@ export default function CSSMinifier() {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/developer/css-minify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ css: input })
+      const original = input;
+      const originalSize = original.length;
+      
+      // CSS minification
+      const minified = original
+        // Remove comments
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        // Remove unnecessary whitespace
+        .replace(/\s+/g, ' ')
+        .replace(/\s*{\s*/g, '{')
+        .replace(/;\s*/g, ';')
+        .replace(/\s*}\s*/g, '}')
+        .replace(/\s*,\s*/g, ',')
+        .replace(/\s*:\s*/g, ':')
+        .replace(/\s*;\s*}/g, '}')
+        .replace(/0\.(\d+)/g, '.$1')
+        .replace(/#([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3/gi, '#$1$2$3')
+        .trim();
+
+      const minifiedSize = minified.length;
+      const savings = originalSize - minifiedSize;
+      const compressionRatio = originalSize > 0 ? (savings / originalSize) * 100 : 0;
+
+      setResult({
+        original,
+        minified,
+        originalSize,
+        minifiedSize,
+        savings: compressionRatio,
+        compressionRatio: originalSize > 0 ? originalSize / minifiedSize : 1
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to minify CSS');
-      }
-
-      const data = await response.json();
-      setResult(data.result);
 
       toast({
         title: "Success",
-        description: `CSS minified - ${data.result.savings.toFixed(1)}% size reduction`
+        description: `CSS minified - ${compressionRatio.toFixed(1)}% size reduction`
       });
     } catch (error) {
       toast({

@@ -37,6 +37,7 @@ export default function APITester() {
         return acc;
       }, {});
 
+      const startTime = Date.now();
       const response = await fetch('/api/developer/api-test', {
         method: 'POST',
         headers: {
