@@ -44,13 +44,23 @@ export default function SignatureGenerator() {
       return;
     }
 
+    // Map frontend style names to backend style names
+    const styleMapping: Record<string, string> = {
+      "Executive": "professional-executive",
+      "Creative": "artistic-flowing", 
+      "Classic": "traditional-formal",
+      "Modern": "contemporary-clean",
+      "Elegant": "sophisticated-cursive",
+      "Bold": "strong-confident"
+    };
+
     try {
       const response = await fetch('/api/esign/generate-signature', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: signatureText,
-          style: style,
+          style: styleMapping[style] || 'sophisticated-cursive',
           format: 'svg'
         })
       });
@@ -366,11 +376,12 @@ export default function SignatureGenerator() {
               <h4 className="text-sm font-medium mb-2">Signature Preview</h4>
               {currentSignature.trim().startsWith('<svg') ? (
                 <div 
-                  className="text-center"
+                  className="text-center bg-white p-4 rounded border"
+                  style={{ minHeight: '120px' }}
                   dangerouslySetInnerHTML={{ __html: currentSignature }}
                 />
               ) : (
-                <div className="text-center">
+                <div className="text-center bg-white p-4 rounded border" style={{ minHeight: '120px' }}>
                   <img src={currentSignature} alt="Signature" className="max-w-full h-auto mx-auto" />
                 </div>
               )}

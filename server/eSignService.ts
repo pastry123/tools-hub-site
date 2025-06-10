@@ -104,7 +104,7 @@ export class ESignService {
     const currentStyle = styles[style as keyof typeof styles] || styles['sophisticated-cursive'];
     
     // Create path data for a more natural signature look
-    const pathData = this.generateSignaturePath(name);
+    const pathData = this.generateSignaturePath(name, style);
     
     return `
       <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
@@ -132,27 +132,69 @@ export class ESignService {
     `;
   }
 
-  private generateSignaturePath(name: string): string {
+  private generateSignaturePath(name: string, style?: string): string {
     const letters = name.toLowerCase().split('');
     let path = '';
     let x = 0;
     const baseY = 0;
     
+    // Different path generation styles
+    const styleParams = {
+      'professional-executive': { amplitude: 4, frequency: 0.3, curves: 'tight' },
+      'artistic-flowing': { amplitude: 12, frequency: 0.8, curves: 'flowing' },
+      'traditional-formal': { amplitude: 2, frequency: 0.2, curves: 'minimal' },
+      'contemporary-clean': { amplitude: 6, frequency: 0.4, curves: 'smooth' },
+      'sophisticated-cursive': { amplitude: 8, frequency: 0.5, curves: 'elegant' },
+      'strong-confident': { amplitude: 10, frequency: 0.6, curves: 'bold' }
+    };
+    
+    const params = styleParams[style as keyof typeof styleParams] || styleParams['sophisticated-cursive'];
+    
     letters.forEach((letter, index) => {
-      const variation = Math.sin(index * 0.5) * 8;
+      const variation = Math.sin(index * params.frequency) * params.amplitude;
       const letterWidth = 25 + Math.random() * 10;
       
       if (index === 0) {
         path += `M ${x} ${baseY + variation}`;
       }
       
-      // Create natural curves for each letter
-      const cp1x = x + letterWidth * 0.3;
-      const cp1y = baseY + variation - 15 + Math.random() * 10;
-      const cp2x = x + letterWidth * 0.7;
-      const cp2y = baseY + variation + 15 + Math.random() * 10;
-      const endX = x + letterWidth;
-      const endY = baseY + Math.sin((index + 1) * 0.5) * 8;
+      // Create natural curves for each letter based on style
+      let cp1x, cp1y, cp2x, cp2y, endX, endY;
+      
+      switch (params.curves) {
+        case 'tight':
+          cp1x = x + letterWidth * 0.2;
+          cp1y = baseY + variation - 8;
+          cp2x = x + letterWidth * 0.8;
+          cp2y = baseY + variation + 8;
+          break;
+        case 'flowing':
+          cp1x = x + letterWidth * 0.1;
+          cp1y = baseY + variation - 20;
+          cp2x = x + letterWidth * 0.9;
+          cp2y = baseY + variation + 20;
+          break;
+        case 'minimal':
+          cp1x = x + letterWidth * 0.4;
+          cp1y = baseY + variation - 5;
+          cp2x = x + letterWidth * 0.6;
+          cp2y = baseY + variation + 5;
+          break;
+        case 'bold':
+          cp1x = x + letterWidth * 0.25;
+          cp1y = baseY + variation - 12;
+          cp2x = x + letterWidth * 0.75;
+          cp2y = baseY + variation + 12;
+          break;
+        default: // smooth, elegant
+          cp1x = x + letterWidth * 0.3;
+          cp1y = baseY + variation - 15;
+          cp2x = x + letterWidth * 0.7;
+          cp2y = baseY + variation + 15;
+      }
+      
+      endX = x + letterWidth;
+      endY = baseY + Math.sin((index + 1) * params.frequency) * params.amplitude;
       
       path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`;
       x = endX;
