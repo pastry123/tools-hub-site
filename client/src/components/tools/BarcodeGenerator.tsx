@@ -594,12 +594,12 @@ export default function BarcodeGenerator() {
                 checked={options.includetext}
                 onCheckedChange={(checked) => updateOption('includetext', checked)}
               />
-              <Label htmlFor="include-text" className="text-sm font-medium">Include human-readable text</Label>
+              <Label htmlFor="include-text" className="text-sm font-medium">{t("barcodeGenerator.includeText")}</Label>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="text-size">Text Size</Label>
+                <Label htmlFor="text-size">{t("barcodeGenerator.textSize")}</Label>
                 <Input
                   id="text-size"
                   type="number"
@@ -611,7 +611,7 @@ export default function BarcodeGenerator() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bg-color">Background Color</Label>
+                <Label htmlFor="bg-color">{t("barcodeGenerator.backgroundColor")}</Label>
                 <Input
                   id="bg-color"
                   type="color"
@@ -656,7 +656,7 @@ export default function BarcodeGenerator() {
                     </Button>
                     <Button onClick={copyToClipboard} variant="outline" size="sm">
                       <Copy className="w-4 h-4 mr-2" />
-                      Copy
+                      {t("barcodeGenerator.copy")}
                     </Button>
                   </div>
                 </div>

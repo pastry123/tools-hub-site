@@ -1479,6 +1479,18 @@ const translations = {
     "barcodeGenerator.copyToClipboard": "نسخ إلى الحافظة",
     "barcodeGenerator.copied": "تم النسخ!",
     "barcodeGenerator.copyFailed": "فشل في النسخ",
+    "barcodeGenerator.includeText": "تضمين النص المقروء",
+    "barcodeGenerator.scale": "المقياس",
+    "barcodeGenerator.size": "الحجم",
+    "barcodeGenerator.rotation": "الدوران",
+    "barcodeGenerator.padding": "الحشو",
+    "barcodeGenerator.options": "خيارات متقدمة",
+    "barcodeGenerator.customization": "تخصيص المظهر",
+    "barcodeGenerator.selectBarcodeType": "اختر نوع الباركود",
+    "barcodeGenerator.linearCodes": "أكواد خطية",
+    "barcodeGenerator.postalCodes": "أكواد بريدية",
+    "barcodeGenerator.twoDCodes": "أكواد ثنائية الأبعاد",
+    "barcodeGenerator.specialCodes": "أكواد خاصة",
 
     // Text Tools Error Messages
     "textSlug.error": "خطأ",
@@ -1494,6 +1506,35 @@ const translations = {
     "colorAnalyzer.dominantColor": "اللون السائد",
     "colorAnalyzer.colorPalette": "لوحة الألوان",
     "colorAnalyzer.copy": "نسخ",
+
+    // Image Tools translations
+    "imageCropper.title": "مقص الصور",
+    "imageCropper.subtitle": "اقتص وحرر الصور بدقة احترافية",
+    "imageCropper.uploadImage": "رفع صورة للقص",
+    "imageCropper.clickUpload": "اضغط للرفع",
+    "imageCropper.dragDrop": "أو اسحب وأفلت",
+    "imageCropper.cropImage": "قص الصورة",
+    "imageCropper.download": "تحميل",
+    "imageCropper.reset": "إعادة تعيين",
+    "imageCropper.processing": "جاري المعالجة...",
+
+    // Background Remover translations
+    "backgroundRemover.title": "إزالة الخلفية",
+    "backgroundRemover.subtitle": "إزالة الخلفية من الصور تلقائياً",
+    "backgroundRemover.uploadImage": "رفع صورة لإزالة الخلفية",
+    "backgroundRemover.removeBackground": "إزالة الخلفية",
+    "backgroundRemover.processing": "جاري إزالة الخلفية...",
+    "backgroundRemover.download": "تحميل",
+
+    // Lorem Generator translations
+    "loremGenerator.title": "مولد النص التجريبي",
+    "loremGenerator.subtitle": "إنشاء نص Lorem Ipsum للتصميم",
+    "loremGenerator.paragraphs": "الفقرات",
+    "loremGenerator.words": "الكلمات",
+    "loremGenerator.characters": "الأحرف",
+    "loremGenerator.generate": "إنشاء النص",
+    "loremGenerator.copy": "نسخ النص",
+    "loremGenerator.copied": "تم النسخ!",
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
