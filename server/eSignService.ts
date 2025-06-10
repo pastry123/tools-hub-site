@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
 import fs from 'fs';
 import path from 'path';
+import Groq from 'groq-sdk';
 
 export interface SignatureOptions {
   name: string;
@@ -34,21 +35,198 @@ export interface Signer {
 }
 
 export class ESignService {
+  private groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY
+  });
+
   async generateAISignature(options: SignatureOptions): Promise<{ success: boolean; signature?: string; error?: string }> {
     try {
-      // Generate an enhanced SVG signature based on the name and style
-      const signature = this.createEnhancedSVGSignature(options.name, options.style);
+      // Use AI to generate signature instructions, then create SVG
+      const aiInstructions = await this.getAISignatureInstructions(options.name, options.style);
+      const signature = this.createAIEnhancedSVGSignature(options.name, options.style, aiInstructions);
       
       return {
         success: true,
         signature: signature
       };
     } catch (error) {
+      console.error('AI signature generation error:', error);
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+      // Fallback to enhanced algorithmic generation
+      const signature = this.createEnhancedSVGSignature(options.name, options.style);
       return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate signature'
+        success: true,
+        signature: signature
       };
     }
+  }
+
+  private async getAISignatureInstructions(name: string, style: string): Promise<any> {
+    console.log(`Generating AI instructions for ${name} in ${style} style`);
+    
+    const styleDescriptions = {
+      'professional-executive': 'formal, confident, clean lines with controlled flourishes',
+      'artistic-flowing': 'creative, fluid, expressive with dramatic curves and loops',
+      'traditional-formal': 'classic, conservative, minimal embellishments',
+      'contemporary-clean': 'modern, geometric, sharp edges with minimal curves',
+      'sophisticated-cursive': 'elegant, refined, graceful curves with subtle flourishes',
+      'strong-confident': 'bold, powerful, thick strokes with strong presence'
+    };
+
+    const prompt = `Create unique handwriting characteristics for a signature of "${name}" in ${styleDescriptions[style as keyof typeof styleDescriptions] || 'elegant cursive'} style.
+
+Respond with JSON containing:
+{
+  "letterSpacing": number (0.8-1.5),
+  "baselineVariation": number (2-15),
+  "strokeVariation": number (0.5-3),
+  "flourishIntensity": number (0.1-0.9),
+  "connectionStyle": "connected" | "partially-connected" | "disconnected",
+  "slantAngle": number (-15 to 15),
+  "pressureVariation": number (0.1-0.8),
+  "uniqueCharacteristics": [string array of 2-3 unique traits]
+}`;
+
+    console.log('Calling Groq API...');
+    
+    const completion = await this.groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama3-8b-8192',
+      temperature: 0.8,
+      max_tokens: 300
+    });
+
+    console.log('Groq API response received');
+    
+    const content = completion.choices[0]?.message?.content;
+    console.log('AI response content:', content);
+    
+    if (content) {
+      try {
+        const parsed = JSON.parse(content);
+        console.log('Successfully parsed AI instructions:', parsed);
+        return parsed;
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError);
+        return this.getDefaultAIInstructions(style);
+      }
+    }
+    
+    console.log('No content in AI response, using defaults');
+    return this.getDefaultAIInstructions(style);
+  }
+
+  private getDefaultAIInstructions(style: string): any {
+    const defaults = {
+      'professional-executive': {
+        letterSpacing: 1.1, baselineVariation: 4, strokeVariation: 1.5,
+        flourishIntensity: 0.3, connectionStyle: 'connected', slantAngle: -3,
+        pressureVariation: 0.4, uniqueCharacteristics: ['controlled loops', 'consistent height']
+      },
+      'artistic-flowing': {
+        letterSpacing: 1.3, baselineVariation: 12, strokeVariation: 2.5,
+        flourishIntensity: 0.8, connectionStyle: 'connected', slantAngle: -8,
+        pressureVariation: 0.7, uniqueCharacteristics: ['dramatic ascenders', 'flowing connections']
+      },
+      'traditional-formal': {
+        letterSpacing: 0.9, baselineVariation: 2, strokeVariation: 1.0,
+        flourishIntensity: 0.2, connectionStyle: 'partially-connected', slantAngle: 0,
+        pressureVariation: 0.3, uniqueCharacteristics: ['uniform strokes', 'minimal decoration']
+      }
+    };
+    
+    return defaults[style as keyof typeof defaults] || defaults['professional-executive'];
+  }
+
+  private createAIEnhancedSVGSignature(name: string, style: string, aiInstructions: any): string {
+    const width = 400;
+    const height = 120;
+    
+    const styleConfig = this.getStyleConfig(style);
+    const pathData = this.generateAISignaturePath(name, aiInstructions);
+    
+    return `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="inkBleed" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="${aiInstructions.pressureVariation || 0.5}" result="blur"/>
+            <feOffset in="blur" dx="0.5" dy="0.5" result="offset"/>
+            <feMerge>
+              <feMergeNode in="offset"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g transform="translate(20, ${height/2}) rotate(${aiInstructions.slantAngle || 0}deg)">
+          <path d="${pathData}" 
+                fill="none" 
+                stroke="${styleConfig.color}" 
+                stroke-width="${styleConfig.strokeWidth * (aiInstructions.strokeVariation || 1)}"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                opacity="0.95"
+                filter="url(#inkBleed)"/>
+          ${aiInstructions.flourishIntensity > 0.5 ? this.addFlourishes(name, aiInstructions) : ''}
+        </g>
+      </svg>
+    `;
+  }
+
+  private generateAISignaturePath(name: string, aiInstructions: any): string {
+    const letters = name.split('');
+    let path = '';
+    let x = 0;
+    const baseY = 0;
+    
+    letters.forEach((letter, index) => {
+      const letterWidth = 25 * (aiInstructions.letterSpacing || 1);
+      const variation = (Math.sin(index * 0.5) + Math.random() * 0.5 - 0.25) * (aiInstructions.baselineVariation || 5);
+      
+      if (index === 0) {
+        path += `M ${x} ${baseY + variation}`;
+      }
+      
+      // AI-influenced curve generation
+      const intensity = aiInstructions.flourishIntensity || 0.5;
+      const cp1x = x + letterWidth * (0.2 + intensity * 0.2);
+      const cp1y = baseY + variation - (10 + intensity * 15);
+      const cp2x = x + letterWidth * (0.8 - intensity * 0.2);
+      const cp2y = baseY + variation + (10 + intensity * 15);
+      const endX = x + letterWidth;
+      const endY = baseY + (Math.sin((index + 1) * 0.7) * (aiInstructions.baselineVariation || 5));
+      
+      if (aiInstructions.connectionStyle === 'disconnected' && index > 0) {
+        path += ` M ${x + 5} ${baseY + variation}`;
+      }
+      
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`;
+      x = endX;
+    });
+    
+    return path;
+  }
+
+  private addFlourishes(name: string, aiInstructions: any): string {
+    const intensity = aiInstructions.flourishIntensity;
+    const length = name.length * 25;
+    
+    return `
+      <path d="M ${length + 10} 0 Q ${length + 20 + intensity * 30} ${-intensity * 20} ${length + 30 + intensity * 40} ${intensity * 10}"
+            fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+    `;
+  }
+
+  private getStyleConfig(style: string) {
+    const styles = {
+      'professional-executive': { color: '#1a365d', strokeWidth: 2.5 },
+      'artistic-flowing': { color: '#2d3748', strokeWidth: 2.0 },
+      'traditional-formal': { color: '#000000', strokeWidth: 3.0 },
+      'contemporary-clean': { color: '#2b6cb0', strokeWidth: 2.0 },
+      'sophisticated-cursive': { color: '#1a202c', strokeWidth: 2.5 },
+      'strong-confident': { color: '#2d3748', strokeWidth: 3.5 }
+    };
+    
+    return styles[style as keyof typeof styles] || styles['sophisticated-cursive'];
   }
 
   private createEnhancedSVGSignature(name: string, style: string): string {
