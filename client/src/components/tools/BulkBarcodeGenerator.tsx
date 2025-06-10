@@ -353,20 +353,20 @@ export default function BulkBarcodeGenerator() {
             {currentJob ? (
               <Tabs defaultValue="setup" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="setup">Setup</TabsTrigger>
-                  <TabsTrigger value="data">Data</TabsTrigger>
-                  <TabsTrigger value="settings">Settings</TabsTrigger>
-                  <TabsTrigger value="results">Results</TabsTrigger>
+                  <TabsTrigger value="setup">{t("bulkBarcode.setup")}</TabsTrigger>
+                  <TabsTrigger value="data">{t("bulkBarcode.data")}</TabsTrigger>
+                  <TabsTrigger value="settings">{t("bulkBarcode.settings")}</TabsTrigger>
+                  <TabsTrigger value="results">{t("bulkBarcode.results")}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="setup" className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Data Input</CardTitle>
+                      <CardTitle>{t("bulkBarcode.dataInput")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Upload CSV File</label>
+                        <label className="block text-sm font-medium mb-2">{t("bulkBarcode.uploadCsv")}</label>
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                           <input
                             ref={fileInputRef}
@@ -376,10 +376,10 @@ export default function BulkBarcodeGenerator() {
                             className="hidden"
                           />
                           <FileSpreadsheet className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                          <p className="text-gray-600 mb-2">Drop CSV file here or click to browse</p>
+                          <p className="text-gray-600 mb-2">{t("bulkBarcode.dropCsvFile")}</p>
                           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                             <Upload className="w-4 h-4 mr-2" />
-                            Choose File
+                            {t("bulkBarcode.chooseFile")}
                           </Button>
                         </div>
                       </div>
@@ -387,9 +387,9 @@ export default function BulkBarcodeGenerator() {
                       <div className="text-center text-gray-500">or</div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">Manual Input</label>
+                        <label className="block text-sm font-medium mb-2">{t("bulkBarcode.manualInput")}</label>
                         <Textarea
-                          placeholder="Enter data (one item per line)&#10;Item 1&#10;Item 2&#10;Item 3"
+                          placeholder={t("bulkBarcode.manualPlaceholder")}
                           value={manualData}
                           onChange={(e) => setManualData(e.target.value)}
                           rows={6}
@@ -399,7 +399,7 @@ export default function BulkBarcodeGenerator() {
                           onClick={parseManualData}
                           disabled={!manualData.trim()}
                         >
-                          Add Manual Data
+                          {t("bulkBarcode.addManualData")}
                         </Button>
                       </div>
                     </CardContent>
@@ -409,13 +409,13 @@ export default function BulkBarcodeGenerator() {
                 <TabsContent value="data" className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Data Preview ({currentJob.items.length} items)</CardTitle>
+                      <CardTitle>{t("bulkBarcode.dataPreview")} ({currentJob.items.length} {t("bulkBarcode.items")})</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {currentJob.items.length === 0 ? (
                         <div className="text-center py-8">
                           <FileSpreadsheet className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                          <p className="text-gray-600">No data loaded yet</p>
+                          <p className="text-gray-600">{t("bulkBarcode.noDataLoaded")}</p>
                         </div>
                       ) : (
                         <div className="max-h-96 overflow-y-auto space-y-2">
@@ -432,7 +432,7 @@ export default function BulkBarcodeGenerator() {
                           ))}
                           {currentJob.items.length > 50 && (
                             <p className="text-sm text-gray-500 text-center">
-                              ... and {currentJob.items.length - 50} more items
+                              {t("bulkBarcode.andMore").replace("{count}", (currentJob.items.length - 50).toString())}
                             </p>
                           )}
                         </div>
@@ -510,12 +510,12 @@ export default function BulkBarcodeGenerator() {
                           {isProcessing ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Generating...
+                              {t("bulkBarcode.generating")}
                             </>
                           ) : (
                             <>
                               <BarChart3 className="w-4 h-4 mr-2" />
-                              Generate All Barcodes
+                              {t("bulkBarcode.generateAll")}
                             </>
                           )}
                         </Button>
