@@ -364,7 +364,7 @@ export default function SignatureGenerator() {
           {currentSignature && (
             <div className="mt-4 p-4 border rounded-lg bg-gray-50">
               <h4 className="text-sm font-medium mb-2">Signature Preview</h4>
-              {currentSignature.startsWith('<svg') ? (
+              {currentSignature.trim().startsWith('<svg') ? (
                 <div 
                   className="text-center"
                   dangerouslySetInnerHTML={{ __html: currentSignature }}
