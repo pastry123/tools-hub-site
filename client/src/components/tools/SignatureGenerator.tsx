@@ -158,7 +158,15 @@ export default function SignatureGenerator() {
             const ctx = canvas.getContext("2d");
             if (ctx) {
               ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              
+              // Calculate scaling and centering
+              const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
+              const scaledWidth = img.width * scale;
+              const scaledHeight = img.height * scale;
+              const x = (canvas.width - scaledWidth) / 2;
+              const y = (canvas.height - scaledHeight) / 2;
+              
+              ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
               setCurrentSignature(canvas.toDataURL());
             }
           }
