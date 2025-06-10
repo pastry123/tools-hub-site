@@ -78,12 +78,14 @@ export default function SignatureGenerator() {
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (mode !== "draw") return;
     setIsDrawing(true);
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
@@ -92,73 +94,87 @@ export default function SignatureGenerator() {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.moveTo(x, y);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || mode !== "draw") return;
+    if (!isDrawing) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.lineTo(x, y);
     ctx.stroke();
   };
 
   const stopDrawing = () => {
-    if (!isDrawing) return;
     setIsDrawing(false);
     const canvas = canvasRef.current;
     if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+      }
       setCurrentSignature(canvas.toDataURL());
     }
   };
 
   // Touch support for mobile
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (mode !== "draw") return;
     e.preventDefault();
     const touch = e.touches[0];
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    
+    setIsDrawing(true);
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    setIsDrawing(true);
     ctx.strokeStyle = color;
     ctx.lineWidth = brushSize;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.moveTo(x, y);
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || mode !== "draw") return;
+    if (!isDrawing) return;
     e.preventDefault();
     const touch = e.touches[0];
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.lineTo(x, y);
     ctx.stroke();
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (!isDrawing) return;
     setIsDrawing(false);
     const canvas = canvasRef.current;
     if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+      }
       setCurrentSignature(canvas.toDataURL());
     }
   };
@@ -458,16 +474,7 @@ export default function SignatureGenerator() {
             </div>
             
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-              {currentSignature && !currentSignature.startsWith('<svg') ? (
-                <div className="text-center">
-                  <img src={currentSignature} alt="Signature" className="max-w-full h-auto mx-auto" />
-                </div>
-              ) : currentSignature && currentSignature.startsWith('<svg') ? (
-                <div 
-                  className="text-center"
-                  dangerouslySetInnerHTML={{ __html: currentSignature }}
-                />
-              ) : (
+              {mode === "draw" ? (
                 <canvas
                   ref={canvasRef}
                   width={600}
@@ -482,6 +489,19 @@ export default function SignatureGenerator() {
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                 />
+              ) : currentSignature && currentSignature.startsWith('<svg') ? (
+                <div 
+                  className="text-center min-h-[200px] flex items-center justify-center"
+                  dangerouslySetInnerHTML={{ __html: currentSignature }}
+                />
+              ) : currentSignature && currentSignature.startsWith('data:image') ? (
+                <div className="text-center min-h-[200px] flex items-center justify-center">
+                  <img src={currentSignature} alt="Signature" className="max-w-full h-auto" />
+                </div>
+              ) : (
+                <div className="text-center min-h-[200px] flex items-center justify-center text-muted-foreground">
+                  {mode === "ai" ? "Generate an AI signature above" : "Create a typed signature above"}
+                </div>
               )}
             </div>
           </div>
