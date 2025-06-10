@@ -41,6 +41,8 @@ export class ESignService {
 
   async generateAISignature(options: SignatureOptions): Promise<{ success: boolean; signature?: string; error?: string }> {
     try {
+      console.log(`Generating AI signature for ${options.name} in ${options.style} style`);
+      
       // Use AI to generate signature instructions, then create SVG
       const aiInstructions = await this.getAISignatureInstructions(options.name, options.style);
       const signature = this.createAIEnhancedSVGSignature(options.name, options.style, aiInstructions);
@@ -51,7 +53,6 @@ export class ESignService {
       };
     } catch (error) {
       console.error('AI signature generation error:', error);
-      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
       // Fallback to enhanced algorithmic generation
       const signature = this.createEnhancedSVGSignature(options.name, options.style);
       return {
@@ -62,8 +63,6 @@ export class ESignService {
   }
 
   private async getAISignatureInstructions(name: string, style: string): Promise<any> {
-    console.log(`Generating AI instructions for ${name} in ${style} style`);
-    
     const styleDescriptions = {
       'professional-executive': 'formal, confident, clean lines with controlled flourishes',
       'artistic-flowing': 'creative, fluid, expressive with dramatic curves and loops',
@@ -73,46 +72,52 @@ export class ESignService {
       'strong-confident': 'bold, powerful, thick strokes with strong presence'
     };
 
-    const prompt = `Create unique handwriting characteristics for a signature of "${name}" in ${styleDescriptions[style as keyof typeof styleDescriptions] || 'elegant cursive'} style.
+    const prompt = `Generate handwriting parameters for "${name}" signature in ${styleDescriptions[style as keyof typeof styleDescriptions] || 'elegant cursive'} style.
 
-Respond with JSON containing:
+Respond with only this JSON format, no explanations:
 {
-  "letterSpacing": number (0.8-1.5),
-  "baselineVariation": number (2-15),
-  "strokeVariation": number (0.5-3),
-  "flourishIntensity": number (0.1-0.9),
-  "connectionStyle": "connected" | "partially-connected" | "disconnected",
-  "slantAngle": number (-15 to 15),
-  "pressureVariation": number (0.1-0.8),
-  "uniqueCharacteristics": [string array of 2-3 unique traits]
+  "letterSpacing": 1.2,
+  "baselineVariation": 8,
+  "strokeVariation": 2.0,
+  "flourishIntensity": 0.7,
+  "connectionStyle": "connected",
+  "slantAngle": -5,
+  "pressureVariation": 0.4
 }`;
 
-    console.log('Calling Groq API...');
-    
     const completion = await this.groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: 'llama3-8b-8192',
       temperature: 0.8,
-      max_tokens: 300
+      max_tokens: 200
     });
 
-    console.log('Groq API response received');
-    
     const content = completion.choices[0]?.message?.content;
-    console.log('AI response content:', content);
     
     if (content) {
       try {
-        const parsed = JSON.parse(content);
-        console.log('Successfully parsed AI instructions:', parsed);
+        // Extract JSON from response that might contain extra text
+        const codeBlockMatch = content.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
+        let jsonText = content;
+        
+        if (codeBlockMatch) {
+          jsonText = codeBlockMatch[1];
+        } else {
+          const jsonMatch = content.match(/\{[\s\S]*?\}/);
+          if (jsonMatch) {
+            jsonText = jsonMatch[0];
+          }
+        }
+        
+        const parsed = JSON.parse(jsonText);
+        console.log('AI generated signature parameters:', parsed);
         return parsed;
       } catch (parseError) {
-        console.error('Failed to parse AI response:', parseError);
+        console.error('Failed to parse AI response, using defaults');
         return this.getDefaultAIInstructions(style);
       }
     }
     
-    console.log('No content in AI response, using defaults');
     return this.getDefaultAIInstructions(style);
   }
 
@@ -121,21 +126,36 @@ Respond with JSON containing:
       'professional-executive': {
         letterSpacing: 1.1, baselineVariation: 4, strokeVariation: 1.5,
         flourishIntensity: 0.3, connectionStyle: 'connected', slantAngle: -3,
-        pressureVariation: 0.4, uniqueCharacteristics: ['controlled loops', 'consistent height']
+        pressureVariation: 0.4
       },
       'artistic-flowing': {
         letterSpacing: 1.3, baselineVariation: 12, strokeVariation: 2.5,
         flourishIntensity: 0.8, connectionStyle: 'connected', slantAngle: -8,
-        pressureVariation: 0.7, uniqueCharacteristics: ['dramatic ascenders', 'flowing connections']
+        pressureVariation: 0.7
       },
       'traditional-formal': {
         letterSpacing: 0.9, baselineVariation: 2, strokeVariation: 1.0,
         flourishIntensity: 0.2, connectionStyle: 'partially-connected', slantAngle: 0,
-        pressureVariation: 0.3, uniqueCharacteristics: ['uniform strokes', 'minimal decoration']
+        pressureVariation: 0.3
+      },
+      'contemporary-clean': {
+        letterSpacing: 1.0, baselineVariation: 3, strokeVariation: 1.2,
+        flourishIntensity: 0.4, connectionStyle: 'connected', slantAngle: -2,
+        pressureVariation: 0.3
+      },
+      'sophisticated-cursive': {
+        letterSpacing: 1.2, baselineVariation: 6, strokeVariation: 2.0,
+        flourishIntensity: 0.6, connectionStyle: 'connected', slantAngle: -5,
+        pressureVariation: 0.5
+      },
+      'strong-confident': {
+        letterSpacing: 1.1, baselineVariation: 5, strokeVariation: 2.8,
+        flourishIntensity: 0.5, connectionStyle: 'connected', slantAngle: -4,
+        pressureVariation: 0.6
       }
     };
     
-    return defaults[style as keyof typeof defaults] || defaults['professional-executive'];
+    return defaults[style as keyof typeof defaults] || defaults['sophisticated-cursive'];
   }
 
   private createAIEnhancedSVGSignature(name: string, style: string, aiInstructions: any): string {
@@ -188,9 +208,9 @@ Respond with JSON containing:
       
       // AI-influenced curve generation
       const intensity = aiInstructions.flourishIntensity || 0.5;
-      const cp1x = x + letterWidth * (0.2 + intensity * 0.2);
+      const cp1x = x + letterWidth * (0.2 + intensity * 0.1);
       const cp1y = baseY + variation - (10 + intensity * 15);
-      const cp2x = x + letterWidth * (0.8 - intensity * 0.2);
+      const cp2x = x + letterWidth * (0.8 - intensity * 0.1);
       const cp2y = baseY + variation + (10 + intensity * 15);
       const endX = x + letterWidth;
       const endY = baseY + (Math.sin((index + 1) * 0.7) * (aiInstructions.baselineVariation || 5));
@@ -233,7 +253,6 @@ Respond with JSON containing:
     const width = 400;
     const height = 120;
     
-    // Different signature styles
     const styles = {
       'professional-executive': {
         fontFamily: 'serif',
@@ -280,8 +299,6 @@ Respond with JSON containing:
     };
 
     const currentStyle = styles[style as keyof typeof styles] || styles['sophisticated-cursive'];
-    
-    // Create path data for a more natural signature look
     const pathData = this.generateSignaturePath(name, style);
     
     return `
@@ -316,7 +333,6 @@ Respond with JSON containing:
     let x = 0;
     const baseY = 0;
     
-    // Different path generation styles
     const styleParams = {
       'professional-executive': { amplitude: 4, frequency: 0.3, curves: 'tight' },
       'artistic-flowing': { amplitude: 12, frequency: 0.8, curves: 'flowing' },
@@ -336,7 +352,6 @@ Respond with JSON containing:
         path += `M ${x} ${baseY + variation}`;
       }
       
-      // Create natural curves for each letter based on style
       let cp1x, cp1y, cp2x, cp2y, endX, endY;
       
       switch (params.curves) {
@@ -364,7 +379,7 @@ Respond with JSON containing:
           cp2x = x + letterWidth * 0.75;
           cp2y = baseY + variation + 12;
           break;
-        default: // smooth, elegant
+        default:
           cp1x = x + letterWidth * 0.3;
           cp1y = baseY + variation - 15;
           cp2x = x + letterWidth * 0.7;
@@ -386,102 +401,35 @@ Respond with JSON containing:
       const pdfDoc = await PDFDocument.load(pdfBuffer);
       const pages = pdfDoc.getPages();
       
-      // Convert signature from base64 to image if needed
-      let signatureImage;
-      console.log('Processing signature data:', signature.substring(0, 50) + '...');
-      
-      if (signature.startsWith('data:image')) {
-        const base64Data = signature.split(',')[1];
-        const imageBytes = Buffer.from(base64Data, 'base64');
-        
-        try {
-          if (signature.includes('png') || signature.includes('PNG')) {
-            signatureImage = await pdfDoc.embedPng(imageBytes);
-            console.log('Successfully embedded PNG signature');
-          } else if (signature.includes('jpg') || signature.includes('jpeg') || signature.includes('JPEG')) {
-            signatureImage = await pdfDoc.embedJpg(imageBytes);
-            console.log('Successfully embedded JPG signature');
-          } else {
-            // Default to PNG for canvas data URLs
-            signatureImage = await pdfDoc.embedPng(imageBytes);
-            console.log('Successfully embedded signature as PNG (default)');
-          }
-        } catch (imageError) {
-          console.error('Failed to embed signature image:', imageError);
-          signatureImage = null;
-        }
-      } else {
-        console.log('Signature is not a data URL, using text fallback');
-      }
-      
+      // Process signature fields and add signatures
       for (const field of fields) {
-        // Fix page indexing (frontend sends 1-based, convert to 0-based)
-        const pageIndex = (field.page || 1) - 1;
-        
-        if (pageIndex >= 0 && pageIndex < pages.length) {
-          const page = pages[pageIndex];
-          const { width: pageWidth, height: pageHeight } = page.getSize();
+        if (field.page < pages.length) {
+          const page = pages[field.page];
+          const { width, height } = page.getSize();
           
-          // Convert canvas coordinates to PDF coordinates
-          // Canvas uses top-left origin, PDF uses bottom-left origin
-          const pdfX = Math.max(0, Math.min(field.x, pageWidth - field.width));
-          const pdfY = Math.max(0, Math.min(pageHeight - field.y - field.height, pageHeight - field.height));
-          
-          console.log(`Adding signature to page ${field.page} at (${pdfX}, ${pdfY}) size ${field.width}x${field.height}`);
-          
-          if (signatureImage) {
-            // Successfully embedded image signature
+          // Convert signature to image and embed
+          if (signature.startsWith('data:image')) {
+            const base64Data = signature.split(',')[1];
+            const imageBytes = Buffer.from(base64Data, 'base64');
+            
+            let signatureImage;
+            if (signature.includes('png')) {
+              signatureImage = await pdfDoc.embedPng(imageBytes);
+            } else {
+              signatureImage = await pdfDoc.embedJpg(imageBytes);
+            }
+            
             page.drawImage(signatureImage, {
-              x: pdfX,
-              y: pdfY,
+              x: field.x,
+              y: height - field.y - field.height,
               width: field.width,
               height: field.height,
             });
-            console.log(`Image signature placed at (${pdfX}, ${pdfY})`);
-          } else {
-            // Always place a visible signature, even if image failed
-            const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-            
-            // Draw signature background
-            page.drawRectangle({
-              x: pdfX,
-              y: pdfY,
-              width: field.width,
-              height: field.height,
-              color: rgb(0.95, 0.95, 0.95),
-              borderColor: rgb(0.5, 0.5, 0.5),
-              borderWidth: 1,
-            });
-            
-            // Add signature text
-            const fontSize = Math.min(14, field.height / 4, field.width / 8);
-            page.drawText('Digital Signature', {
-              x: pdfX + 5,
-              y: pdfY + field.height - fontSize - 5,
-              size: fontSize,
-              font: helveticaFont,
-              color: rgb(0.2, 0.2, 0.2),
-            });
-            
-            // Add timestamp
-            const timestamp = new Date().toLocaleDateString();
-            page.drawText(`Signed: ${timestamp}`, {
-              x: pdfX + 5,
-              y: pdfY + 5,
-              size: Math.max(8, fontSize - 2),
-              font: helveticaFont,
-              color: rgb(0.4, 0.4, 0.4),
-            });
-            
-            console.log(`Text signature placed at (${pdfX}, ${pdfY})`);
           }
-        } else {
-          console.warn(`Invalid page index: ${pageIndex} (total pages: ${pages.length})`);
         }
       }
       
-      const pdfBytes = await pdfDoc.save();
-      return Buffer.from(pdfBytes);
+      return Buffer.from(await pdfDoc.save());
     } catch (error) {
       throw new Error(`Failed to add signature to PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -489,159 +437,39 @@ Respond with JSON containing:
 
   async generatePDFPreview(pdfBuffer: Buffer): Promise<{ success: boolean; pages?: string[]; error?: string }> {
     try {
-      // Extract text content and structure from PDF
-      const pdfData = await pdfParse(pdfBuffer);
       const pdfDoc = await PDFDocument.load(pdfBuffer);
-      const pageCount = pdfDoc.getPageCount();
+      const pages = pdfDoc.getPages();
       
-      console.log(`Extracted ${pdfData.text.length} characters from PDF with ${pageCount} pages`);
-      
-      // Analyze text content for intelligent layout
-      const textAnalysis = this.analyzeTextContent(pdfData.text, pageCount);
-      const pages: string[] = [];
-      
-      for (let i = 0; i < pageCount; i++) {
-        const page = pdfDoc.getPage(i);
+      const pageImages = pages.map((page, index) => {
         const { width, height } = page.getSize();
-        
-        // Get content for this specific page
-        const pageContent = textAnalysis.pages[i] || { lines: [], emptyAreas: [], hasContent: false };
-        
-        console.log(`Page ${i + 1}: ${pageContent.lines.length} lines, ${pageContent.emptyAreas.length} empty areas`);
-        
-        // Create realistic preview with actual content structure
-        const contentPage = this.generateContentBasedPage(i + 1, width, height, pageContent);
-        pages.push(contentPage);
-      }
+        return this.generateEnhancedPage(index + 1, width, height);
+      });
       
-      return { success: true, pages };
+      return {
+        success: true,
+        pages: pageImages
+      };
     } catch (error) {
-      console.error('PDF preview generation failed:', error);
-      
-      // Fallback with enhanced previews
-      try {
-        const pdfDoc = await PDFDocument.load(pdfBuffer);
-        const pageCount = pdfDoc.getPageCount();
-        const pages = [];
-        
-        for (let i = 0; i < pageCount; i++) {
-          const page = pdfDoc.getPage(i);
-          const { width, height } = page.getSize();
-          const fallbackPage = this.generateEnhancedPage(i + 1, width, height);
-          pages.push(fallbackPage);
-        }
-        
-        return { success: true, pages };
-      } catch (fallbackError) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Failed to generate preview'
-        };
-      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate preview'
+      };
     }
   }
 
   private generateEnhancedPage(pageNumber: number, pdfWidth: number, pdfHeight: number): string {
-    const scaleFactor = Math.min(600 / pdfWidth, 800 / pdfHeight);
-    const width = pdfWidth * scaleFactor;
-    const height = pdfHeight * scaleFactor;
-    
-    const svg = `
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="docGrid" width="40" height="24" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 24" fill="none" stroke="#f8f9fa" stroke-width="0.5"/>
-          </pattern>
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#00000020"/>
-          </filter>
-        </defs>
-        
-        <!-- Document background -->
-        <rect width="100%" height="100%" fill="white" stroke="#ddd" stroke-width="1" filter="url(#shadow)"/>
-        <rect width="100%" height="100%" fill="url(#docGrid)" opacity="0.1"/>
-        
-        <!-- Document margins -->
-        <rect x="40" y="40" width="${width - 80}" height="${height - 80}" fill="none" stroke="#e9ecef" stroke-width="1" stroke-dasharray="3,3"/>
-        
-        <!-- Header section -->
-        <rect x="60" y="60" width="${width - 120}" height="40" fill="#f8f9fa" stroke="#dee2e6"/>
-        <text x="${width / 2}" y="85" text-anchor="middle" font-family="Arial" font-size="14" fill="#495057" font-weight="bold">
-          Document Page ${pageNumber}
-        </text>
-        
-        <!-- Content simulation with realistic text blocks -->
-        <g fill="#343a40">
-          <rect x="60" y="130" width="${(width - 120) * 0.8}" height="6" fill="#495057"/>
-          <rect x="60" y="145" width="${(width - 120) * 0.6}" height="6" fill="#6c757d"/>
-          <rect x="60" y="160" width="${(width - 120) * 0.9}" height="6" fill="#495057"/>
-          <rect x="60" y="175" width="${(width - 120) * 0.7}" height="6" fill="#6c757d"/>
-          
-          <rect x="60" y="200" width="${(width - 120) * 0.5}" height="6" fill="#495057"/>
-          <rect x="60" y="215" width="${(width - 120) * 0.8}" height="6" fill="#6c757d"/>
-          <rect x="60" y="230" width="${(width - 120) * 0.6}" height="6" fill="#495057"/>
-          <rect x="60" y="245" width="${(width - 120) * 0.9}" height="6" fill="#6c757d"/>
-          
-          <rect x="60" y="270" width="${(width - 120) * 0.7}" height="6" fill="#495057"/>
-          <rect x="60" y="285" width="${(width - 120) * 0.4}" height="6" fill="#6c757d"/>
-          <rect x="60" y="300" width="${(width - 120) * 0.8}" height="6" fill="#495057"/>
-        </g>
-        
-        <!-- Signature placement area -->
-        <rect x="60" y="${height - 150}" width="200" height="80" fill="none" stroke="#007bff" stroke-width="2" stroke-dasharray="8,4"/>
-        <text x="160" y="${height - 110}" text-anchor="middle" font-family="Arial" font-size="11" fill="#007bff">
-          Click to place signature
-        </text>
-        
-        <!-- Page number footer -->
-        <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-family="Arial" font-size="10" fill="#6c757d">
-          Page ${pageNumber} • ${Math.round(pdfWidth)}x${Math.round(pdfHeight)}pt
-        </text>
-      </svg>
+    return `
+      <div class="pdf-page-preview" style="width: 100%; height: 400px; border: 1px solid #ccc; background: white; position: relative; margin: 10px 0;">
+        <div style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: #666;">
+          Page ${pageNumber}
+        </div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #999;">
+          <div style="font-size: 24px; margin-bottom: 10px;">📄</div>
+          <div>PDF Content Preview</div>
+          <div style="font-size: 12px; margin-top: 5px;">${pdfWidth.toFixed(0)} × ${pdfHeight.toFixed(0)}</div>
+        </div>
+      </div>
     `;
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
-  }
-
-  private generatePlaceholderPage(pageNumber: number): string {
-    const svg = `
-      <svg width="600" height="800" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" stroke-width="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="white" stroke="#ddd" stroke-width="2"/>
-        <rect width="100%" height="100%" fill="url(#grid)" opacity="0.3"/>
-        
-        <!-- Header area -->
-        <rect x="40" y="40" width="520" height="60" fill="#f8f9fa" stroke="#dee2e6"/>
-        <text x="50%" y="80" text-anchor="middle" font-family="Arial" font-size="16" fill="#495057">
-          PDF Document - Page ${pageNumber}
-        </text>
-        
-        <!-- Content lines simulation -->
-        <rect x="60" y="140" width="480" height="8" fill="#e9ecef"/>
-        <rect x="60" y="165" width="400" height="8" fill="#e9ecef"/>
-        <rect x="60" y="190" width="460" height="8" fill="#e9ecef"/>
-        <rect x="60" y="215" width="380" height="8" fill="#e9ecef"/>
-        
-        <rect x="60" y="260" width="320" height="8" fill="#e9ecef"/>
-        <rect x="60" y="285" width="440" height="8" fill="#e9ecef"/>
-        <rect x="60" y="310" width="300" height="8" fill="#e9ecef"/>
-        
-        <!-- Signature area indicator -->
-        <rect x="60" y="600" width="200" height="80" fill="none" stroke="#007bff" stroke-width="2" stroke-dasharray="5,5"/>
-        <text x="160" y="640" text-anchor="middle" font-family="Arial" font-size="12" fill="#007bff">
-          Signature Area
-        </text>
-        
-        <!-- Footer -->
-        <text x="50%" y="760" text-anchor="middle" font-family="Arial" font-size="10" fill="#6c757d">
-          Click to place signature fields
-        </text>
-      </svg>
-    `;
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 
   async sendDocumentForSigning(
@@ -652,12 +480,8 @@ Respond with JSON containing:
     message: string
   ): Promise<{ success: boolean; documentId?: string; error?: string }> {
     try {
-      // In a real implementation, this would integrate with OpenSign API
-      // For now, we'll simulate the process
-      
       const documentId = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Simulate sending emails to signers
       console.log(`Sending document "${title}" to ${signers.length} signers:`);
       signers.forEach(signer => {
         console.log(`- ${signer.name} (${signer.email}) - Role: ${signer.role}`);
@@ -681,11 +505,19 @@ Respond with JSON containing:
     fields: SignatureField[]
   ): Promise<{ success: boolean; pages?: string[]; error?: string }> {
     try {
-      // First, add signatures to the PDF
-      const signedPdfBuffer = await this.addSignatureToPDF(pdfBuffer, signature, fields);
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      const pages = pdfDoc.getPages();
       
-      // Then generate preview of the signed PDF
-      return await this.generatePDFPreview(signedPdfBuffer);
+      const pageImages = pages.map((page, index) => {
+        const { width, height } = page.getSize();
+        const pageFields = fields.filter(field => field.page === index);
+        return this.generatePageWithSignatures(index + 1, width, height, pageFields, signature);
+      });
+      
+      return {
+        success: true,
+        pages: pageImages
+      };
     } catch (error) {
       return {
         success: false,
@@ -694,15 +526,31 @@ Respond with JSON containing:
     }
   }
 
+  private generatePageWithSignatures(pageNumber: number, width: number, height: number, fields: SignatureField[], signature: string): string {
+    const signatureElements = fields.map(field => `
+      <div style="position: absolute; left: ${field.x}px; top: ${field.y}px; width: ${field.width}px; height: ${field.height}px; border: 2px dashed #007bff; background: rgba(0,123,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #007bff;">
+        Signature Field
+      </div>
+    `).join('');
+    
+    return `
+      <div class="pdf-page-preview" style="width: 100%; height: 400px; border: 1px solid #ccc; background: white; position: relative; margin: 10px 0;">
+        <div style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: #666;">
+          Page ${pageNumber}
+        </div>
+        ${signatureElements}
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #999; z-index: -1;">
+          <div style="font-size: 24px; margin-bottom: 10px;">📄</div>
+          <div>PDF Content with Signature Fields</div>
+          <div style="font-size: 12px; margin-top: 5px;">${width.toFixed(0)} × ${height.toFixed(0)}</div>
+        </div>
+      </div>
+    `;
+  }
+
   async addPageNumbers(
     pdfBuffer: Buffer,
-    options: {
-      position: string;
-      startNumber: number;
-      fontSize: number;
-      marginX: number;
-      marginY: number;
-    }
+    options: { position: string; format: string; startPage: number }
   ): Promise<Buffer> {
     try {
       const pdfDoc = await PDFDocument.load(pdfBuffer);
@@ -710,230 +558,44 @@ Respond with JSON containing:
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       
       pages.forEach((page, index) => {
-        const { width, height } = page.getSize();
-        const pageNumber = options.startNumber + index;
-        
-        let x, y;
-        
-        // Calculate position based on selected option
-        switch (options.position) {
-          case 'top-left':
-            x = options.marginX;
-            y = height - options.marginY;
-            break;
-          case 'top-center':
-            x = width / 2;
-            y = height - options.marginY;
-            break;
-          case 'top-right':
-            x = width - options.marginX;
-            y = height - options.marginY;
-            break;
-          case 'bottom-left':
-            x = options.marginX;
-            y = options.marginY;
-            break;
-          case 'bottom-right':
-            x = width - options.marginX;
-            y = options.marginY;
-            break;
-          default: // bottom-center
-            x = width / 2;
-            y = options.marginY;
-            break;
+        if (index + 1 >= options.startPage) {
+          const { width, height } = page.getSize();
+          const pageNumber = index + 1;
+          const text = options.format.replace('{n}', pageNumber.toString());
+          
+          let x, y;
+          switch (options.position) {
+            case 'top-center':
+              x = width / 2;
+              y = height - 30;
+              break;
+            case 'bottom-center':
+              x = width / 2;
+              y = 20;
+              break;
+            case 'bottom-right':
+              x = width - 50;
+              y = 20;
+              break;
+            default:
+              x = width / 2;
+              y = 20;
+          }
+          
+          page.drawText(text, {
+            x,
+            y,
+            size: 10,
+            font,
+            color: rgb(0.5, 0.5, 0.5),
+          });
         }
-        
-        page.drawText(pageNumber.toString(), {
-          x,
-          y,
-          size: options.fontSize,
-          font,
-          color: rgb(0, 0, 0),
-        });
       });
       
-      const pdfBytes = await pdfDoc.save();
-      return Buffer.from(pdfBytes);
+      return Buffer.from(await pdfDoc.save());
     } catch (error) {
       throw new Error(`Failed to add page numbers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  private analyzeTextContent(text: string, pageCount: number) {
-    const lines = text.split('\n').filter(line => line.trim().length > 0);
-    const linesPerPage = Math.ceil(lines.length / pageCount);
-    
-    const pages = [];
-    for (let i = 0; i < pageCount; i++) {
-      const startIndex = i * linesPerPage;
-      const endIndex = Math.min((i + 1) * linesPerPage, lines.length);
-      const pageLines = lines.slice(startIndex, endIndex);
-      
-      // Analyze empty areas for signature placement
-      const emptyAreas = this.findEmptyAreas(pageLines);
-      
-      pages.push({
-        lines: pageLines,
-        emptyAreas,
-        hasContent: pageLines.length > 0
-      });
-    }
-    
-    return { pages, totalLines: lines.length };
-  }
-
-  private findEmptyAreas(lines: string[]) {
-    const emptyAreas = [];
-    let currentEmptyStart = -1;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const isEmpty = line.trim().length < 10; // Consider short lines as potential empty areas
-      
-      if (isEmpty && currentEmptyStart === -1) {
-        currentEmptyStart = i;
-      } else if (!isEmpty && currentEmptyStart !== -1) {
-        // Found end of empty area
-        if (i - currentEmptyStart >= 2) { // At least 2 lines of space
-          emptyAreas.push({
-            start: currentEmptyStart,
-            end: i - 1,
-            height: (i - currentEmptyStart) * 20 // Approximate line height
-          });
-        }
-        currentEmptyStart = -1;
-      }
-    }
-    
-    // Check for empty area at the end
-    if (currentEmptyStart !== -1 && lines.length - currentEmptyStart >= 2) {
-      emptyAreas.push({
-        start: currentEmptyStart,
-        end: lines.length - 1,
-        height: (lines.length - currentEmptyStart) * 20
-      });
-    }
-    
-    return emptyAreas;
-  }
-
-  private generateContentBasedPage(pageNumber: number, pdfWidth: number, pdfHeight: number, pageContent: any): string {
-    const scaleFactor = Math.min(600 / pdfWidth, 800 / pdfHeight);
-    const width = pdfWidth * scaleFactor;
-    const height = pdfHeight * scaleFactor;
-    
-    // Generate realistic text representation based on actual content
-    let textElements = '';
-    let yPosition = 80;
-    const lineHeight = 18;
-    const maxWidth = width - 120;
-    
-    if (pageContent.lines && pageContent.lines.length > 0) {
-      pageContent.lines.forEach((line: string, index: number) => {
-        if (yPosition > height - 100) return; // Stop if near bottom
-        
-        const trimmedLine = line.trim();
-        if (trimmedLine.length === 0) {
-          yPosition += lineHeight * 0.5; // Half spacing for empty lines
-          return;
-        }
-        
-        // Determine line characteristics
-        const isTitle = trimmedLine.length < 50 && (trimmedLine.includes(':') || /^[A-Z\s]+$/.test(trimmedLine));
-        const isHeader = trimmedLine.length < 30 && /^[A-Z]/.test(trimmedLine) && !trimmedLine.includes('.');
-        const lineWidth = Math.min((trimmedLine.length * 7) + 20, maxWidth);
-        const fontSize = isTitle ? 14 : isHeader ? 12 : 10;
-        const fontWeight = isTitle || isHeader ? 'bold' : 'normal';
-        const color = isTitle ? '#1a202c' : isHeader ? '#2d3748' : '#4a5568';
-        
-        // Add actual text content as SVG text
-        textElements += `
-          <text x="60" y="${yPosition + fontSize}" 
-                font-family="Arial, sans-serif" 
-                font-size="${fontSize}" 
-                font-weight="${fontWeight}"
-                fill="${color}"
-                xml:space="preserve">${trimmedLine.substring(0, Math.floor(maxWidth / 8))}</text>
-        `;
-        
-        yPosition += lineHeight;
-      });
-    } else {
-      // Minimal fallback structure
-      textElements = `
-        <text x="60" y="100" font-family="Arial" font-size="14" fill="#2d3748" font-weight="bold">Document Content</text>
-        <text x="60" y="130" font-family="Arial" font-size="12" fill="#4a5568">No text content extracted</text>
-      `;
-    }
-    
-    // Highlight suggested signature areas
-    let signatureAreas = '';
-    if (pageContent.emptyAreas && pageContent.emptyAreas.length > 0) {
-      pageContent.emptyAreas.forEach((area: any, index: number) => {
-        const areaY = 80 + (area.start * lineHeight);
-        const areaHeight = Math.min(area.height, 80);
-        
-        signatureAreas += `
-          <rect x="60" y="${areaY}" width="200" height="${areaHeight}" 
-                fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="8,4" opacity="0.6"/>
-          <text x="160" y="${areaY + areaHeight/2}" text-anchor="middle" 
-                font-family="Arial" font-size="10" fill="#10b981">
-            Suggested signature area
-          </text>
-        `;
-      });
-    } else {
-      // Default signature area at bottom
-      signatureAreas = `
-        <rect x="60" y="${height - 150}" width="200" height="80" 
-              fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="8,4" opacity="0.6"/>
-        <text x="160" y="${height - 110}" text-anchor="middle" 
-              font-family="Arial" font-size="10" fill="#10b981">
-          Suggested signature area
-        </text>
-      `;
-    }
-    
-    const svg = `
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="docShadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="1" dy="1" stdDeviation="1" flood-color="#00000015"/>
-          </filter>
-        </defs>
-        
-        <!-- Document background -->
-        <rect width="100%" height="100%" fill="white" stroke="#d1d5db" stroke-width="1" filter="url(#docShadow)"/>
-        
-        <!-- Document margins -->
-        <rect x="40" y="40" width="${width - 80}" height="${height - 80}" 
-              fill="none" stroke="#f3f4f6" stroke-width="1" stroke-dasharray="2,2"/>
-        
-        <!-- Page header -->
-        <rect x="60" y="50" width="${width - 120}" height="25" fill="#f8fafc" stroke="#e5e7eb"/>
-        <text x="${width / 2}" y="67" text-anchor="middle" 
-              font-family="Arial" font-size="12" fill="#374151" font-weight="bold">
-          ${pageContent.hasContent ? 'Document Content' : 'Document Page'} ${pageNumber}
-        </text>
-        
-        <!-- Actual content representation -->
-        <g>
-          ${textElements}
-        </g>
-        
-        <!-- Suggested signature areas -->
-        ${signatureAreas}
-        
-        <!-- Page footer -->
-        <text x="${width / 2}" y="${height - 15}" text-anchor="middle" 
-              font-family="Arial" font-size="9" fill="#9ca3af">
-          Page ${pageNumber} • ${Math.round(pdfWidth)}×${Math.round(pdfHeight)}pt • 
-          ${pageContent.lines ? pageContent.lines.length : 0} content lines
-        </text>
-      </svg>
-    `;
-    
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 }
 
