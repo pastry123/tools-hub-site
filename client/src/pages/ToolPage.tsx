@@ -59,7 +59,7 @@ import PDFUnlocker from "@/components/tools/PDFUnlocker";
 import ImageToText from "@/components/tools/ImageToText";
 import BarcodeScanner from "@/components/tools/BarcodeScanner";
 import InvoiceGenerator from "@/components/tools/InvoiceGenerator";
-
+import SignatureGenerator from "@/components/tools/SignatureGenerator";
 import AdvancedESign from "@/components/tools/AdvancedESign";
 
 import APIAccess from "@/components/tools/APIAccess";
@@ -246,6 +246,8 @@ export default function ToolPage() {
         return <CSSGradientGenerator />;
       case 'invoice-generator':
         return <InvoiceGenerator />;
+      case 'signature-generator':
+        return <SignatureGenerator />;
 
       case 'pdf-page-numbers':
         return <PDFPageNumbers />;
