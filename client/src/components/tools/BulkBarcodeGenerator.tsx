@@ -12,6 +12,7 @@ import {
   CheckCircle, AlertCircle, Trash2, Eye, Settings
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BarcodeItem {
   id: string;
@@ -49,6 +50,7 @@ export default function BulkBarcodeGenerator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const barcodeTypes = [
     { value: 'qr', label: 'QR Code' },
@@ -288,15 +290,15 @@ export default function BulkBarcodeGenerator() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Bulk Barcode Generator</h1>
-        <p className="text-gray-600">Generate hundreds of barcodes from CSV files or manual input</p>
+        <h1 className="text-3xl font-bold mb-2">{t("bulkBarcode.title")}</h1>
+        <p className="text-gray-600">{t("bulkBarcode.description")}</p>
       </div>
 
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Bulk Jobs</h2>
+        <h2 className="text-xl font-semibold">{t("bulkBarcode.bulkJobs")}</h2>
         <Button onClick={createNewJob}>
           <BarChart3 className="w-4 h-4 mr-2" />
-          New Bulk Job
+          {t("bulkBarcode.newBulkJob")}
         </Button>
       </div>
 
@@ -304,10 +306,10 @@ export default function BulkBarcodeGenerator() {
         <Card>
           <CardContent className="p-12 text-center">
             <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium mb-2">No bulk jobs yet</h3>
-            <p className="text-gray-600 mb-4">Create your first bulk barcode generation job</p>
+            <h3 className="text-lg font-medium mb-2">{t("bulkBarcode.noBulkJobs")}</h3>
+            <p className="text-gray-600 mb-4">{t("bulkBarcode.createFirstJob")}</p>
             <Button onClick={createNewJob}>
-              Create New Job
+              {t("bulkBarcode.createNewJob")}
             </Button>
           </CardContent>
         </Card>
@@ -315,7 +317,7 @@ export default function BulkBarcodeGenerator() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Job List */}
           <div className="space-y-4">
-            <h3 className="font-medium">Job Queue</h3>
+            <h3 className="font-medium">{t("bulkBarcode.jobQueue")}</h3>
             {jobs.map((job) => (
               <Card 
                 key={job.id}
@@ -336,7 +338,7 @@ export default function BulkBarcodeGenerator() {
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">
-                    {job.items.length} items
+                    {job.items.length} {t("bulkBarcode.items")}
                   </p>
                   {job.status === 'processing' && (
                     <Progress value={job.progress} className="h-2" />
