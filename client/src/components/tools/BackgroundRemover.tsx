@@ -199,10 +199,10 @@ export default function BackgroundRemover() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Eraser className="w-5 h-5" />
-              AI Background Removal
+              {t("backgroundRemover.title")}
             </CardTitle>
             <CardDescription>
-              Upload an image and remove its background automatically using AI
+              {t("backgroundRemover.subtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
