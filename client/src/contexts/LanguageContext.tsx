@@ -11,7 +11,7 @@ interface LanguageContextType {
 const translations = {
   en: {
     // Header
-    "header.title": "Aptexa's ToolHub",
+    "header.title": "Aptexa ToolHub",
     "header.subtitle": "Professional Online Tools",
     "header.search": "Search tools...",
     "header.dashboard": "Dashboard",
@@ -86,7 +86,7 @@ const translations = {
   },
   es: {
     // Header
-    "header.title": "Aptexa's ToolHub",
+    "header.title": "Aptexa ToolHub",
     "header.subtitle": "Herramientas Profesionales en Línea",
     "header.search": "Buscar herramientas...",
     "header.dashboard": "Panel",
@@ -157,7 +157,7 @@ const translations = {
   },
   ar: {
     // Header
-    "header.title": "Aptexa's ToolHub",
+    "header.title": "Aptexa ToolHub",
     "header.subtitle": "أدوات احترافية على الإنترنت",
     "header.search": "البحث في الأدوات...",
     "header.dashboard": "لوحة التحكم",

@@ -14,7 +14,7 @@ export default function Dashboard() {
       {/* Hero Section */}
       <div className="mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white mb-4">
-          Aptexa's ToolHub - Professional Online Tools Dashboard | 50+ Free Utilities
+          Aptexa ToolHub - 50+ Free Online Utilities
         </h1>
         <p className="text-slate-600 dark:text-gray-300 text-xl mb-6 leading-relaxed">
           50+ professional tools for <a href="/tool/barcode-generator" className="text-primary hover:underline">barcodes</a>, 
@@ -137,7 +137,7 @@ export default function Dashboard() {
 
       {/* Detailed Benefits Section */}
       <div className="mb-12">
-        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Why Choose Aptexa's ToolHub for Your Professional Needs</h2>
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Why Choose Aptexa ToolHub for Your Professional Needs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div className="prose prose-lg dark:prose-invert">
             <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Advanced Document Processing</h3>
