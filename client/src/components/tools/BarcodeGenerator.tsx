@@ -628,7 +628,7 @@ export default function BarcodeGenerator() {
               className="w-full"
             >
               <QrCode className="w-4 h-4 mr-2" />
-              {isGenerating ? "Generating..." : "Generate Barcode"}
+              {isGenerating ? t("barcodeGenerator.generating") : t("barcodeGenerator.generate")}
             </Button>
           </CardContent>
         </Card>
@@ -636,7 +636,7 @@ export default function BarcodeGenerator() {
         {/* Preview */}
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Generated Barcode</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("barcodeGenerator.generatedBarcode")}</h3>
             <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-8 min-h-[300px] flex items-center justify-center border-2 border-dashed border-gray-300">
               {barcodeUrl ? (
                 <div className="text-center space-y-4">
@@ -663,7 +663,7 @@ export default function BarcodeGenerator() {
               ) : (
                 <div className="text-center text-gray-500">
                   <QrCode className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>Your generated barcode will appear here</p>
+                  <p>{t("barcodeGenerator.barcodeWillAppear")}</p>
                 </div>
               )}
             </div>
