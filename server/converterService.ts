@@ -134,14 +134,48 @@ export class ConverterService {
   }
 
   csvToJson(csvString: string): Array<Record<string, string>> {
-    const lines = csvString.trim().split('\n');
-    if (lines.length < 2) throw new Error('CSV must have at least headers and one data row');
+    if (!csvString || !csvString.trim()) {
+      throw new Error('CSV data is required');
+    }
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const lines = csvString.trim().split('\n').filter(line => line.trim());
+    if (lines.length < 1) {
+      throw new Error('CSV must contain at least header row');
+    }
+
+    // Parse CSV line considering quoted values
+    const parseCSVLine = (line: string): string[] => {
+      const result: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      
+      result.push(current.trim());
+      return result;
+    };
+
+    const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"(.*)"$/, '$1'));
     const results: Array<Record<string, string>> = [];
 
+    // If only headers, return empty array
+    if (lines.length === 1) {
+      return [];
+    }
+
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+      const values = parseCSVLine(lines[i]).map(v => v.replace(/^"(.*)"$/, '$1'));
       const obj: Record<string, string> = {};
       
       headers.forEach((header, index) => {
