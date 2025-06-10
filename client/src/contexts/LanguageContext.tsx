@@ -1466,69 +1466,6 @@ const translations = {
     "barcodeGenerator.invalidContent": "محتوى غير صالح",
     "barcodeGenerator.selectType": "اختر نوع الباركود",
     "barcodeGenerator.enterValidText": "يرجى إدخال نص صالح",
-
-    // Text Tools
-    "textToSlug.title": "تحويل النص إلى Slug",
-    "textToSlug.input": "النص المدخل",
-    "textToSlug.output": "النص المخرج",
-    "textToSlug.copy": "نسخ",
-    "textToSlug.enterText": "أدخل النص هنا...",
-    "textToSlug.copied": "تم النسخ",
-
-    "caseConverter.title": "محول حالة النص",
-    "caseConverter.input": "النص المدخل",
-    "caseConverter.upperCase": "أحرف كبيرة",
-    "caseConverter.lowerCase": "أحرف صغيرة",
-    "caseConverter.titleCase": "عنوان",
-    "caseConverter.camelCase": "CamelCase",
-    "caseConverter.pascalCase": "PascalCase",
-    "caseConverter.snakeCase": "snake_case",
-    "caseConverter.kebabCase": "kebab-case",
-    "caseConverter.copy": "نسخ",
-    "caseConverter.enterText": "أدخل النص هنا...",
-
-    "loremGenerator.title": "مولد Lorem Ipsum",
-    "loremGenerator.paragraphs": "الفقرات",
-    "loremGenerator.words": "الكلمات",
-    "loremGenerator.sentences": "الجمل",
-    "loremGenerator.generate": "توليد",
-    "loremGenerator.copy": "نسخ",
-    "loremGenerator.generated": "النص المولد",
-
-    // Image Tools
-    "imageTools.title": "أدوات الصور",
-    "imageTools.upload": "رفع صورة",
-    "imageTools.process": "معالجة",
-    "imageTools.download": "تحميل",
-    "imageTools.preview": "معاينة",
-
-    "backgroundRemover.title": "إزالة الخلفية",
-    "backgroundRemover.upload": "رفع الصورة",
-    "backgroundRemover.process": "إزالة الخلفية",
-    "backgroundRemover.download": "تحميل النتيجة",
-
-    "imageCropper.title": "قص الصور",
-    "imageCropper.upload": "رفع الصورة",
-    "imageCropper.crop": "قص",
-    "imageCropper.download": "تحميل",
-
-    "colorAnalyzer.title": "محلل الألوان",
-    "colorAnalyzer.upload": "رفع الصورة",
-    "colorAnalyzer.analyze": "تحليل الألوان",
-    "colorAnalyzer.palette": "لوحة الألوان",
-
-    // PDF Tools
-    "pdfTools.title": "أدوات PDF",
-    "pdfTools.upload": "رفع PDF",
-    "pdfTools.process": "معالجة",
-    "pdfTools.download": "تحميل",
-
-    // Developer Tools
-    "developerTools.title": "أدوات المطورين",
-    "developerTools.input": "المدخل",
-    "developerTools.output": "المخرج",
-    "developerTools.process": "معالجة",
-    "developerTools.copy": "نسخ",
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
@@ -1539,13 +1476,6 @@ const translations = {
     "footer.professionalCompliance": "تلبي معايير الامتثال المهني",
     "footer.regularAudits": "عمليات التدقيق الأمني المنتظمة والتحديثات تضمن سلامة المنصة. متوافق مع جدران الحماية المؤسسية وسياسات الأمان. موثوق به من قبل آلاف المحترفين حول العالم للعمليات التجارية اليومية",
     "footer.privacyPolicy": "سياسة عدم جمع البيانات تضمن خصوصيتك. لا يتطلب تسجيل، لا توجد ملفات تعريف ارتباط للتتبع، ولا يتم تخزين معلومات شخصية. مثالي للتعامل مع الوثائق التجارية الحساسة والبيانات السرية",
-    
-    // Color Analyzer Tool
-    "colorAnalyzer.title": "محلل الألوان",
-    "colorAnalyzer.uploadImage": "رفع صورة",
-    "colorAnalyzer.analyzeColors": "تحليل الألوان",
-    "colorAnalyzer.noFileChosen": "لم يتم اختيار ملف",
-    "colorAnalyzer.chooseFile": "اختر ملف",
   }
 };
 
