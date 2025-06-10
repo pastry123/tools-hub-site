@@ -487,11 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No image file provided' });
       }
 
-      const { colorCount } = req.body;
-      const palette = await simpleImageService.extractColorPalette(
-        req.file.buffer, 
-        colorCount ? parseInt(colorCount) : 5
-      );
+      const palette = await simpleImageService.extractColorPalette(req.file.buffer);
 
       res.json(palette);
     } catch (error) {
