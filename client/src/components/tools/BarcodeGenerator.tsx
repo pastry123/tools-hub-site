@@ -179,6 +179,7 @@ Object.entries(barcodeCategories).forEach(([categoryName, types]) => {
 });
 
 export default function BarcodeGenerator() {
+  const { t } = useLanguage();
   const [options, setOptions] = useState<BarcodeOptions>({
     text: "Hello World",
     bcid: "code128",
@@ -229,8 +230,8 @@ export default function BarcodeGenerator() {
     if (sampleData) {
       updateOption('text', sampleData);
       toast({
-        title: "Sample Data Loaded",
-        description: "Sample data has been loaded for this barcode type",
+        title: t("barcodeGenerator.sampleDataLoaded"),
+        description: t("barcodeGenerator.sampleDataDesc"),
       });
     }
   };
@@ -270,8 +271,8 @@ export default function BarcodeGenerator() {
   const generateBarcode = async () => {
     if (!currentBarcodeDef || !options.text.trim()) {
       toast({
-        title: "Invalid Input",
-        description: "Please select a barcode type and enter data",
+        title: t("barcodeGenerator.invalidInput"),
+        description: t("barcodeGenerator.selectTypeAndEnter"),
         variant: "destructive",
       });
       return;
@@ -342,8 +343,8 @@ export default function BarcodeGenerator() {
       setBarcodeUrl(dataUrl);
       
       toast({
-        title: "Barcode Generated",
-        description: "Your authentic, scannable barcode has been generated!",
+        title: t("barcodeGenerator.barcodeGenerated"),
+        description: t("barcodeGenerator.barcodeGeneratedDesc"),
       });
     } catch (error: any) {
       console.error("bwip-js error:", error);
@@ -355,7 +356,7 @@ export default function BarcodeGenerator() {
       }
       
       toast({
-        title: "Generation Failed",
+        title: t("barcodeGenerator.generationFailed"),
         description: userMessage,
         variant: "destructive",
       });
@@ -433,8 +434,8 @@ export default function BarcodeGenerator() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Barcode & QR Code Generator</h1>
-        <p className="text-gray-600">Generate 85+ barcode types including QR codes, linear barcodes, postal codes, business cards, Wi-Fi, events, and specialty formats</p>
+        <h1 className="text-3xl font-bold mb-2">{t("barcodeGenerator.title")}</h1>
+        <p className="text-gray-600">{t("barcodeGenerator.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -442,12 +443,12 @@ export default function BarcodeGenerator() {
         <Card>
           <CardContent className="p-6 space-y-8">
             <div>
-              <Label htmlFor="barcode-type">Barcode Type ({filteredBarcodeTypes.length} available)</Label>
+              <Label htmlFor="barcode-type">{t("barcodeGenerator.barcodeType")} ({filteredBarcodeTypes.length} {t("barcodeGenerator.available")})</Label>
               
               {/* Search and Category Filter */}
               <div className="space-y-3 mb-4">
                 <Input
-                  placeholder="Search barcode types..."
+                  placeholder={t("barcodeGenerator.searchTypes")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="text-sm"
