@@ -241,8 +241,10 @@ export default function ToolPage() {
       case 'lorem-picsum':
         return <LoremPicsum />;
       case 'meta-tags':
+      case 'meta-tag-generator':
         return <MetaTagGenerator />;
       case 'css-gradient':
+      case 'gradient-generator':
         return <CSSGradientGenerator />;
       case 'invoice-generator':
         return <InvoiceGenerator />;

@@ -16,7 +16,7 @@ export default function RegexTester() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleTest = async () => {
+  const handleTest = () => {
     if (!pattern.trim()) {
       toast({
         title: "Error",
@@ -29,33 +29,55 @@ export default function RegexTester() {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/developer/regex-test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          pattern,
-          flags,
-          testString
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to test regex');
+      const regex = new RegExp(pattern, flags);
+      const matches = [];
+      let match;
+      let matchIndex = 0;
+      
+      if (flags.includes('g')) {
+        while ((match = regex.exec(testString)) !== null) {
+          matches.push({
+            match: match[0],
+            index: match.index,
+            groups: match.slice(1)
+          });
+          matchIndex++;
+          if (matchIndex > 1000) break; // Prevent infinite loops
+        }
+      } else {
+        match = regex.exec(testString);
+        if (match) {
+          matches.push({
+            match: match[0],
+            index: match.index,
+            groups: match.slice(1)
+          });
+        }
       }
 
-      const data = await response.json();
-      setResult(data.result);
+      setResult({
+        matches,
+        isValid: true,
+        flags,
+        totalMatches: matches.length
+      });
 
       toast({
         title: "Success",
-        description: `Found ${data.result.totalMatches} matches`
+        description: `Found ${matches.length} matches`
       });
     } catch (error) {
+      setResult({
+        matches: [],
+        isValid: false,
+        flags,
+        totalMatches: 0,
+        error: error instanceof Error ? error.message : 'Invalid regex pattern'
+      });
+      
       toast({
         title: "Error",
-        description: "Failed to test regex",
+        description: "Invalid regex pattern",
         variant: "destructive"
       });
     } finally {

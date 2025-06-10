@@ -18,28 +18,21 @@ export default function CSSGradientGenerator() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleGenerate = async () => {
+  const generateGradient = () => {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/generator/css-gradient', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type,
-          direction: type === 'linear' ? direction : undefined,
-          colors
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate gradient');
+      const sortedColors = [...colors].sort((a, b) => a.position - b.position);
+      const colorStops = sortedColors.map(stop => `${stop.color} ${stop.position}%`).join(', ');
+      
+      let cssGradient;
+      if (type === 'linear') {
+        cssGradient = `linear-gradient(${direction}, ${colorStops})`;
+      } else {
+        cssGradient = `radial-gradient(circle, ${colorStops})`;
       }
 
-      const data = await response.json();
-      setResult(data.result);
+      setResult(cssGradient);
 
       toast({
         title: "Success",
@@ -172,7 +165,7 @@ export default function CSSGradientGenerator() {
             </div>
           </div>
 
-          <Button onClick={handleGenerate} disabled={isProcessing} className="w-full">
+          <Button onClick={generateGradient} disabled={isProcessing} className="w-full">
             {isProcessing ? 'Generating...' : 'Generate CSS Gradient'}
           </Button>
 
