@@ -266,8 +266,8 @@ const translations = {
     "tools.background-remover.desc": "Remove backgrounds from images",
     "tools.image-crop": "Image Crop", 
     "tools.image-crop.desc": "Crop images to specific areas",
-    "tools.format-converter": "Format Converter",
-    "tools.format-converter.desc": "Convert between image formats", 
+    "tools.image-format-converter": "Format Converter",
+    "tools.image-format-converter.desc": "Convert between image formats", 
     "tools.image-resize": "Image Resize",
     "tools.image-resize.desc": "Resize images to specific dimensions",
     "tools.image-watermark": "Image Watermark",
@@ -280,6 +280,48 @@ const translations = {
     "tools.favicon-generator.desc": "Generate favicons from images",
     "tools.image-to-text": "Image to Text",
     "tools.image-to-text.desc": "Extract text from images (OCR)",
+    
+    // Text Tools
+    "tools.case-converter": "Case Converter",
+    "tools.case-converter.desc": "Convert text case (uppercase, lowercase, etc.)",
+    "tools.text-to-slug": "Text to Slug", 
+    "tools.text-to-slug.desc": "Convert text to URL-friendly slugs",
+    "tools.dummy-text": "Lorem Ipsum Generator",
+    "tools.dummy-text.desc": "Generate placeholder text",
+    "tools.word-counter": "Word Counter",
+    "tools.word-counter.desc": "Count words, characters, and paragraphs",
+    "tools.text-reverser": "Text Reverser",
+    "tools.text-reverser.desc": "Reverse text characters or words",
+    
+    // Barcode Tools
+    "tools.qr-generator": "QR Code Generator",
+    "tools.qr-generator.desc": "Create QR codes for text, URLs, and more",
+    "tools.barcode-generator": "Barcode Generator", 
+    "tools.barcode-generator.desc": "Generate various barcode formats",
+    "tools.barcode-scanner": "Barcode Scanner",
+    "tools.barcode-scanner.desc": "Scan and decode barcodes from images",
+    "tools.code128-generator": "Code 128 Generator",
+    "tools.code128-generator.desc": "Generate Code 128 barcodes",
+    
+    // PDF Tools
+    "tools.pdf-merge": "PDF Merger",
+    "tools.pdf-merge.desc": "Combine multiple PDF documents",
+    "tools.pdf-split": "PDF Splitter",
+    "tools.pdf-split.desc": "Split PDF into separate pages",
+    "tools.pdf-compress": "PDF Compressor",
+    "tools.pdf-compress.desc": "Reduce PDF file size",
+    "tools.pdf-to-text": "PDF to Text",
+    "tools.pdf-to-text.desc": "Extract text from PDF documents",
+    
+    // Developer Tools  
+    "tools.hash-generator": "Hash Generator",
+    "tools.hash-generator.desc": "Generate MD5, SHA1, SHA256 hashes",
+    "tools.regex-tester": "Regex Tester",
+    "tools.regex-tester.desc": "Test regular expressions",
+    "tools.api-tester": "API Tester",
+    "tools.api-tester.desc": "Test REST API endpoints",
+    "tools.jwt-decoder": "JWT Decoder",
+    "tools.jwt-decoder.desc": "Decode JSON Web Tokens",
     
     // Footer sections
     "footer.enterpriseStandards": "Enterprise Standards",
@@ -555,8 +597,8 @@ const translations = {
     "tools.background-remover.desc": "Eliminar fondos de imágenes",
     "tools.image-crop": "Recorte de Imagen", 
     "tools.image-crop.desc": "Recortar imágenes a áreas específicas",
-    "tools.format-converter": "Convertidor de Formato",
-    "tools.format-converter.desc": "Convertir entre formatos de imagen", 
+    "tools.image-format-converter": "Convertidor de Formato",
+    "tools.image-format-converter.desc": "Convertir entre formatos de imagen", 
     "tools.image-resize": "Redimensionar Imagen",
     "tools.image-resize.desc": "Redimensionar imágenes a dimensiones específicas",
     "tools.image-watermark": "Marca de Agua en Imagen",
@@ -569,6 +611,48 @@ const translations = {
     "tools.favicon-generator.desc": "Generar favicons a partir de imágenes",
     "tools.image-to-text": "Imagen a Texto",
     "tools.image-to-text.desc": "Extraer texto de imágenes (OCR)",
+    
+    // Text Tools
+    "tools.case-converter": "Convertidor de Caso",
+    "tools.case-converter.desc": "Convertir caso de texto (mayúsculas, minúsculas, etc.)",
+    "tools.text-to-slug": "Texto a Slug", 
+    "tools.text-to-slug.desc": "Convertir texto a slugs amigables para URL",
+    "tools.dummy-text": "Generador Lorem Ipsum",
+    "tools.dummy-text.desc": "Generar texto de marcador de posición",
+    "tools.word-counter": "Contador de Palabras",
+    "tools.word-counter.desc": "Contar palabras, caracteres y párrafos",
+    "tools.text-reverser": "Inversor de Texto",
+    "tools.text-reverser.desc": "Invertir caracteres o palabras de texto",
+    
+    // Barcode Tools
+    "tools.qr-generator": "Generador de Código QR",
+    "tools.qr-generator.desc": "Crear códigos QR para texto, URLs y más",
+    "tools.barcode-generator": "Generador de Códigos de Barras", 
+    "tools.barcode-generator.desc": "Generar varios formatos de códigos de barras",
+    "tools.barcode-scanner": "Escáner de Códigos de Barras",
+    "tools.barcode-scanner.desc": "Escanear y decodificar códigos de barras de imágenes",
+    "tools.code128-generator": "Generador Code 128",
+    "tools.code128-generator.desc": "Generar códigos de barras Code 128",
+    
+    // PDF Tools
+    "tools.pdf-merge": "Fusionador de PDF",
+    "tools.pdf-merge.desc": "Combinar múltiples documentos PDF",
+    "tools.pdf-split": "Divisor de PDF",
+    "tools.pdf-split.desc": "Dividir PDF en páginas separadas",
+    "tools.pdf-compress": "Compresor de PDF",
+    "tools.pdf-compress.desc": "Reducir el tamaño del archivo PDF",
+    "tools.pdf-to-text": "PDF a Texto",
+    "tools.pdf-to-text.desc": "Extraer texto de documentos PDF",
+    
+    // Developer Tools  
+    "tools.hash-generator": "Generador de Hash",
+    "tools.hash-generator.desc": "Generar hashes MD5, SHA1, SHA256",
+    "tools.regex-tester": "Probador de Regex",
+    "tools.regex-tester.desc": "Probar expresiones regulares",
+    "tools.api-tester": "Probador de API",
+    "tools.api-tester.desc": "Probar endpoints de API REST",
+    "tools.jwt-decoder": "Decodificador JWT",
+    "tools.jwt-decoder.desc": "Decodificar JSON Web Tokens",
     
     // Footer sections
     "footer.enterpriseStandards": "Estándares Empresariales",
@@ -846,8 +930,8 @@ const translations = {
     "tools.background-remover.desc": "إزالة الخلفيات من الصور",
     "tools.image-crop": "قص الصورة", 
     "tools.image-crop.desc": "قص الصور إلى مناطق محددة",
-    "tools.format-converter": "محول التنسيق",
-    "tools.format-converter.desc": "التحويل بين تنسيقات الصور", 
+    "tools.image-format-converter": "محول التنسيق",
+    "tools.image-format-converter.desc": "التحويل بين تنسيقات الصور", 
     "tools.image-resize": "تغيير حجم الصورة",
     "tools.image-resize.desc": "تغيير حجم الصور إلى أبعاد محددة",
     "tools.image-watermark": "علامة مائية للصورة",
@@ -860,6 +944,48 @@ const translations = {
     "tools.favicon-generator.desc": "إنشاء أيقونات مواقع من الصور",
     "tools.image-to-text": "الصورة إلى نص",
     "tools.image-to-text.desc": "استخراج النص من الصور (OCR)",
+    
+    // Text Tools
+    "tools.case-converter": "محول الحالة",
+    "tools.case-converter.desc": "تحويل حالة النص (أحرف كبيرة، صغيرة، إلخ)",
+    "tools.text-to-slug": "النص إلى Slug", 
+    "tools.text-to-slug.desc": "تحويل النص إلى slugs مناسبة للرابط",
+    "tools.dummy-text": "مولد Lorem Ipsum",
+    "tools.dummy-text.desc": "إنشاء نص وهمي",
+    "tools.word-counter": "عداد الكلمات",
+    "tools.word-counter.desc": "عد الكلمات والأحرف والفقرات",
+    "tools.text-reverser": "عاكس النص",
+    "tools.text-reverser.desc": "عكس أحرف أو كلمات النص",
+    
+    // Barcode Tools
+    "tools.qr-generator": "مولد رمز QR",
+    "tools.qr-generator.desc": "إنشاء رموز QR للنص والروابط والمزيد",
+    "tools.barcode-generator": "مولد الباركود", 
+    "tools.barcode-generator.desc": "إنشاء تنسيقات مختلفة من الباركود",
+    "tools.barcode-scanner": "ماسح الباركود",
+    "tools.barcode-scanner.desc": "مسح وفك تشفير الباركود من الصور",
+    "tools.code128-generator": "مولد Code 128",
+    "tools.code128-generator.desc": "إنشاء باركود Code 128",
+    
+    // PDF Tools
+    "tools.pdf-merge": "دمج PDF",
+    "tools.pdf-merge.desc": "دمج مستندات PDF متعددة",
+    "tools.pdf-split": "تقسيم PDF",
+    "tools.pdf-split.desc": "تقسيم PDF إلى صفحات منفصلة",
+    "tools.pdf-compress": "ضاغط PDF",
+    "tools.pdf-compress.desc": "تقليل حجم ملف PDF",
+    "tools.pdf-to-text": "PDF إلى نص",
+    "tools.pdf-to-text.desc": "استخراج النص من مستندات PDF",
+    
+    // Developer Tools  
+    "tools.hash-generator": "مولد Hash",
+    "tools.hash-generator.desc": "إنشاء hashes MD5، SHA1، SHA256",
+    "tools.regex-tester": "مختبر Regex",
+    "tools.regex-tester.desc": "اختبار التعبيرات النمطية",
+    "tools.api-tester": "مختبر API",
+    "tools.api-tester.desc": "اختبار نقاط API REST",
+    "tools.jwt-decoder": "فك تشفير JWT",
+    "tools.jwt-decoder.desc": "فك تشفير JSON Web Tokens",
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
