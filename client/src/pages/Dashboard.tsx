@@ -211,6 +211,76 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Comprehensive Tool Overview */}
+      <div className="mb-12">
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6">Complete Tool Suite Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="prose prose-lg dark:prose-invert">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Business Tools</h3>
+            <ul className="list-disc pl-6 text-slate-600 dark:text-gray-300 space-y-2">
+              <li><a href="/tool/invoice-generator" className="text-primary hover:underline">Invoice Generator</a> - Create professional invoices instantly</li>
+              <li><a href="/tool/barcode-generator" className="text-primary hover:underline">Barcode Generator</a> - Support for 15+ barcode formats</li>
+              <li><a href="/tool/qr-code-generator" className="text-primary hover:underline">QR Code Generator</a> - Custom QR codes with logos</li>
+              <li><a href="/tool/signature-generator" className="text-primary hover:underline">Digital Signatures</a> - AI-powered signature creation</li>
+              <li><a href="/tool/pdf-esign" className="text-primary hover:underline">PDF E-Sign</a> - Legal document signing solution</li>
+            </ul>
+          </div>
+          <div className="prose prose-lg dark:prose-invert">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Developer Tools</h3>
+            <ul className="list-disc pl-6 text-slate-600 dark:text-gray-300 space-y-2">
+              <li><a href="/tool/regex-tester" className="text-primary hover:underline">Regex Tester</a> - Pattern matching and validation</li>
+              <li><a href="/tool/jwt-decoder" className="text-primary hover:underline">JWT Decoder</a> - Token parsing and verification</li>
+              <li><a href="/tool/api-tester" className="text-primary hover:underline">API Tester</a> - REST endpoint testing</li>
+              <li><a href="/tool/css-minifier" className="text-primary hover:underline">CSS Minifier</a> - Code optimization and compression</li>
+              <li><a href="/tool/js-minifier" className="text-primary hover:underline">JS Minifier</a> - JavaScript file optimization</li>
+            </ul>
+          </div>
+          <div className="prose prose-lg dark:prose-invert">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Content Tools</h3>
+            <ul className="list-disc pl-6 text-slate-600 dark:text-gray-300 space-y-2">
+              <li><a href="/tool/image-compressor" className="text-primary hover:underline">Image Compressor</a> - Reduce file sizes by 80%</li>
+              <li><a href="/tool/pdf-merger" className="text-primary hover:underline">PDF Merger</a> - Combine multiple documents</li>
+              <li><a href="/tool/text-converter" className="text-primary hover:underline">Text Converter</a> - Format transformation</li>
+              <li><a href="/tool/color-converter" className="text-primary hover:underline">Color Converter</a> - HEX, RGB, HSL conversion</li>
+              <li><a href="/tool/password-generator" className="text-primary hover:underline">Password Generator</a> - Secure password creation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Security and Privacy */}
+      <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-8 mb-12">
+        <h2 className="text-3xl font-semibold text-slate-800 dark:text-white mb-6 text-center">Security and Privacy Commitment</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Data Protection</h3>
+            <p className="text-slate-600 dark:text-gray-300 mb-4">
+              All processing happens locally in your browser. Files uploaded to tools like our 
+              <a href="/tool/pdf-merger" className="text-primary hover:underline">PDF merger</a> or 
+              <a href="/tool/image-compressor" className="text-primary hover:underline">image compressor</a> 
+              are never stored on our servers. Data is processed client-side and immediately discarded after use.
+            </p>
+            <p className="text-slate-600 dark:text-gray-300">
+              Zero data collection policy ensures your privacy. No registration required, no tracking cookies, 
+              and no personal information stored. Perfect for handling sensitive business documents and confidential data.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Enterprise Standards</h3>
+            <p className="text-slate-600 dark:text-gray-300 mb-4">
+              Built with enterprise-grade security protocols. SSL encryption protects all data transmission. 
+              Tools like our <a href="/tool/barcode-scanner" className="text-primary hover:underline">barcode scanner</a> 
+              and <a href="/tool/signature-generator" className="text-primary hover:underline">signature generator</a> 
+              meet professional compliance standards.
+            </p>
+            <p className="text-slate-600 dark:text-gray-300">
+              Regular security audits and updates ensure platform integrity. Compatible with corporate firewalls 
+              and security policies. Trusted by thousands of professionals worldwide for daily business operations.
+            </p>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
