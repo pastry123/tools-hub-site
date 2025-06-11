@@ -475,12 +475,12 @@ export default function ImageCropper() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crop className="w-5 h-5" />
-            Advanced Image Cropper
+            {t("imageCropper.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="image-upload">Upload Image</Label>
+            <Label htmlFor="image-upload">{t("imageCropper.uploadImage")}</Label>
             <Input
               id="image-upload"
               type="file"
@@ -494,7 +494,7 @@ export default function ImageCropper() {
             <>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Visual Crop Editor</h3>
+                  <h3 className="text-lg font-semibold">{t("imageCropper.visualEditor")}</h3>
                   <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
                     <img
                       ref={imageRef}
