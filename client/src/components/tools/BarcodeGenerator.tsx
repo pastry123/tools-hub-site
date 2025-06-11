@@ -471,60 +471,60 @@ export default function BarcodeGenerator() {
 
   // Get translated barcode description
   const getBarcodeDescription = (typeName: string, bcid: string): string => {
-    const typeKey = typeName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const translationKey = `barcode.${typeKey}.desc`;
-    
-    // Try exact type name first
-    let translation = t(translationKey);
-    if (translation !== translationKey) {
-      return translation;
-    }
-    
-    // Try bcid mapping for common types
-    const bcidMap: Record<string, string> = {
-      'code128': t("barcode.code128.desc"),
-      'code11': t("barcode.code11.desc"),
-      'interleaved2of5': t("barcode.code2of5.desc"),
-      'code39': t("barcode.code39.desc"),
-      'code39ext': t("barcode.code39full.desc"),
-      'code93': t("barcode.code93.desc"),
-      'gs1-128': t("barcode.gs1128.desc"),
-      'msicode': t("barcode.msi.desc"),
-      'pharmacode': t("barcode.pharmacode1.desc"),
-      'pharmacode2': t("barcode.pharmacode2.desc"),
-      'telepen': t("barcode.telepen.desc"),
-      'auspost': t("barcode.australianpost.desc"),
-      'daft': t("barcode.daft.desc"),
-      'dpd': t("barcode.dpd.desc"),
-      'japanpost': t("barcode.japanesepost.desc"),
-      'kix': t("barcode.kix.desc"),
-      'postnet': t("barcode.uspspostnet.desc"),
-      'impb': t("barcode.uspsim.desc"),
-      'upu-s10': t("barcode.upus10.desc"),
-      'gs1databaromni': t("barcode.gs1databar.desc"),
-      'gs1databarstacked': t("barcode.gs1databarstacked.desc"),
-      'gs1databarlimited': t("barcode.gs1databarlimited.desc"),
-      'gs1databarexpanded': t("barcode.gs1databarexpanded.desc"),
-      'gs1databarexpandedstacked': t("barcode.gs1databarexpandedstacked.desc"),
-      'ean8': t("barcode.ean8.desc"),
-      'ean13': t("barcode.ean13.desc"),
-      'ean14': t("barcode.ean14.desc"),
-      'upca': t("barcode.upca.desc"),
-      'upce': t("barcode.upce.desc"),
-      'qrcode': t("barcode.qrcode.desc"),
-      'datamatrix': t("barcode.datamatrix.desc"),
-      'datamatrixrectangular': t("barcode.datamatrixrect.desc"),
-      'azteccode': t("barcode.aztec.desc"),
-      'codablockf': t("barcode.codablock.desc"),
-      'maxicode': t("barcode.maxicode.desc"),
-      'micropdf417': t("barcode.micropdf417.desc"),
-      'pdf417': t("barcode.pdf417.desc"),
-      'microqrcode': t("barcode.microqr.desc"),
-      'hanxin': t("barcode.hanxin.desc"),
-      'dotcode': t("barcode.dotcode.desc"),
+    // Direct mapping based on bcid to translation keys
+    const bcidToTranslationMap: Record<string, string> = {
+      'code128': "barcode.code128.desc",
+      'code11': "barcode.code11.desc", 
+      'interleaved2of5': "barcode.code2of5.desc",
+      'code39': "barcode.code39.desc",
+      'code39ext': "barcode.code39full.desc",
+      'code93': "barcode.code93.desc",
+      'gs1-128': "barcode.gs1128.desc",
+      'msicode': "barcode.msi.desc",
+      'pharmacode': "barcode.pharmacode1.desc",
+      'pharmacode2': "barcode.pharmacode2.desc",
+      'telepen': "barcode.telepen.desc",
+      'auspost': "barcode.australianpost.desc",
+      'daft': "barcode.daft.desc",
+      'dpd': "barcode.dpd.desc",
+      'japanpost': "barcode.japanesepost.desc",
+      'kix': "barcode.kix.desc",
+      'postnet': "barcode.uspspostnet.desc",
+      'impb': "barcode.uspsim.desc",
+      'gs1databaromni': "barcode.gs1databar.desc",
+      'gs1databarstacked': "barcode.gs1databarstacked.desc",
+      'gs1databarlimited': "barcode.gs1databarlimited.desc",
+      'gs1databarexpanded': "barcode.gs1databarexpanded.desc",
+      'gs1databarexpandedstacked': "barcode.gs1databarexpandedstacked.desc",
+      'ean8': "barcode.ean8.desc",
+      'ean13': "barcode.ean13.desc",
+      'ean14': "barcode.ean14.desc",
+      'upca': "barcode.upca.desc",
+      'upce': "barcode.upce.desc",
+      'qrcode': "barcode.qrcode.desc",
+      'datamatrix': "barcode.datamatrix.desc",
+      'datamatrixrectangular': "barcode.datamatrixrect.desc",
+      'azteccode': "barcode.aztec.desc",
+      'codablockf': "barcode.codablock.desc",
+      'maxicode': "barcode.maxicode.desc",
+      'micropdf417': "barcode.micropdf417.desc",
+      'pdf417': "barcode.pdf417.desc",
+      'microqrcode': "barcode.microqr.desc",
+      'hanxin': "barcode.hanxin.desc",
+      'dotcode': "barcode.dotcode.desc",
     };
     
-    return bcidMap[bcid] || typeName;
+    const translationKey = bcidToTranslationMap[bcid];
+    if (translationKey) {
+      const translation = t(translationKey);
+      // Return translation if it exists and is not the same as the key (meaning translation was found)
+      if (translation && translation !== translationKey) {
+        return translation;
+      }
+    }
+    
+    // Fallback to English hint if no translation found
+    return typeName;
   };
 
   return (
