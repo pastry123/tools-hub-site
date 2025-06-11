@@ -621,7 +621,7 @@ export default function BarcodeGenerator() {
                       </span>
                       <span className="mx-2 text-gray-500">•</span>
                       <span className="text-green-600 dark:text-green-400">
-                        {currentBarcodeDef.category}
+                        {getCategoryTranslation(currentBarcodeDef.category)}
                       </span>
                     </div>
                     <span className="text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
