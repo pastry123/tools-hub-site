@@ -129,23 +129,28 @@ Return JSON format:
     try {
       const prompt = `You must completely rewrite this AI text to be 100% undetectable as AI. Transform it using these critical techniques:
 
-ESSENTIAL CHANGES:
-- Add authentic human flaws: minor typos, informal grammar, run-on sentences
-- Use real human speech: "gonna", "kinda", "you know", "I mean", "honestly"
-- Include personal elements: "I think", "in my experience", "personally"
-- Add emotional markers: "ugh", "wow", "lol", casual exclamations
-- Break perfect structure: start sentences with "And", "But", "So"
-- Use inconsistent punctuation and capitalization naturally
-- Add conversational tangents or brief personal references
-- Include regional/colloquial expressions
-- Use varied sentence rhythm - some short, some long, some fragments
+CRITICAL FIXES FOR BUSINESS LANGUAGE:
+- "follow-ups" → "messages/texts/checking in"
+- "disconnect and take a breather" → "chill out/relax/unwind"
+- "regular routine" → "normal stuff/back to usual/regular flow"
+- "touch base" → "catch up/chat/talk"
+- "availability looks like" → "you're free/when works/your schedule"
+- "schedule our next meeting" → "set up our next chat/call/get together"
 
-AVOID AT ALL COSTS:
-- Perfect grammar and punctuation
-- Formal business language
-- Structured lists or perfect formatting
-- Overly polite or professional tone
-- Generic phrases without personality
+HUMAN SPEECH PATTERNS:
+- Start sentences casually: "So", "Anyway", "Honestly", "I was thinking"
+- Add filler words: "like", "you know", "I mean", "basically"
+- Use contractions: "I'd", "we're", "didn't", "you're", "would've"
+- Add personal emotions: "I felt bad", "I didn't want to bug you"
+- Include casual transitions: "btw", "also", "oh and"
+- Make some sentences incomplete or run-on naturally
+- Add minor grammatical variations humans make
+
+ELIMINATE COMPLETELY:
+- ALL business jargon and corporate speak
+- Perfect sentence structure and formatting
+- Overly polite professional phrases
+- Generic formal expressions
 
 Original text: "${text}"
 
