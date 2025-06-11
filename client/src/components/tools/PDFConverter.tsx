@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { FileUp, Download, RefreshCw, FileText, Image, FileSpreadsheet, FileCode } from "lucide-react";
 
 interface ConversionFormat {
@@ -26,6 +27,7 @@ export default function PDFConverter() {
   const [convertedFileName, setConvertedFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const conversionFormats: ConversionFormat[] = [
     {
@@ -256,10 +258,10 @@ export default function PDFConverter() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCw className="w-5 h-5" />
-            PDF Converter
+            {t("pdfConverter.title") || "محول PDF"}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Convert between PDF and various document formats including Word, Excel, images, and more.
+            {t("pdfConverter.description") || "تحويل بين PDF وتنسيقات المستندات المختلفة بما في ذلك Word و Excel والصور والمزيد"}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -277,13 +279,13 @@ export default function PDFConverter() {
             onDragOver={(e) => e.preventDefault()}
           >
             <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Upload File</h3>
+            <h3 className="text-lg font-medium mb-2">{t("pdfConverter.uploadFile") || "رفع ملف"}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Drag and drop a file here, or click to browse
+              {t("pdfConverter.dragDrop") || "اسحب وأسقط ملف هنا، أو انقر للتصفح"}
             </p>
             <Button variant="outline">
               <FileUp className="w-4 h-4 mr-2" />
-              Choose File
+              {t("pdfConverter.chooseFile") || "اختر ملف"}
             </Button>
             <input
               ref={fileInputRef}

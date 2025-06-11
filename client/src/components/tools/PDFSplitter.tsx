@@ -292,10 +292,10 @@ export default function PDFSplitter() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Scissors className="w-5 h-5" />
-            PDF Splitter
+            {t("pdfSplitter.title") || "تقسيم PDF"}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Extract specific pages or ranges from PDF documents.
+            {t("pdfSplitter.subtitle") || "استخراج صفحات أو نطاقات محددة من مستندات PDF"}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -313,13 +313,13 @@ export default function PDFSplitter() {
             onDragOver={(e) => e.preventDefault()}
           >
             <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Upload PDF File</h3>
+            <h3 className="text-lg font-medium mb-2">{t("pdfSplitter.uploadFile") || "رفع ملف PDF"}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Drag and drop a PDF file here, or click to browse
+              {t("pdfSplitter.dragDrop") || "اسحب وأسقط ملف PDF هنا، أو انقر للتصفح"}
             </p>
             <Button variant="outline">
               <FileUp className="w-4 h-4 mr-2" />
-              Choose File
+              {t("pdfSplitter.chooseFile") || "اختر ملف"}
             </Button>
             <input
               ref={fileInputRef}
@@ -345,7 +345,7 @@ export default function PDFSplitter() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{formatFileSize(file.size)}</span>
                     {totalPages && (
-                      <span>{totalPages} pages</span>
+                      <span>{totalPages} {t("pdfSplitter.pages") || "صفحات"}</span>
                     )}
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export default function PDFSplitter() {
               disabled={!file || !pageInput.trim() || isProcessing}
               className="flex-1"
             >
-              {isProcessing ? "Splitting..." : "Split PDF"}
+              {isProcessing ? (t("pdfSplitter.splitting") || "جارٍ التقسيم...") : (t("pdfSplitter.split") || "تقسيم PDF")}
             </Button>
             
             {file && (
