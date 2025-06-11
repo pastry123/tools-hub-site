@@ -5,18 +5,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RotateCcw, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function TextReverser() {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleReverse = async () => {
     if (!inputText.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter some text to reverse",
+        title: t("textReverser.error"),
+        description: t("textReverser.enterText"),
         variant: "destructive"
       });
       return;
@@ -41,13 +43,13 @@ export default function TextReverser() {
       setOutputText(data.result);
 
       toast({
-        title: "Success",
-        description: "Text reversed successfully"
+        title: t("textReverser.success"),
+        description: t("textReverser.textReversed")
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to reverse text",
+        title: t("textReverser.error"),
+        description: t("textReverser.failedToReverse"),
         variant: "destructive"
       });
     } finally {
@@ -58,8 +60,8 @@ export default function TextReverser() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(outputText);
     toast({
-      title: "Copied",
-      description: "Text copied to clipboard"
+      title: t("textReverser.copied"),
+      description: t("textReverser.copiedToClipboard")
     });
   };
 
@@ -69,32 +71,32 @@ export default function TextReverser() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RotateCcw className="w-5 h-5" />
-            Text Reverser
+            {t("textReverser.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="input-text">Input Text</Label>
+            <Label htmlFor="input-text">{t("textReverser.inputText")}</Label>
             <Textarea
               id="input-text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Enter your text here..."
+              placeholder={t("textReverser.placeholder")}
               className="mt-2 min-h-[120px]"
             />
           </div>
 
           <Button onClick={handleReverse} disabled={isProcessing} className="w-full">
-            {isProcessing ? 'Reversing...' : 'Reverse Text'}
+            {isProcessing ? t("textReverser.reversing") : t("textReverser.reverseText")}
           </Button>
 
           {outputText && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Reversed Text</Label>
+                <Label>{t("textReverser.reversedText")}</Label>
                 <Button variant="outline" size="sm" onClick={copyToClipboard}>
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy
+                  {t("textReverser.copy")}
                 </Button>
               </div>
               <Textarea
