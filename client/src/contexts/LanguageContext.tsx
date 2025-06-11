@@ -1002,6 +1002,14 @@ const translations = {
     "colorAnalyzer.analyzeColors": "Analizar Colores",
     "colorAnalyzer.noFileChosen": "Ningún archivo seleccionado",
     "colorAnalyzer.chooseFile": "Elegir Archivo",
+    
+    // PDF Merger
+    "pdfMerger.title": "Fusionador de PDF",
+    "pdfMerger.subtitle": "Combinar múltiples archivos PDF en un documento",
+    "pdfMerger.invalidFileType": "Tipo de archivo inválido",
+    "pdfMerger.notPdfFile": "no es un archivo PDF",
+    "pdfMerger.fileTooLarge": "Archivo demasiado grande",
+    "pdfMerger.exceedsLimit": "excede el límite de 50MB",
   },
   ar: {
     // Header
@@ -2105,6 +2113,14 @@ const translations = {
     "colorAnalyzer.dominantColor": "اللون السائد",
     "colorAnalyzer.colorPalette": "لوحة الألوان",
     "colorAnalyzer.copy": "نسخ",
+    
+    // PDF Merger
+    "pdfMerger.title": "دمج PDF",
+    "pdfMerger.subtitle": "دمج ملفات PDF متعددة في مستند واحد",
+    "pdfMerger.invalidFileType": "نوع ملف غير صالح",
+    "pdfMerger.notPdfFile": "ليس ملف PDF",
+    "pdfMerger.fileTooLarge": "الملف كبير جداً",
+    "pdfMerger.exceedsLimit": "يتجاوز حد 50 ميجابايت",
 
 
 
