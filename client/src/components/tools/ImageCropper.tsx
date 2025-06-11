@@ -514,7 +514,7 @@ export default function ImageCropper() {
                     <div className="mt-2 text-sm text-gray-600 space-y-1">
                       <div className="flex items-center gap-2">
                         <Move className="w-4 h-4" />
-                        Drag inside crop area to move
+{t("imageCropper.dragToMove")}
                       </div>
                       <div className="text-xs text-gray-500">
                         • Enter Length & Width to resize
@@ -526,11 +526,11 @@ export default function ImageCropper() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Crop Settings</h3>
+                  <h3 className="text-lg font-semibold">{t("imageCropper.cropSettings")}</h3>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="x-coord">X Position</Label>
+                      <Label htmlFor="x-coord">{t("imageCropper.xPosition")}</Label>
                       <Input
                         id="x-coord"
                         type="number"
@@ -542,7 +542,7 @@ export default function ImageCropper() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="y-coord">Y Position</Label>
+                      <Label htmlFor="y-coord">{t("imageCropper.yPosition")}</Label>
                       <Input
                         id="y-coord"
                         type="number"
@@ -557,7 +557,7 @@ export default function ImageCropper() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="crop-width">Width</Label>
+                      <Label htmlFor="crop-width">{t("imageCropper.width")}</Label>
                       <Input
                         id="crop-width"
                         type="number"
@@ -569,7 +569,7 @@ export default function ImageCropper() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="crop-height">Height</Label>
+                      <Label htmlFor="crop-height">{t("imageCropper.height")}</Label>
                       <Input
                         id="crop-height"
                         type="number"

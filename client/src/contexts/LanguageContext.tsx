@@ -1571,19 +1571,11 @@ const translations = {
     "code128.title": "مولد Code 128", 
     "code128.subtitle": "إنشاء باركود Code 128",
 
-    // Image Processing Tools
+    // Image Processing Tools - Additional Keys
     "imageTools.title": "أدوات الصور",
-    "imageCropper.title": "قاطع الصور",
-    "imageCropper.subtitle": "قص وتحرير الصور بدقة",
-    "imageCropper.uploadImage": "رفع صورة",
-    "imageCropper.selectImage": "اختر صورة",
-    "imageCropper.cropImage": "قص الصورة",
-    "imageCropper.downloadCropped": "تحميل الصورة المقصوصة",
-    "imageCropper.resetCrop": "إعادة تعيين القص",
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
     "imageCropper.position": "الموضع",
-    "imageCropper.size": "الحجم",
     "imageCropper.format": "التنسيق",
     "imageCropper.width": "العرض",
     "imageCropper.height": "الارتفاع",
@@ -1592,8 +1584,6 @@ const translations = {
     "imageCropper.applyCrop": "تطبيق القص",
     "imageCropper.resetSettings": "إعادة تعيين الإعدادات",
     "imageCropper.downloadImage": "تحميل الصورة",
-    "backgroundRemover.title": "إزالة الخلفية",
-    "backgroundRemover.subtitle": "إزالة خلفية الصور تلقائياً",
     "backgroundRemover.uploadToRemove": "رفع صورة لإزالة الخلفية",
     "backgroundRemover.processing": "جارٍ المعالجة...",
     "backgroundRemover.downloadResult": "تحميل النتيجة",
@@ -1664,11 +1654,8 @@ const translations = {
     "regexTester.testString": "النص للاختبار",
     "regexTester.testRegex": "اختبار التعبير",
 
-    // General Interface Elements
-    "common.upload": "رفع",
-    "common.download": "تحميل",
+    // General Interface Elements - Additional
     "common.process": "معالجة",
-    "common.convert": "تحويل",
     "common.edit": "تحرير",
     "common.save": "حفظ",
     "common.cancel": "إلغاء",
