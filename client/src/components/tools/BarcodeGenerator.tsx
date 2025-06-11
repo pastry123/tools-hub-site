@@ -448,6 +448,27 @@ export default function BarcodeGenerator() {
     return titleMap[bcid] || t("barcodeGenerator.title");
   };
 
+  // Get translated category name
+  const getCategoryTranslation = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      "Linear Codes": t("barcodeCategory.linearCodes"),
+      "Postal Codes": t("barcodeCategory.postalCodes"),
+      "GS1 DataBar": t("barcodeCategory.gs1DataBar"),
+      "EAN / UPC": t("barcodeCategory.eanUpc"),
+      "2D Codes": t("barcodeCategory.twoDCodes"),
+      "GS1 2D Barcodes": t("barcodeCategory.gs1TwoDCodes"),
+      "Banking and Payments": t("barcodeCategory.bankingPayments"),
+      "Mobile Tagging": t("barcodeCategory.mobileTagging"),
+      "Healthcare Codes": t("barcodeCategory.healthcareCodes"),
+      "Business Cards": t("barcodeCategory.businessCards"),
+      "Event Barcodes": t("barcodeCategory.eventBarcodes"),
+      "Wi-Fi Barcodes": t("barcodeCategory.wifiBarcodes"),
+      "ISBN Codes": t("barcodeCategory.isbnCodes"),
+    };
+    
+    return categoryMap[category] || category;
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center mb-8">
@@ -477,7 +498,7 @@ export default function BarcodeGenerator() {
                   <SelectContent>
                     {categories.map(category => (
                       <SelectItem key={category} value={category}>
-                        {category === "all" ? t("barcodeGenerator.allCategories") : category}
+                        {category === "all" ? t("barcodeGenerator.allCategories") : getCategoryTranslation(category)}
                       </SelectItem>
                     ))}
                   </SelectContent>

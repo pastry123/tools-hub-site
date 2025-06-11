@@ -1589,6 +1589,49 @@ const translations = {
     "toast.invalidFileType": "نوع ملف غير صالح",
     "toast.permissionDenied": "تم رفض الإذن",
 
+    // Barcode Categories
+    "barcodeCategory.linearCodes": "الرموز الخطية",
+    "barcodeCategory.postalCodes": "الرموز البريدية", 
+    "barcodeCategory.gs1DataBar": "شريط بيانات GS1",
+    "barcodeCategory.eanUpc": "EAN / UPC",
+    "barcodeCategory.twoDCodes": "الرموز ثنائية الأبعاد",
+    "barcodeCategory.gs1TwoDCodes": "رموز GS1 ثنائية الأبعاد",
+    "barcodeCategory.bankingPayments": "الخدمات المصرفية والمدفوعات",
+    "barcodeCategory.mobileTagging": "وضع العلامات المحمولة",
+    "barcodeCategory.healthcareCodes": "رموز الرعاية الصحية",
+    "barcodeCategory.businessCards": "بطاقات العمل",
+    "barcodeCategory.eventBarcodes": "رموز الأحداث",
+    "barcodeCategory.wifiBarcodes": "رموز واي فاي",
+    "barcodeCategory.isbnCodes": "رموز ISBN",
+    "barcodeCategory.mobileBarcodes": "رموز الجوال",
+    "barcodeCategory.transportationTicketing": "تذاكر النقل",
+    "barcodeCategory.mobileApplications": "تطبيقات الجوال",
+    "barcodeCategory.commercialUse": "الاستخدام التجاري",
+    "barcodeCategory.gs1DataMatrix": "مصفوفة بيانات GS1",
+    "barcodeCategory.loyaltyCards": "بطاقات الولاء",
+    "barcodeCategory.coupons": "القسائم",
+    "barcodeCategory.ticketing": "التذاكر",
+    "barcodeCategory.marketingCampaigns": "الحملات التسويقية",
+    "barcodeCategory.productPackaging": "تغليف المنتجات",
+    "barcodeCategory.inventoryManagement": "إدارة المخزون",
+    "barcodeCategory.assetTracking": "تتبع الأصول",
+    "barcodeCategory.documentManagement": "إدارة الوثائق",
+    "barcodeCategory.emailMarketing": "التسويق عبر البريد الإلكتروني",
+    "barcodeCategory.socialMediaMarketing": "التسويق عبر وسائل التواصل الاجتماعي",
+    "barcodeCategory.printAdvertising": "الإعلان المطبوع",
+    "barcodeCategory.digitalAdvertising": "الإعلان الرقمي",
+    "barcodeCategory.eventMarketing": "تسويق الأحداث",
+    "barcodeCategory.retailMarketing": "التسويق بالتجزئة",
+    "barcodeCategory.restaurantMenus": "قوائم المطاعم",
+    "barcodeCategory.hotelServices": "خدمات الفنادق",
+    "barcodeCategory.tourismServices": "خدمات السياحة",
+    "barcodeCategory.educationalInstitutions": "المؤسسات التعليمية",
+    "barcodeCategory.libraryServices": "خدمات المكتبة",
+    "barcodeCategory.museumExhibits": "معارض المتاحف",
+    "barcodeCategory.artGalleries": "معارض الفن",
+    "barcodeCategory.conferenceEvents": "أحداث المؤتمرات",
+    "barcodeCategory.tradingShows": "معارض التجارة",
+
     // Bulk Barcode Generator
     "bulkBarcode.title": "مولد الباركود المجمع",
     "bulkBarcode.description": "إنشاء عدة باركودات في وقت واحد",
@@ -1650,18 +1693,6 @@ const translations = {
     "rfidReader.writeToTag": "الكتابة إلى العلامة",
     "rfidReader.enterText": "أدخل النص للكتابة...",
     "rfidReader.noTagsRead": "لم يتم قراءة أي علامات بعد. ابدأ بقراءة بعض علامات NFC أولاً.",
-
-    // Data Matrix Generator Tool
-    "dataMatrix.title": "مولد Data Matrix",
-    "dataMatrix.subtitle": "إنشاء رموز Data Matrix بجودة عالية",
-
-    // EAN-13 Generator Tool  
-    "ean13.title": "مولد EAN-13",
-    "ean13.subtitle": "إنشاء باركود EAN-13",
-
-    // Code 128 Generator Tool
-    "code128.title": "مولد Code 128", 
-    "code128.subtitle": "إنشاء باركود Code 128",
 
     // Image Processing Tools - Additional Keys
     "imageTools.title": "أدوات الصور",
