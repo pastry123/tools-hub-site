@@ -583,7 +583,7 @@ export default function ImageCropper() {
                   </div>
 
                   <div>
-                    <Label htmlFor="output-format">Output Format</Label>
+                    <Label htmlFor="output-format">{t("imageCropper.outputFormat")}</Label>
                     <Select value={format} onValueChange={setFormat}>
                       <SelectTrigger>
                         <SelectValue />
@@ -597,18 +597,18 @@ export default function ImageCropper() {
                   </div>
 
                   <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Image Info</h4>
+                    <h4 className="font-medium mb-2">{t("imageCropper.imageInfo")}</h4>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p>Original: {imageDimensions.width} × {imageDimensions.height}px</p>
-                      <p>Crop Area: {cropArea.width} × {cropArea.height}px</p>
-                      <p>Position: ({Math.round(cropArea.x)}, {Math.round(cropArea.y)})</p>
+                      <p>{t("imageCropper.original")}: {imageDimensions.width} × {imageDimensions.height}px</p>
+                      <p>{t("imageCropper.cropArea")}: {cropArea.width} × {cropArea.height}px</p>
+                      <p>{t("imageCropper.position")}: ({Math.round(cropArea.x)}, {Math.round(cropArea.y)})</p>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
                     <Button onClick={resetCrop} variant="outline" className="flex-1">
                       <RotateCcw className="w-4 h-4 mr-2" />
-                      Reset
+{t("imageCropper.resetCrop")}
                     </Button>
                     <Button 
                       onClick={handleCrop} 
@@ -616,7 +616,7 @@ export default function ImageCropper() {
                       className="flex-1"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      {isProcessing ? 'Processing...' : 'Crop & Download'}
+{isProcessing ? t("imageCropper.processing") : t("imageCropper.cropImage")}
                     </Button>
                   </div>
                 </div>
