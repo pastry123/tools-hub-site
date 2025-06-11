@@ -90,8 +90,8 @@ export default function PDFMerger() {
   const mergePDFs = async () => {
     if (files.length < 2) {
       toast({
-        title: "Insufficient files",
-        description: "Please select at least 2 PDF files to merge",
+        title: t("pdfMerger.insufficientFiles"),
+        description: t("pdfMerger.selectAtLeastTwo"),
         variant: "destructive",
       });
       return;

@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Upload, Download, Image as ImageIcon } from "lucide-react";
 
 export default function ImageCompressor() {
@@ -15,6 +16,7 @@ export default function ImageCompressor() {
   const [compressedSize, setCompressedSize] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -26,8 +28,8 @@ export default function ImageCompressor() {
         setCompressedSize(0);
       } else {
         toast({
-          title: "Invalid File Type",
-          description: "Please select an image file.",
+          title: t("imageCompressor.invalidFileType"),
+          description: t("imageCompressor.selectImageFile"),
           variant: "destructive",
         });
       }
@@ -62,8 +64,8 @@ export default function ImageCompressor() {
               setIsProcessing(false);
               
               toast({
-                title: "Image Compressed",
-                description: "Your image has been compressed successfully!",
+                title: t("imageCompressor.imageCompressed"),
+                description: t("imageCompressor.compressedSuccessfully"),
               });
             }
           },
@@ -76,8 +78,8 @@ export default function ImageCompressor() {
     } catch (error) {
       setIsProcessing(false);
       toast({
-        title: "Compression Failed",
-        description: "Failed to compress image. Please try again.",
+        title: t("imageCompressor.compressionFailed"),
+        description: t("imageCompressor.failedToCompress"),
         variant: "destructive",
       });
     }
@@ -93,8 +95,8 @@ export default function ImageCompressor() {
       document.body.removeChild(link);
       
       toast({
-        title: "Download Started",
-        description: "Your compressed image is being downloaded.",
+        title: t("imageCompressor.downloadStarted"),
+        description: t("imageCompressor.downloadInProgress"),
       });
     }
   };

@@ -1911,6 +1911,25 @@ const translations = {
 
     // Image Processing Tools - Additional Keys
     "imageTools.title": "أدوات الصور",
+    
+    // Image Compressor Tool
+    "imageCompressor.title": "ضاغط الصور",
+    "imageCompressor.invalidFileType": "نوع ملف غير صالح",
+    "imageCompressor.selectImageFile": "يرجى اختيار ملف صورة",
+    "imageCompressor.imageCompressed": "تم ضغط الصورة",
+    "imageCompressor.compressedSuccessfully": "تم ضغط صورتك بنجاح!",
+    "imageCompressor.compressionFailed": "فشل الضغط",
+    "imageCompressor.failedToCompress": "فشل في ضغط الصورة. حاول مرة أخرى.",
+    "imageCompressor.downloadStarted": "بدأ التحميل",
+    "imageCompressor.downloadInProgress": "يتم تحميل صورتك المضغوطة",
+    "imageCompressor.selectImage": "اختر صورة",
+    "imageCompressor.quality": "الجودة",
+    "imageCompressor.compressImage": "ضغط الصورة",
+    "imageCompressor.originalSize": "الحجم الأصلي",
+    "imageCompressor.compressedSize": "الحجم المضغوط",
+    "imageCompressor.compressionRatio": "نسبة الضغط",
+    "imageCompressor.download": "تحميل",
+    
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
     "imageCropper.position": "الموضع",
