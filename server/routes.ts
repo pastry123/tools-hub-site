@@ -15,7 +15,7 @@ import { analyticsService } from "./analyticsService";
 import { eSignService } from "./eSignService";
 import { developerAdvancedService } from "./developerAdvancedService";
 import { mediaService } from "./mediaService";
-import { aiTextService } from "./aiTextService";
+
 
 // Configure multer for file uploads
 const upload = multer({
@@ -977,47 +977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Text Detection
-  app.post('/api/ai-text-detect', async (req, res) => {
-    try {
-      const { text } = req.body;
-      
-      if (!text || typeof text !== 'string' || text.trim().length < 10) {
-        return res.status(400).json({ error: 'Text must be at least 10 characters long' });
-      }
 
-      analyticsService.trackToolUsage('ai-text-detect', 'AI Text Detector', 'ai-tools');
-      
-      const result = await aiTextService.detectAIText(text);
-      res.json(result);
-    } catch (error: any) {
-      console.error('AI text detection error:', error);
-      res.status(500).json({ 
-        error: error.message || 'Failed to detect AI text'
-      });
-    }
-  });
-
-  // AI Text Humanization
-  app.post('/api/ai-text-humanize', async (req, res) => {
-    try {
-      const { text } = req.body;
-      
-      if (!text || typeof text !== 'string' || text.trim().length < 10) {
-        return res.status(400).json({ error: 'Text must be at least 10 characters long' });
-      }
-
-      analyticsService.trackToolUsage('ai-text-humanize', 'AI Text Humanizer', 'ai-tools');
-      
-      const result = await aiTextService.humanizeText(text);
-      res.json(result);
-    } catch (error: any) {
-      console.error('AI text humanization error:', error);
-      res.status(500).json({ 
-        error: error.message || 'Failed to humanize text'
-      });
-    }
-  });
 
   // CSS Gradient Generator
   app.post('/api/generator/css-gradient', async (req, res) => {

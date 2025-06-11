@@ -67,7 +67,7 @@ import APIAccess from "@/components/tools/APIAccess";
 import MobileAppPlan from "@/components/tools/MobileAppPlan";
 import RFIDReader from "@/components/tools/RFIDReader";
 import BulkBarcodeGenerator from "@/components/tools/BulkBarcodeGenerator";
-import AITextTool from "@/components/tools/AITextTool";
+
 
 
 import PDFPageNumbers from "@/components/tools/PDFPageNumbers";
@@ -277,9 +277,7 @@ export default function ToolPage() {
         return <VideoToGifConverter />;
       case 'audio-converter':
         return <AudioConverter />;
-      case 'ai-text-detector':
-      case 'ai-text-humanizer':
-        return <AITextTool />;
+
 
       default:
         return (
