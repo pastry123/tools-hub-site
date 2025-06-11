@@ -383,7 +383,7 @@ export default function PDFConverter() {
               disabled={!file || !selectedFormat || isProcessing}
               className="flex-1"
             >
-              {isProcessing ? "Converting..." : "Convert File"}
+              {isProcessing ? (t("pdfConverter.converting") || "جارٍ التحويل...") : (t("pdfConverter.convertFile") || "تحويل الملف")}
             </Button>
             
             {file && (
@@ -416,7 +416,7 @@ export default function PDFConverter() {
           {/* Supported Formats Info */}
           <div className="text-center text-sm text-muted-foreground">
             <p>
-              Supported formats: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), Images (JPG/PNG/GIF/BMP)
+              {t("pdfConverter.supportedFormats") || "التنسيقات المدعومة: PDF، Word (DOC/DOCX)، Excel (XLS/XLSX)، الصور (JPG/PNG/GIF/BMP)"}
             </p>
           </div>
         </CardContent>
