@@ -1362,6 +1362,23 @@ const translations = {
     "pdfFormat.extractPlainTextFromPdf": "استخراج النص العادي من PDF",
     "pdfFormat.convertPdfToHtml": "تحويل PDF إلى تنسيق HTML",
     
+    // Currency Names - Arabic
+    "currency.usd": "الدولار الأمريكي",
+    "currency.eur": "اليورو",
+    "currency.gbp": "الجنيه الإسترليني",
+    "currency.jpy": "الين الياباني",
+    "currency.cad": "الدولار الكندي",
+    "currency.aud": "الدولار الأسترالي",
+    "currency.chf": "الفرنك السويسري",
+    "currency.cny": "اليوان الصيني",
+    "currency.inr": "الروبية الهندية",
+    "currency.brl": "الريال البرازيلي",
+    "currency.rub": "الروبل الروسي",
+    "currency.krw": "الوون الكوري الجنوبي",
+    "currency.mxn": "البيزو المكسيكي",
+    "currency.sgd": "دولار سنغافورة",
+    "currency.nzd": "الدولار النيوزيلندي",
+    
     // Dashboard Hero Section
     "dashboard.hero.title": "Aptexa ToolHub - 50+ أداة مجانية على الإنترنت",
     "dashboard.hero.description": "50+ أداة احترافية لـ {barcodes} و {pdfs} و {signatures} و {development}. أدوات مجانية وآمنة تعمل في المتصفح للشركات والمطورين.",
