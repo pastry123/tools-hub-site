@@ -1930,6 +1930,8 @@ const translations = {
     "imageCompressor.compressionRatio": "نسبة الضغط",
     "imageCompressor.download": "تحميل",
     
+
+    
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
     "imageCropper.position": "الموضع",

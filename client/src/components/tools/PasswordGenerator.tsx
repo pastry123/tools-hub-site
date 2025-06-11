@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Key, Copy, RefreshCw } from "lucide-react";
 
 export default function PasswordGenerator() {
@@ -18,6 +19,7 @@ export default function PasswordGenerator() {
   const [strength, setStrength] = useState(0);
   const [strengthText, setStrengthText] = useState("");
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const generatePassword = () => {
     let charset = "";
@@ -28,8 +30,8 @@ export default function PasswordGenerator() {
 
     if (!charset) {
       toast({
-        title: "No Character Types Selected",
-        description: "Please select at least one character type.",
+        title: t("passwordGenerator.noCharacterTypes"),
+        description: t("passwordGenerator.selectCharacterType"),
         variant: "destructive",
       });
       return;
@@ -44,8 +46,8 @@ export default function PasswordGenerator() {
     calculateStrength(newPassword);
     
     toast({
-      title: "Password Generated",
-      description: "Your new password has been generated successfully!",
+      title: t("passwordGenerator.passwordGenerated"),
+      description: t("passwordGenerator.generatedSuccessfully"),
     });
   };
 

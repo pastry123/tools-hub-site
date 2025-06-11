@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { RefreshCw, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function UUIDGenerator() {
   const [version, setVersion] = useState('v4');
@@ -14,6 +15,7 @@ export default function UUIDGenerator() {
   const [result, setResult] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleGenerate = async () => {
     setIsProcessing(true);
@@ -39,13 +41,13 @@ export default function UUIDGenerator() {
       setResult(data.result);
 
       toast({
-        title: "Success",
-        description: "UUID generated successfully"
+        title: t("uuidGenerator.success"),
+        description: t("uuidGenerator.generatedSuccessfully")
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to generate UUID",
+        title: t("uuidGenerator.error"),
+        description: t("uuidGenerator.failedToGenerate"),
         variant: "destructive"
       });
     } finally {

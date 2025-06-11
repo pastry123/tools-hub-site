@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Palette, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ColorResult {
   hex: string;
@@ -20,12 +21,13 @@ export default function ColorConverter() {
   const [result, setResult] = useState<ColorResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleConvert = async () => {
     if (!input.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a color value to convert",
+        title: t("colorConverter.error"),
+        description: t("colorConverter.enterColorValue"),
         variant: "destructive"
       });
       return;
