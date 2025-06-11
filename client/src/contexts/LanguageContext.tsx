@@ -1735,6 +1735,19 @@ const translations = {
     "barcode.qrcodevcard.desc": "QR Code لمعلومات الاتصال",
     "barcode.datamatrixvcard.desc": "Data Matrix لمعلومات الاتصال",
 
+    // Barcode Type Names - Arabic Translations
+    "QR Code vCard": "بطاقة أعمال QR",
+    "Data Matrix vCard": "بطاقة أعمال Data Matrix", 
+    "QR Code MeCard": "بطاقة MeCard بـ QR",
+    "Data Matrix MeCard": "بطاقة MeCard بـ Data Matrix",
+    "QR Code Event": "رمز حدث QR",
+    "Data Matrix Event": "رمز حدث Data Matrix",
+    "QR Code Wi-Fi": "رمز واي فاي QR", 
+    "Data Matrix Wi-Fi": "رمز واي فاي Data Matrix",
+    "QR Code (Mobile/Smartphone)": "رمز QR للهاتف المحمول",
+    "Korean Postal Authority Code": "رمز البريد الكوري",
+    "Flattermarken (Extended)": "فلاترماركن موسع",
+
     // Dialog and Modal Components
     "dialog.close": "إغلاق",
     "dialog.cancel": "إلغاء", 
@@ -2022,24 +2035,7 @@ const translations = {
     "base64Encoder.placeholderBase64": "أدخل Base64 هنا...",
     "base64Encoder.result": "النتيجة",
     
-    // Text to Slug Arabic translations
-    "textSlug.subtitle": "تحويل النص إلى روابط ودية",
-    "textSlug.enterText": "أدخل النص هنا",
-    "textSlug.convertLowercase": "تحويل إلى أحرف صغيرة",
-    "textSlug.generateSlug": "إنشاء الرابط",
-    "textSlug.generatedSlug": "الرابط المُولد",
-    "textSlug.copying": "جاري النسخ...",
-    
-    // Lorem Generator Arabic translations  
-    "lorem.subtitle": "إنشاء نص تجريبي",
-    "lorem.textType": "نوع النص",
-    "lorem.loremIpsum": "Lorem Ipsum",
-    "lorem.randomWords": "كلمات عشوائية",
-    "lorem.count": "العدد",
-    "lorem.generate": "إنشاء",
-    "lorem.generateText": "إنشاء النص",
-    "lorem.generatedText": "النص المُولد",
-    "lorem.clear": "مسح",
+
 
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
