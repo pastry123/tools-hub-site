@@ -73,7 +73,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600 dark:text-gray-400 font-medium">{t("dashboard.stats.popular")}</p>
-                  <p className="text-2xl font-bold text-slate-800 dark:text-white">PDF Tools</p>
+                  <p className="text-2xl font-bold text-slate-800 dark:text-white">{t("dashboard.stats.popularTool")}</p>
                 </div>
                 <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
                   <i className="fas fa-file-pdf text-red-500"></i>
