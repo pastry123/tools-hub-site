@@ -224,6 +224,23 @@ const translations = {
     "pdfFormat.extractPlainTextFromPdf": "Extract plain text from PDF",
     "pdfFormat.convertPdfToHtml": "Convert PDF to HTML format",
     
+    // Currency Names - English
+    "currency.usd": "US Dollar",
+    "currency.eur": "Euro",
+    "currency.gbp": "British Pound",
+    "currency.jpy": "Japanese Yen",
+    "currency.cad": "Canadian Dollar",
+    "currency.aud": "Australian Dollar",
+    "currency.chf": "Swiss Franc",
+    "currency.cny": "Chinese Yuan",
+    "currency.inr": "Indian Rupee",
+    "currency.brl": "Brazilian Real",
+    "currency.rub": "Russian Ruble",
+    "currency.krw": "South Korean Won",
+    "currency.mxn": "Mexican Peso",
+    "currency.sgd": "Singapore Dollar",
+    "currency.nzd": "New Zealand Dollar",
+    
     // Tool Page
     "toolPage.notFound": "Tool Not Found",
     "toolPage.addToFavorites": "Add to Favorites",
@@ -983,6 +1000,23 @@ const translations = {
     "pdfFormat.combineImagesIntoPdf": "Combinar múltiples imágenes en PDF",
     "pdfFormat.extractPlainTextFromPdf": "Extraer texto plano de PDF",
     "pdfFormat.convertPdfToHtml": "Convertir PDF a formato HTML",
+
+    // Currency Names - Spanish
+    "currency.usd": "Dólar Estadounidense",
+    "currency.eur": "Euro",
+    "currency.gbp": "Libra Esterlina",
+    "currency.jpy": "Yen Japonés",
+    "currency.cad": "Dólar Canadiense",
+    "currency.aud": "Dólar Australiano",
+    "currency.chf": "Franco Suizo",
+    "currency.cny": "Yuan Chino",
+    "currency.inr": "Rupia India",
+    "currency.brl": "Real Brasileño",
+    "currency.rub": "Rublo Ruso",
+    "currency.krw": "Won Surcoreano",
+    "currency.mxn": "Peso Mexicano",
+    "currency.sgd": "Dólar de Singapur",
+    "currency.nzd": "Dólar Neozelandés",
 
     "barcodeGenerator.generationFailed": "Fallo en la Generación",
     "barcodeGenerator.invalidInput": "Entrada Inválida",

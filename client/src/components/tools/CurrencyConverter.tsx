@@ -43,6 +43,14 @@ export default function CurrencyConverter() {
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Function to get translated currency name
+  const getCurrencyName = (code: string) => {
+    const key = `currency.${code.toLowerCase()}`;
+    const translated = t(key);
+    // If translation exists, use it; otherwise fall back to original name
+    return translated !== key ? translated : currencies.find(c => c.code === code)?.name || code;
+  };
+
   const fetchExchangeRates = async () => {
     setIsLoadingRates(true);
     try {
@@ -185,7 +193,7 @@ export default function CurrencyConverter() {
                 <SelectContent>
                   {currencies.map(currency => (
                     <SelectItem key={currency.code} value={currency.code}>
-                      {currency.symbol} {currency.name} ({currency.code})
+                      {currency.symbol} {getCurrencyName(currency.code)} ({currency.code})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -222,7 +230,7 @@ export default function CurrencyConverter() {
                 <SelectContent>
                   {currencies.map(currency => (
                     <SelectItem key={currency.code} value={currency.code}>
-                      {currency.symbol} {currency.name} ({currency.code})
+                      {currency.symbol} {getCurrencyName(currency.code)} ({currency.code})
                     </SelectItem>
                   ))}
                 </SelectContent>
