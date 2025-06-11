@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { FileText, Copy, RotateCcw } from "lucide-react";
 
 export default function WordCounter() {
@@ -17,6 +18,7 @@ export default function WordCounter() {
     readingTime: 0
   });
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     calculateStats(text);
@@ -51,32 +53,32 @@ export default function WordCounter() {
   const clearText = () => {
     setText("");
     toast({
-      title: "Text Cleared",
-      description: "The text area has been cleared.",
+      title: t("wordCounter.clearText"),
+      description: t("wordCounter.textCleared"),
     });
   };
 
   const copyStats = async () => {
     const statsText = `
-Text Statistics:
-Characters: ${stats.characters}
-Characters (no spaces): ${stats.charactersNoSpaces}
-Words: ${stats.words}
-Sentences: ${stats.sentences}
-Paragraphs: ${stats.paragraphs}
-Reading time: ${stats.readingTime} minute(s)
+${t("wordCounter.textStats")}:
+${t("wordCounter.characters")}: ${stats.characters}
+${t("wordCounter.charactersNoSpaces")}: ${stats.charactersNoSpaces}
+${t("wordCounter.words")}: ${stats.words}
+${t("wordCounter.sentences")}: ${stats.sentences}
+${t("wordCounter.paragraphs")}: ${stats.paragraphs}
+${t("wordCounter.readingTime")}: ${stats.readingTime}
     `.trim();
 
     try {
       await navigator.clipboard.writeText(statsText);
       toast({
-        title: "Stats Copied",
-        description: "Text statistics copied to clipboard.",
+        title: t("wordCounter.statsCopied"),
+        description: t("wordCounter.statscopiedDesc"),
       });
     } catch (error) {
       toast({
-        title: "Copy Failed",
-        description: "Failed to copy statistics to clipboard.",
+        title: t("wordCounter.copyFailed"),
+        description: t("wordCounter.copyFailedDesc"),
         variant: "destructive",
       });
     }
@@ -87,10 +89,10 @@ Reading time: ${stats.readingTime} minute(s)
       {/* Text Input */}
       <div className="space-y-4">
         <div>
-          <Label htmlFor="text-input">Enter or paste your text</Label>
+          <Label htmlFor="text-input">{t("wordCounter.enterText")}</Label>
           <Textarea
             id="text-input"
-            placeholder="Type or paste your text here to analyze..."
+            placeholder={t("wordCounter.enterText")}
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={15}
@@ -101,11 +103,11 @@ Reading time: ${stats.readingTime} minute(s)
         <div className="flex gap-2">
           <Button onClick={clearText} variant="outline" className="flex-1">
             <RotateCcw className="w-4 h-4 mr-2" />
-            Clear Text
+            {t("wordCounter.clearText")}
           </Button>
           <Button onClick={copyStats} variant="outline" className="flex-1">
             <Copy className="w-4 h-4 mr-2" />
-            Copy Stats
+            {t("wordCounter.copyStats")}
           </Button>
         </div>
       </div>
@@ -116,38 +118,38 @@ Reading time: ${stats.readingTime} minute(s)
           <CardContent className="p-6">
             <h3 className="font-semibold text-slate-800 mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2" />
-              Text Statistics
+              {t("wordCounter.textStats")}
             </h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{stats.characters.toLocaleString()}</p>
-                <p className="text-sm text-slate-600">Characters</p>
+                <p className="text-sm text-slate-600">{t("wordCounter.characters")}</p>
               </div>
               
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{stats.charactersNoSpaces.toLocaleString()}</p>
-                <p className="text-sm text-slate-600">Characters (no spaces)</p>
+                <p className="text-sm text-slate-600">{t("wordCounter.charactersNoSpaces")}</p>
               </div>
               
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{stats.words.toLocaleString()}</p>
-                <p className="text-sm text-slate-600">Words</p>
+                <p className="text-sm text-slate-600">{t("wordCounter.words")}</p>
               </div>
               
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{stats.sentences.toLocaleString()}</p>
-                <p className="text-sm text-slate-600">Sentences</p>
+                <p className="text-sm text-slate-600">{t("wordCounter.sentences")}</p>
               </div>
               
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{stats.paragraphs.toLocaleString()}</p>
-                <p className="text-sm text-slate-600">Paragraphs</p>
+                <p className="text-sm text-slate-600">{t("wordCounter.paragraphs")}</p>
               </div>
               
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{stats.readingTime}</p>
-                <p className="text-sm text-slate-600">Reading time (min)</p>
+                <p className="text-sm text-slate-600">{t("wordCounter.readingTime")}</p>
               </div>
             </div>
           </CardContent>
@@ -155,26 +157,26 @@ Reading time: ${stats.readingTime} minute(s)
 
         <Card>
           <CardContent className="p-6">
-            <h4 className="font-semibold text-slate-800 mb-3">Reading Metrics</h4>
+            <h4 className="font-semibold text-slate-800 mb-3">{t("wordCounter.readingMetrics")}</h4>
             <div className="space-y-2 text-sm text-slate-600">
               <div className="flex justify-between">
-                <span>Average words per sentence:</span>
+                <span>{t("wordCounter.avgWordsPerSentence")}:</span>
                 <span className="font-medium">
                   {stats.sentences > 0 ? Math.round(stats.words / stats.sentences) : 0}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Average characters per word:</span>
+                <span>{t("wordCounter.avgCharsPerWord")}:</span>
                 <span className="font-medium">
                   {stats.words > 0 ? Math.round(stats.charactersNoSpaces / stats.words) : 0}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Reading level:</span>
+                <span>{t("wordCounter.readingLevel")}:</span>
                 <span className="font-medium">
                   {stats.words > 0 && stats.sentences > 0 ? 
-                    (stats.words / stats.sentences < 15 ? 'Easy' : 
-                     stats.words / stats.sentences < 20 ? 'Medium' : 'Hard') : 'N/A'
+                    (stats.words / stats.sentences < 15 ? t("wordCounter.easy") : 
+                     stats.words / stats.sentences < 20 ? t("wordCounter.medium") : t("wordCounter.hard")) : 'N/A'
                   }
                 </span>
               </div>
