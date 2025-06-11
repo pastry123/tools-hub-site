@@ -24,31 +24,32 @@ export class AITextService {
     }
 
     try {
-      const prompt = `You are an expert at detecting AI-generated text. Analyze this text carefully and determine if it was written by AI or a human.
+      const prompt = `Analyze this text to determine if it was written by AI or a human. Be accurate and balanced in your assessment.
 
-Look for these AI indicators:
-- Overly perfect grammar with no natural errors
-- Repetitive sentence patterns or structures
-- Generic, templated language without personality
-- Formal tone lacking human warmth or emotion
-- Lists that are too perfectly formatted
+STRONG AI INDICATORS (High confidence for AI):
+- Perfectly structured paragraphs with formal business language
+- Repetitive sentence patterns (same length, same structure)
+- Generic phrases like "I hope this email finds you well" or "please don't hesitate to reach out"
+- Overly polite, professional tone without personality
+- Perfect grammar with no natural human variations
+- Lists that are perfectly formatted and comprehensive
 - Lack of contractions or casual language
-- Absence of personal opinions or experiences
-- Mechanical transitions between ideas
+- Mechanical transitions between topics
+- Absence of personal opinions, experiences, or emotions
 
-Look for these human indicators:
-- Natural grammatical variations or minor errors
-- Contractions and casual expressions
-- Personal voice, opinions, or experiences
-- Varied sentence lengths and structures
-- Emotional language or subjective statements
+STRONG HUMAN INDICATORS (High confidence for human):
+- Natural speech patterns with contractions ("I'm", "you're", "can't")
+- Minor grammatical imperfections or typos
+- Personal voice, opinions, or subjective statements
+- Casual expressions or colloquialisms
+- Emotional language or exclamations
+- Varied sentence structures (some short, some long, some fragments)
+- Personal experiences or anecdotes
 - Natural flow of conversation
-- Imperfect but authentic phrasing
-- Cultural references or personal anecdotes
 
 Text to analyze: "${text}"
 
-Be conservative - only mark as AI if you're quite confident. Humans write in many different styles.
+Be accurate - if the text shows clear AI patterns, mark it as AI. If it has genuine human characteristics, mark it as human.
 
 Return JSON format:
 {"isAI": boolean, "confidence": number, "indicators": ["key evidence"], "analysis": "reasoning"}`;
@@ -57,7 +58,7 @@ Return JSON format:
         messages: [
           {
             role: "system",
-            content: "You are a highly accurate AI detection expert. Your job is to distinguish between AI-generated and human-written text. Be conservative in your assessments - when in doubt, lean toward human authorship since humans have diverse writing styles. Focus on authentic patterns that clearly indicate AI generation."
+            content: "You are an accurate AI detection expert. Analyze text objectively to distinguish between AI-generated and human-written content. Look for clear patterns: AI text tends to be formal, structured, and generic, while human text has natural imperfections, personal voice, and casual elements. Be balanced in your assessment - don't be overly conservative or overly aggressive."
           },
           {
             role: "user",
