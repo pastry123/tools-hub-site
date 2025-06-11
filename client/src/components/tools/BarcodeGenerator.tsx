@@ -451,19 +451,19 @@ export default function BarcodeGenerator() {
   // Get translated category name
   const getCategoryTranslation = (category: string): string => {
     const categoryMap: Record<string, string> = {
-      "Linear Codes": t("barcodeCategory.linearCodes"),
-      "Postal Codes": t("barcodeCategory.postalCodes"),
-      "GS1 DataBar": t("barcodeCategory.gs1DataBar"),
-      "EAN / UPC": t("barcodeCategory.eanUpc"),
-      "2D Codes": t("barcodeCategory.twoDCodes"),
-      "GS1 2D Barcodes": t("barcodeCategory.gs1TwoDCodes"),
-      "Banking and Payments": t("barcodeCategory.bankingPayments"),
-      "Mobile Tagging": t("barcodeCategory.mobileTagging"),
-      "Healthcare Codes": t("barcodeCategory.healthcareCodes"),
-      "Business Cards": t("barcodeCategory.businessCards"),
-      "Event Barcodes": t("barcodeCategory.eventBarcodes"),
-      "Wi-Fi Barcodes": t("barcodeCategory.wifiBarcodes"),
-      "ISBN Codes": t("barcodeCategory.isbnCodes"),
+      "Linear Codes": t("barcode.linearCodes") || "Linear Codes",
+      "Postal Codes": t("barcode.postalCodes") || "Postal Codes",
+      "GS1 DataBar": t("barcode.gs1DataBar") || "GS1 DataBar",
+      "EAN / UPC": t("barcode.eanUpc") || "EAN / UPC",
+      "2D Codes": t("barcode.twoDCodes") || "2D Codes",
+      "GS1 2D Barcodes": t("barcode.gs1TwoDCodes") || "GS1 2D Barcodes",
+      "Banking and Payments": t("barcode.bankingPayment") || "Banking and Payments",
+      "Mobile Tagging": t("barcode.mobileTags") || "Mobile Tagging",
+      "Healthcare Codes": t("barcode.healthcare") || "Healthcare Codes",
+      "Business Cards": t("barcode.businessCards") || "Business Cards",
+      "Event Barcodes": t("barcode.events") || "Event Barcodes",
+      "Wi-Fi Barcodes": t("barcode.wifi") || "Wi-Fi Barcodes",
+      "ISBN Codes": t("barcode.isbn") || "ISBN Codes",
     };
     
     return categoryMap[category] || category;
