@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Hash, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HashGenerator() {
   const [inputText, setInputText] = useState('');
@@ -13,12 +14,13 @@ export default function HashGenerator() {
   const [outputHash, setOutputHash] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleGenerate = async () => {
     if (!inputText.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter some text to hash",
+        title: t("common.error"),
+        description: t("hashGenerator.enterText"),
         variant: "destructive"
       });
       return;
@@ -46,13 +48,13 @@ export default function HashGenerator() {
       setOutputHash(data.result);
 
       toast({
-        title: "Success",
-        description: `${algorithm.toUpperCase()} hash generated successfully`
+        title: t("common.success"),
+        description: t("hashGenerator.generated", { algorithm: algorithm.toUpperCase() })
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to generate hash",
+        title: t("common.error"),
+        description: t("hashGenerator.failed"),
         variant: "destructive"
       });
     } finally {
