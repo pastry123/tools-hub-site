@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { FileJson, Copy, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function JSONFormatter() {
   const [input, setInput] = useState('');
@@ -13,6 +14,7 @@ export default function JSONFormatter() {
   const [result, setResult] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleFormat = async () => {
     if (!input.trim()) {

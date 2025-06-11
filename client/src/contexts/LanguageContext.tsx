@@ -1977,6 +1977,18 @@ const translations = {
     "colorConverter.copy": "نسخ",
     "colorConverter.preview": "معاينة",
     
+    // Hash Generator Tool
+    "hashGenerator.title": "مولد التشفير",
+    "hashGenerator.enterText": "يرجى إدخال نص للتشفير",
+    "hashGenerator.generated": "تم إنشاء التشفير بنجاح",
+    "hashGenerator.failed": "فشل في إنشاء التشفير",
+    "hashGenerator.copied": "تم نسخ التشفير إلى الحافظة",
+    "hashGenerator.inputText": "النص المدخل",
+    "hashGenerator.placeholder": "أدخل النص هنا...",
+    "hashGenerator.algorithm": "خوارزمية التشفير",
+    "hashGenerator.generate": "إنشاء التشفير",
+    "hashGenerator.result": "نتيجة التشفير",
+    
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
     "imageCropper.position": "الموضع",

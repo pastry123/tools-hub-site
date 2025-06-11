@@ -49,7 +49,7 @@ export default function HashGenerator() {
 
       toast({
         title: t("common.success"),
-        description: t("hashGenerator.generated", { algorithm: algorithm.toUpperCase() })
+        description: t("hashGenerator.generated")
       });
     } catch (error) {
       toast({
@@ -65,8 +65,8 @@ export default function HashGenerator() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(outputHash);
     toast({
-      title: "Copied",
-      description: "Hash copied to clipboard"
+      title: t("common.copied"),
+      description: t("hashGenerator.copied")
     });
   };
 
@@ -76,23 +76,23 @@ export default function HashGenerator() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Hash className="w-5 h-5" />
-            Hash Generator
+            {t("hashGenerator.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="input-text">Input Text</Label>
+            <Label htmlFor="input-text">{t("hashGenerator.inputText")}</Label>
             <Textarea
               id="input-text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Enter your text here..."
+              placeholder={t("hashGenerator.placeholder")}
               className="mt-2 min-h-[120px]"
             />
           </div>
 
           <div>
-            <Label htmlFor="algorithm">Hash Algorithm</Label>
+            <Label htmlFor="algorithm">{t("hashGenerator.algorithm")}</Label>
             <Select value={algorithm} onValueChange={setAlgorithm}>
               <SelectTrigger>
                 <SelectValue />
@@ -107,16 +107,16 @@ export default function HashGenerator() {
           </div>
 
           <Button onClick={handleGenerate} disabled={isProcessing} className="w-full">
-            {isProcessing ? 'Generating...' : `Generate ${algorithm.toUpperCase()} Hash`}
+            {isProcessing ? t("common.processing") : t("hashGenerator.generate")}
           </Button>
 
           {outputHash && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>{algorithm.toUpperCase()} Hash</Label>
+                <Label>{t("hashGenerator.result")}</Label>
                 <Button variant="outline" size="sm" onClick={copyToClipboard}>
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy
+                  {t("common.copy")}
                 </Button>
               </div>
               <Textarea

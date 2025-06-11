@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Lock, Unlock, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Base64Encoder() {
   const [encodeInput, setEncodeInput] = useState('');
@@ -15,6 +16,7 @@ export default function Base64Encoder() {
   const [isEncoding, setIsEncoding] = useState(false);
   const [isDecoding, setIsDecoding] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleEncode = async () => {
     if (!encodeInput.trim()) {
