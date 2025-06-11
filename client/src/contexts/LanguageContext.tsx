@@ -1748,23 +1748,37 @@ const translations = {
     "Korean Postal Authority Code": "رمز البريد الكوري",
     "Flattermarken (Extended)": "فلاترماركن موسع",
 
-    // Additional PDF Tools Arabic Translations
+    // PDF Tools Core Arabic Translations
+    "pdfSplitter.title": "تقسيم PDF",
+    "pdfSplitter.subtitle": "استخراج صفحات أو نطاقات محددة من مستندات PDF",
+    "pdfSplitter.uploadFile": "رفع ملف PDF",
+    "pdfSplitter.chooseFile": "اختر ملف",
+    "pdfSplitter.dragDrop": "اسحب وأسقط ملف PDF هنا، أو انقر للتصفح",
+    "pdfSplitter.split": "تقسيم PDF",
+    "pdfSplitter.pages": "صفحات",
+    "pdfSplitter.splitting": "جارٍ التقسيم...",
     "pdfSplitter.specificPages": "صفحات محددة",
     "pdfSplitter.pageRanges": "نطاقات الصفحات", 
     "pdfSplitter.everyNPages": "كل N صفحات",
     "pdfSplitter.fixedSizeChunks": "قطع بحجم ثابت",
-    "pdfSplitter.splitting": "جارٍ التقسيم...",
     "pdfSplitter.splitResults": "نتائج التقسيم",
     "pdfSplitter.downloadAll": "تحميل الكل",
     "pdfSplitter.inputRequired": "مطلوب إدخال",
     "pdfSplitter.specifyPagesOrRanges": "يرجى تحديد الصفحات أو النطاقات المراد استخراجها",
     
-    // PDF Converter Additional Arabic Translations  
+    // PDF Converter Core Arabic Translations  
+    "pdfConverter.title": "محول PDF",
+    "pdfConverter.description": "تحويل بين PDF وتنسيقات المستندات المختلفة بما في ذلك Word و Excel والصور والمزيد",
+    "pdfConverter.uploadFile": "رفع ملف",
+    "pdfConverter.chooseFile": "اختر ملف",
+    "pdfConverter.dragDrop": "اسحب وأسقط ملف هنا، أو انقر للتصفح",
+    "pdfConverter.convertFile": "تحويل الملف",
     "pdfConverter.converting": "جارٍ التحويل...",
     "pdfConverter.conversionComplete": "اكتمل التحويل!",
     "pdfConverter.readyForDownload": "جاهز للتحميل",
     "pdfConverter.selectOutputFormat": "اختر تنسيق الإخراج",
     "pdfConverter.chooseConversionFormat": "اختر تنسيق التحويل",
+    "pdfConverter.supportedFormats": "التنسيقات المدعومة: PDF، Word (DOC/DOCX)، Excel (XLS/XLSX)، الصور (JPG/PNG/GIF/BMP)",
 
     // Dialog and Modal Components
     "dialog.close": "إغلاق",
