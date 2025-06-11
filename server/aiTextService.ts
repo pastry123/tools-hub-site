@@ -24,41 +24,41 @@ export class AITextService {
     }
 
     try {
-      const prompt = `Analyze this text to determine if it was written by AI or a human. Be accurate and balanced in your assessment.
+      const prompt = `Analyze this text and determine if it was written by AI or a human. Look carefully for AI patterns.
 
-STRONG AI INDICATORS (High confidence for AI):
-- Perfectly structured paragraphs with formal business language
-- Repetitive sentence patterns (same length, same structure)
-- Generic phrases like "I hope this email finds you well" or "please don't hesitate to reach out"
-- Overly polite, professional tone without personality
-- Perfect grammar with no natural human variations
-- Lists that are perfectly formatted and comprehensive
+CLASSIC AI PATTERNS - Mark as AI if you see these:
+- Formal, business-like language without personality
+- Perfect grammar and structure with no natural flaws
+- Generic, templated phrases (e.g., "I hope you had a great holiday", "as discussed", "moving forward")
+- Overly polite and professional tone
+- Consistent sentence lengths and patterns
 - Lack of contractions or casual language
-- Mechanical transitions between topics
-- Absence of personal opinions, experiences, or emotions
+- Mechanical flow without natural conversation
+- No personal voice, opinions, or emotional language
+- Structured information delivery without human warmth
 
-STRONG HUMAN INDICATORS (High confidence for human):
-- Natural speech patterns with contractions ("I'm", "you're", "can't")
-- Minor grammatical imperfections or typos
-- Personal voice, opinions, or subjective statements
-- Casual expressions or colloquialisms
-- Emotional language or exclamations
-- Varied sentence structures (some short, some long, some fragments)
-- Personal experiences or anecdotes
-- Natural flow of conversation
+HUMAN PATTERNS - Mark as human if you see these:
+- Casual contractions ("I'm", "you're", "don't", "can't")
+- Natural grammatical variations or minor imperfections
+- Personal opinions, experiences, or subjective statements
+- Emotional expressions or exclamations
+- Varied sentence structures (mix of long/short/fragments)
+- Colloquial expressions or slang
+- Natural conversational flow
+- Personal voice and authentic personality
 
-Text to analyze: "${text}"
+Text: "${text}"
 
-Be accurate - if the text shows clear AI patterns, mark it as AI. If it has genuine human characteristics, mark it as human.
+If this text is formal, polished, and generic-sounding, it's likely AI. If it has natural human speech patterns and personality, it's likely human.
 
-Return JSON format:
-{"isAI": boolean, "confidence": number, "indicators": ["key evidence"], "analysis": "reasoning"}`;
+Return JSON:
+{"isAI": boolean, "confidence": number, "indicators": ["specific evidence"], "analysis": "brief reasoning"}`;
 
       const completion = await groq.chat.completions.create({
         messages: [
           {
             role: "system",
-            content: "You are an accurate AI detection expert. Analyze text objectively to distinguish between AI-generated and human-written content. Look for clear patterns: AI text tends to be formal, structured, and generic, while human text has natural imperfections, personal voice, and casual elements. Be balanced in your assessment - don't be overly conservative or overly aggressive."
+            content: "You are an AI detection expert. Your primary goal is to accurately identify AI-generated text. AI text typically has formal language, perfect structure, generic phrases, and lacks personal voice. Be decisive - if text shows clear AI characteristics like formal business language and templated phrases, mark it as AI with high confidence."
           },
           {
             role: "user",
