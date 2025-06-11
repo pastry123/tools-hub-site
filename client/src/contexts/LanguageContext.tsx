@@ -2022,6 +2022,8 @@ const translations = {
     "base64Encoder.placeholderBase64": "أدخل Base64 هنا...",
     "base64Encoder.result": "النتيجة",
     
+
+    
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
     "imageCropper.position": "الموضع",
@@ -2379,10 +2381,6 @@ const translations = {
     "common.terms": "الشروط",
 
     // Text Tools Error Messages
-    "textSlug.error": "خطأ",
-    "textSlug.enterTextFirst": "يرجى إدخال نص للتحويل",
-    "caseConverter.error": "خطأ", 
-    "caseConverter.enterTextFirst": "يرجى إدخال نص للتحويل",
 
     // Color Analyzer additional keys
     "colorAnalyzer.processing": "جاري تحليل الألوان...",
@@ -2398,15 +2396,7 @@ const translations = {
     // AI Text Tool
 
 
-    // Lorem Generator translations
-    "loremGenerator.title": "مولد النص التجريبي",
-    "loremGenerator.subtitle": "إنشاء نص Lorem Ipsum للتصميم",
-    "loremGenerator.paragraphs": "الفقرات",
-    "loremGenerator.words": "الكلمات",
-    "loremGenerator.characters": "الأحرف",
-    "loremGenerator.generate": "إنشاء النص",
-    "loremGenerator.copy": "نسخ النص",
-    "loremGenerator.copied": "تم النسخ!",
+
     
     // Footer sections
     "footer.enterpriseStandards": "معايير المؤسسات",
