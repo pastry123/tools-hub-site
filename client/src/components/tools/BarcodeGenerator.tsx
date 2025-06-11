@@ -469,6 +469,64 @@ export default function BarcodeGenerator() {
     return categoryMap[category] || category;
   };
 
+  // Get translated barcode description
+  const getBarcodeDescription = (typeName: string, bcid: string): string => {
+    const typeKey = typeName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const translationKey = `barcode.${typeKey}.desc`;
+    
+    // Try exact type name first
+    let translation = t(translationKey);
+    if (translation !== translationKey) {
+      return translation;
+    }
+    
+    // Try bcid mapping for common types
+    const bcidMap: Record<string, string> = {
+      'code128': t("barcode.code128.desc"),
+      'code11': t("barcode.code11.desc"),
+      'interleaved2of5': t("barcode.code2of5.desc"),
+      'code39': t("barcode.code39.desc"),
+      'code39ext': t("barcode.code39full.desc"),
+      'code93': t("barcode.code93.desc"),
+      'gs1-128': t("barcode.gs1128.desc"),
+      'msicode': t("barcode.msi.desc"),
+      'pharmacode': t("barcode.pharmacode1.desc"),
+      'pharmacode2': t("barcode.pharmacode2.desc"),
+      'telepen': t("barcode.telepen.desc"),
+      'auspost': t("barcode.australianpost.desc"),
+      'daft': t("barcode.daft.desc"),
+      'dpd': t("barcode.dpd.desc"),
+      'japanpost': t("barcode.japanesepost.desc"),
+      'kix': t("barcode.kix.desc"),
+      'postnet': t("barcode.uspspostnet.desc"),
+      'impb': t("barcode.uspsim.desc"),
+      'upu-s10': t("barcode.upus10.desc"),
+      'gs1databaromni': t("barcode.gs1databar.desc"),
+      'gs1databarstacked': t("barcode.gs1databarstacked.desc"),
+      'gs1databarlimited': t("barcode.gs1databarlimited.desc"),
+      'gs1databarexpanded': t("barcode.gs1databarexpanded.desc"),
+      'gs1databarexpandedstacked': t("barcode.gs1databarexpandedstacked.desc"),
+      'ean8': t("barcode.ean8.desc"),
+      'ean13': t("barcode.ean13.desc"),
+      'ean14': t("barcode.ean14.desc"),
+      'upca': t("barcode.upca.desc"),
+      'upce': t("barcode.upce.desc"),
+      'qrcode': t("barcode.qrcode.desc"),
+      'datamatrix': t("barcode.datamatrix.desc"),
+      'datamatrixrectangular': t("barcode.datamatrixrect.desc"),
+      'azteccode': t("barcode.aztec.desc"),
+      'codablockf': t("barcode.codablock.desc"),
+      'maxicode': t("barcode.maxicode.desc"),
+      'micropdf417': t("barcode.micropdf417.desc"),
+      'pdf417': t("barcode.pdf417.desc"),
+      'microqrcode': t("barcode.microqr.desc"),
+      'hanxin': t("barcode.hanxin.desc"),
+      'dotcode': t("barcode.dotcode.desc"),
+    };
+    
+    return bcidMap[bcid] || typeName;
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center mb-8">
@@ -536,7 +594,7 @@ export default function BarcodeGenerator() {
                           <div className="flex items-center justify-between w-full min-w-0">
                             <div className="flex flex-col min-w-0 flex-1">
                               <span className="font-medium truncate">{typeName}</span>
-                              <span className="text-xs text-gray-500 truncate">{typeData.hint}</span>
+                              <span className="text-xs text-gray-500 truncate">{getBarcodeDescription(typeName, typeData.bcid)}</span>
                             </div>
                             <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded ml-2 flex-shrink-0">
                               ✓ {t("barcodeGenerator.professional")}
@@ -571,7 +629,7 @@ export default function BarcodeGenerator() {
                     </span>
                   </div>
                   <div className="text-xs mt-2 text-green-600 dark:text-green-300">
-                    {currentBarcodeDef.hint} - {t("barcodeGenerator.professionalGrade")}
+                    {getBarcodeDescription(currentBarcodeDef.name, currentBarcodeDef.bcid)} - {t("barcodeGenerator.professionalGrade")}
                   </div>
                 </div>
               )}
