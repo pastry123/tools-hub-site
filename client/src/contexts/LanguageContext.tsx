@@ -515,6 +515,14 @@ const translations = {
     "colorAnalyzer.analyzeColors": "Analyze Colors",
     "colorAnalyzer.noFileChosen": "No file chosen",
     "colorAnalyzer.chooseFile": "Choose File",
+    
+    // PDF Merger
+    "pdfMerger.title": "PDF Merger",
+    "pdfMerger.subtitle": "Combine multiple PDF files into one document",
+    "pdfMerger.invalidFileType": "Invalid file type",
+    "pdfMerger.notPdfFile": "is not a PDF file",
+    "pdfMerger.fileTooLarge": "File too large",
+    "pdfMerger.exceedsLimit": "exceeds 50MB limit",
   },
   es: {
     // Header
@@ -1010,6 +1018,7 @@ const translations = {
     "dashboard.stats.tools": "إجمالي الأدوات",
     "dashboard.stats.categories": "الفئات",
     "dashboard.stats.popular": "الأكثر شعبية",
+    "dashboard.stats.popularTool": "أدوات PDF",
     "dashboard.stats.free": "مجاني للاستخدام",
     "dashboard.quickAccess": "الوصول السريع",
     "dashboard.allCategories": "جميع فئات الأدوات",

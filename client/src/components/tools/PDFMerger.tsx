@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { FileUp, Download, X, Move3D, FileText, AlertCircle } from "lucide-react";
 
 interface PDFFile {
@@ -23,6 +24,7 @@ export default function PDFMerger() {
   const [outputFileName, setOutputFileName] = useState("merged-document.pdf");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleFileSelection = (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
@@ -34,8 +36,8 @@ export default function PDFMerger() {
       
       if (file.type !== "application/pdf") {
         toast({
-          title: "Invalid file type",
-          description: `${file.name} is not a PDF file`,
+          title: t("pdfMerger.invalidFileType"),
+          description: `${file.name} ${t("pdfMerger.notPdfFile")}`,
           variant: "destructive",
         });
         continue;
@@ -43,8 +45,8 @@ export default function PDFMerger() {
 
       if (file.size > 50 * 1024 * 1024) { // 50MB limit
         toast({
-          title: "File too large",
-          description: `${file.name} exceeds 50MB limit`,
+          title: t("pdfMerger.fileTooLarge"),
+          description: `${file.name} ${t("pdfMerger.exceedsLimit")}`,
           variant: "destructive",
         });
         continue;
