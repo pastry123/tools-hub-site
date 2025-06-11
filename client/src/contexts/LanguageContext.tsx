@@ -1532,6 +1532,45 @@ const translations = {
     "bulkBarcode.selectJobToStart": "اختر مهمة للبدء",
     "bulkBarcode.chooseJobOrCreate": "اختر مهمة من القائمة أو أنشئ واحدة جديدة",
 
+    // RFID Reader Tool
+    "rfidReader.title": "قارئ RFID",
+    "rfidReader.subtitle": "قراءة وكتابة البيانات إلى العلامات والأجهزة المزودة بـ NFC",
+    "rfidReader.nfcNotSupported": "NFC غير مدعوم على هذا الجهاز أو المتصفح. تتطلب هذه الميزة جهازًا بقدرات NFC ومتصفحًا متوافقًا.",
+    "rfidReader.readTags": "قراءة العلامات",
+    "rfidReader.writeTags": "كتابة العلامات",
+    "rfidReader.tagHistory": "تاريخ العلامات",
+    "rfidReader.nfcTagScanner": "ماسح علامات NFC",
+    "rfidReader.startReading": "بدء القراءة",
+    "rfidReader.stopReading": "إيقاف القراءة",
+    "rfidReader.holdDeviceNear": "ضع جهازك بالقرب من علامة NFC لقراءتها",
+    "rfidReader.recentTags": "العلامات الحديثة",
+    "rfidReader.writeToNfcTag": "الكتابة إلى علامة NFC",
+    "rfidReader.readTagFirst": "يرجى قراءة علامة أولاً قبل كتابة البيانات إليها.",
+    "rfidReader.selectTag": "اختر علامة",
+    "rfidReader.dataType": "نوع البيانات",
+    "rfidReader.text": "نص",
+    "rfidReader.url": "رابط",
+    "rfidReader.wifi": "WiFi",
+    "rfidReader.contact": "جهة اتصال",
+    "rfidReader.dataToWrite": "البيانات للكتابة",
+    "rfidReader.wifiFormat": "(التنسيق: SSID;كلمة المرور;الأمان)",
+    "rfidReader.contactFormat": "(التنسيق: الاسم;الهاتف;البريد الإلكتروني)",
+    "rfidReader.writeToTag": "الكتابة إلى العلامة",
+    "rfidReader.enterText": "أدخل النص للكتابة...",
+    "rfidReader.noTagsRead": "لم يتم قراءة أي علامات بعد. ابدأ بقراءة بعض علامات NFC أولاً.",
+
+    // Data Matrix Generator Tool
+    "dataMatrix.title": "مولد Data Matrix",
+    "dataMatrix.subtitle": "إنشاء رموز Data Matrix بجودة عالية",
+
+    // EAN-13 Generator Tool  
+    "ean13.title": "مولد EAN-13",
+    "ean13.subtitle": "إنشاء باركود EAN-13",
+
+    // Code 128 Generator Tool
+    "code128.title": "مولد Code 128", 
+    "code128.subtitle": "إنشاء باركود Code 128",
+
     // Text Tools Error Messages
     "textSlug.error": "خطأ",
     "textSlug.enterTextFirst": "يرجى إدخال نص للتحويل",

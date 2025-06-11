@@ -10,6 +10,7 @@ import {
   RefreshCw, Play, Square
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NFCTag {
   id: string;
@@ -37,6 +38,7 @@ export default function RFIDReader() {
   const [writeType, setWriteType] = useState<'text' | 'url' | 'wifi' | 'contact'>('text');
 
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Check if Web NFC is supported
@@ -212,24 +214,24 @@ export default function RFIDReader() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">RFID/NFC Tag Reader</h1>
-        <p className="text-gray-600">Read and write data to NFC-enabled tags and devices</p>
+        <h1 className="text-3xl font-bold mb-2">{t("rfidReader.title")}</h1>
+        <p className="text-gray-600">{t("rfidReader.subtitle")}</p>
       </div>
 
       {!isSupported && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            NFC is not supported on this device or browser. This feature requires a device with NFC capabilities and a compatible browser.
+            {t("rfidReader.nfcNotSupported")}
           </AlertDescription>
         </Alert>
       )}
 
       <Tabs defaultValue="read" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="read">Read Tags</TabsTrigger>
-          <TabsTrigger value="write">Write Tags</TabsTrigger>
-          <TabsTrigger value="history">Tag History</TabsTrigger>
+          <TabsTrigger value="read">{t("rfidReader.readTags")}</TabsTrigger>
+          <TabsTrigger value="write">{t("rfidReader.writeTags")}</TabsTrigger>
+          <TabsTrigger value="history">{t("rfidReader.tagHistory")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="read" className="space-y-6">
@@ -237,7 +239,7 @@ export default function RFIDReader() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Radio className="w-5 h-5" />
-                NFC Tag Scanner
+                {t("rfidReader.nfcTagScanner")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
