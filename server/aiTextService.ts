@@ -178,19 +178,19 @@ Return JSON: {"humanizedText": "ultra-casual version", "changes": ["eliminated a
         messages: [
           {
             role: "system",
-            content: "You are an expert at making AI text completely undetectable. Your ONLY job is to rewrite text so it passes as 100% human-written. Add real human flaws, casual language, personal touches, and authentic imperfections. The text must sound like someone casually writing or texting - never formal or polished. Include contractions, slang, minor errors, and conversational elements that AI would never naturally produce."
+            content: "You bypass AI detection by writing like a real human having a casual conversation. Your goal is to eliminate all AI patterns and make text sound like someone texting a friend - never business communication. Add authentic human elements: incomplete thoughts, natural speech mistakes, personal reactions, run-on sentences, and conversational flow. Use tons of contractions, filler words, and emotional reactions that feel genuine and imperfect."
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        model: "llama3-8b-8192",
-        temperature: 1.1,
+        model: "llama3-70b-8192",
+        temperature: 1.3,
         max_tokens: 2000,
-        top_p: 0.95,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.2,
+        top_p: 0.9,
+        frequency_penalty: 1.0,
+        presence_penalty: 0.8,
       });
 
       const response = completion.choices[0]?.message?.content;
@@ -222,23 +222,40 @@ Return JSON: {"humanizedText": "ultra-casual version", "changes": ["eliminated a
       try {
         result = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        // Clean up common JSON issues
+        // Clean up common JSON issues including control characters
         let cleanJson = jsonMatch[0]
           .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
           .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
-          .replace(/\n/g, ' ')     // Replace newlines with spaces
+          .replace(/\n/g, '\\n')   // Escape newlines properly
           .replace(/\r/g, '')      // Remove carriage returns
-          .replace(/\t/g, ' ')     // Replace tabs with spaces
-          .replace(/\s+/g, ' ')    // Normalize multiple spaces
+          .replace(/\t/g, '\\t')   // Escape tabs properly
+          .replace(/\\/g, '\\\\')  // Escape backslashes
+          .replace(/"/g, '\\"')    // Escape quotes in strings
+          .replace(/\\\\"([^"]*)\\\\":/g, '"$1":')  // Fix over-escaped keys
+          .replace(/: *\\\\"([^"]*)\\\\"([,}])/g, ': "$1"$2')  // Fix over-escaped values
+          .replace(/[\x00-\x1F\x7F-\x9F]/g, '')  // Remove control characters
           .trim();
         
         try {
           result = JSON.parse(cleanJson);
         } catch (secondError) {
-          console.error('JSON Parse Error:', secondError);
-          console.error('Original JSON:', jsonMatch[0]);
-          console.error('Cleaned JSON:', cleanJson);
-          throw new Error('Failed to parse JSON response');
+          // Last resort: extract just the text content manually
+          const textMatch = cleanJson.match(/"humanizedText"\s*:\s*"([^"]+)"/);
+          const changesMatch = cleanJson.match(/"changes"\s*:\s*\[([^\]]*)\]/);
+          const scoreMatch = cleanJson.match(/"readabilityScore"\s*:\s*(\d+)/);
+          
+          if (textMatch) {
+            result = {
+              humanizedText: textMatch[1],
+              changes: changesMatch ? [changesMatch[1]] : [],
+              readabilityScore: scoreMatch ? parseInt(scoreMatch[1]) : 85
+            };
+          } else {
+            console.error('JSON Parse Error:', secondError);
+            console.error('Original JSON:', jsonMatch[0]);
+            console.error('Cleaned JSON:', cleanJson);
+            throw new Error('Failed to parse JSON response');
+          }
         }
       }
       
