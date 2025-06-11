@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { FileUp, Download, Scissors, FileText, AlertCircle, Info } from "lucide-react";
 
 interface SplitOption {
@@ -28,6 +29,7 @@ export default function PDFSplitter() {
   const [splitResults, setSplitResults] = useState<Array<{ name: string; url: string; pages: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const splitOptions: SplitOption[] = [
     { type: 'pages', value: 'pages', label: 'Specific Pages' },

@@ -1748,6 +1748,24 @@ const translations = {
     "Korean Postal Authority Code": "رمز البريد الكوري",
     "Flattermarken (Extended)": "فلاترماركن موسع",
 
+    // Additional PDF Tools Arabic Translations
+    "pdfSplitter.specificPages": "صفحات محددة",
+    "pdfSplitter.pageRanges": "نطاقات الصفحات", 
+    "pdfSplitter.everyNPages": "كل N صفحات",
+    "pdfSplitter.fixedSizeChunks": "قطع بحجم ثابت",
+    "pdfSplitter.splitting": "جارٍ التقسيم...",
+    "pdfSplitter.splitResults": "نتائج التقسيم",
+    "pdfSplitter.downloadAll": "تحميل الكل",
+    "pdfSplitter.inputRequired": "مطلوب إدخال",
+    "pdfSplitter.specifyPagesOrRanges": "يرجى تحديد الصفحات أو النطاقات المراد استخراجها",
+    
+    // PDF Converter Additional Arabic Translations  
+    "pdfConverter.converting": "جارٍ التحويل...",
+    "pdfConverter.conversionComplete": "اكتمل التحويل!",
+    "pdfConverter.readyForDownload": "جاهز للتحميل",
+    "pdfConverter.selectOutputFormat": "اختر تنسيق الإخراج",
+    "pdfConverter.chooseConversionFormat": "اختر تنسيق التحويل",
+
     // Dialog and Modal Components
     "dialog.close": "إغلاق",
     "dialog.cancel": "إلغاء", 
@@ -2083,30 +2101,8 @@ const translations = {
     "pdfMerger.exceeds50MB": "يتجاوز حد 50 ميجابايت",
     "pdfMerger.insufficientFiles": "ملفات غير كافية",
     "pdfMerger.selectAtLeast2": "يرجى اختيار ملفين PDF على الأقل للدمج",
-    
-    "pdfSplitter.title": "تقسيم PDF",
-    "pdfSplitter.subtitle": "استخراج صفحات أو نطاقات محددة من وثائق PDF",
-    "pdfSplitter.uploadFile": "رفع ملف PDF",
-    "pdfSplitter.dragDropFile": "اسحب وأفلت ملف PDF هنا، أو انقر للتصفح",
-    "pdfSplitter.chooseFile": "اختر ملف",
-    "pdfSplitter.pages": "صفحات",
-    "pdfSplitter.splitOptions": "خيارات التقسيم",
-    "pdfSplitter.specificPages": "صفحات محددة",
-    "pdfSplitter.pageRanges": "نطاقات الصفحات",
-    "pdfSplitter.everyNPages": "كل N صفحات",
-    "pdfSplitter.fixedSizeChunks": "قطع بحجم ثابت",
-    "pdfSplitter.specificPagesInput": "إدخال الصفحات المحددة",
-    "pdfSplitter.enterSpecificPages": "أدخل أرقام الصفحات المحددة مفصولة بفواصل",
-    "pdfSplitter.enterPageRanges": "أدخل نطاقات الصفحات (مثل 1-5) أو صفحات فردية، مفصولة بفواصل",
-    "pdfSplitter.splitEveryNPages": "قسم PDF كل N صفحات إلى ملفات منفصلة",
-    "pdfSplitter.createFixedSizeFiles": "إنشاء ملفات بعدد ثابت من الصفحات",
-    "pdfSplitter.splitting": "جارٍ التقسيم...",
-    "pdfSplitter.splitPDF": "تقسيم PDF",
-    "pdfSplitter.splitResults": "نتائج التقسيم",
-    "pdfSplitter.files": "ملفات",
-    "pdfSplitter.downloadAll": "تحميل الكل",
-    "pdfSplitter.inputRequired": "مطلوب إدخال",
-    "pdfSplitter.specifyPagesOrRanges": "يرجى تحديد الصفحات أو النطاقات المراد استخراجها",
+
+
     
     "pdfCompressor.title": "ضاغط PDF",
     "pdfCompressor.subtitle": "تقليل حجم ملف PDF مع الحفاظ على الجودة",
