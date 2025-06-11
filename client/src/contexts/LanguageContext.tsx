@@ -917,8 +917,21 @@ const translations = {
     "tools.mobile-app-plan": "Plan de App Móvil",
     "tools.mobile-app-plan.desc": "Planificar aplicaciones móviles",
 
-
-
+    // Currency Converter Spanish Translations
+    "currencyConverter.title": "Convertidor de Moneda en Tiempo Real",
+    "currencyConverter.lastUpdated": "Última actualización",
+    "currencyConverter.refresh": "Actualizar",
+    "currencyConverter.from": "De",
+    "currencyConverter.to": "A",
+    "currencyConverter.enterAmount": "Ingrese el monto",
+    "currencyConverter.convertedAmount": "Monto convertido",
+    "currencyConverter.convertCurrency": "Convertir Moneda",
+    "currencyConverter.converting": "Convirtiendo...",
+    "currencyConverter.clear": "Limpiar",
+    "currencyConverter.liveExchangeRates": "Tasas de Cambio en Vivo",
+    "currencyConverter.autoRefresh": "Actualización Automática",
+    "currencyConverter.realTimeData": "Datos de moneda en tiempo real actualizados cada hora desde los mercados financieros",
+    "currencyConverter.intelligentCaching": "Las tasas se actualizan automáticamente con sistema de caché inteligente",
 
     "barcodeGenerator.generationFailed": "Fallo en la Generación",
     "barcodeGenerator.invalidInput": "Entrada Inválida",
@@ -2277,16 +2290,6 @@ const translations = {
 
     // Utility Tools
     "utilityTools.title": "الأدوات المساعدة",
-    
-    "currencyConverter.title": "محول العملات",
-    "currencyConverter.subtitle": "تحويل العملات بأسعار الصرف الحية",
-    "currencyConverter.amount": "المبلغ",
-    "currencyConverter.fromCurrency": "من العملة",
-    "currencyConverter.toCurrency": "إلى العملة",
-    "currencyConverter.convertCurrency": "تحويل العملة",
-    "currencyConverter.exchangeRate": "سعر الصرف",
-    "currencyConverter.lastUpdated": "آخر تحديث",
-    "currencyConverter.popular": "العملات الشائعة",
     
     "unitConverter.title": "محول الوحدات",
     "unitConverter.subtitle": "تحويل بين وحدات القياس المختلفة",

@@ -276,9 +276,9 @@ export default function CurrencyConverter() {
             <div className="flex items-center space-x-3">
               <TrendingUp className="h-6 w-6 text-green-500" />
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-white">Live Exchange Rates</h3>
+                <h3 className="font-semibold text-slate-800 dark:text-white">{t("currencyConverter.liveExchangeRates") || "أسعار الصرف المباشرة"}</h3>
                 <p className="text-sm text-slate-600 dark:text-gray-300">
-                  Real-time currency data updated hourly from financial markets
+                  {t("currencyConverter.realTimeData") || "بيانات العملة في الوقت الفعلي يتم تحديثها كل ساعة من الأسواق المالية"}
                 </p>
               </div>
             </div>
@@ -290,9 +290,9 @@ export default function CurrencyConverter() {
             <div className="flex items-center space-x-3">
               <RefreshCw className="h-6 w-6 text-blue-500" />
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-white">Auto-Refresh</h3>
+                <h3 className="font-semibold text-slate-800 dark:text-white">{t("currencyConverter.autoRefresh") || "التحديث التلقائي"}</h3>
                 <p className="text-sm text-slate-600 dark:text-gray-300">
-                  Rates automatically refresh with intelligent caching system
+                  {t("currencyConverter.intelligentCaching") || "تحديث الأسعار تلقائياً مع نظام تخزين مؤقت ذكي"}
                 </p>
               </div>
             </div>
