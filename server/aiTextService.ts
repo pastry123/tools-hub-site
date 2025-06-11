@@ -129,68 +129,47 @@ Return JSON format:
     try {
       const prompt = `You must completely rewrite this AI text to be 100% undetectable as AI. Transform it using these critical techniques:
 
-CRITICAL FIXES FOR BUSINESS LANGUAGE:
-- "follow-ups" → "messages/texts/checking in"
-- "disconnect and take a breather" → "chill out/relax/unwind"
-- "regular routine" → "normal stuff/back to usual/regular flow"
-- "touch base" → "catch up/chat/talk"
-- "availability looks like" → "you're free/when works/your schedule"
-- "schedule our next meeting" → "set up our next chat/call/get together"
+ESSENTIAL CHANGES:
+- Add authentic human flaws: minor typos, informal grammar, run-on sentences
+- Use real human speech: "gonna", "kinda", "you know", "I mean", "honestly"
+- Include personal elements: "I think", "in my experience", "personally"
+- Add emotional markers: "ugh", "wow", "lol", casual exclamations
+- Break perfect structure: start sentences with "And", "But", "So"
+- Use inconsistent punctuation and capitalization naturally
+- Add conversational tangents or brief personal references
+- Include regional/colloquial expressions
+- Use varied sentence rhythm - some short, some long, some fragments
 
-HUMAN SPEECH PATTERNS:
-- Start sentences casually: "So", "Anyway", "Honestly", "I was thinking"
-- Add filler words: "like", "you know", "I mean", "basically"
-- Use contractions: "I'd", "we're", "didn't", "you're", "would've"
-- Add personal emotions: "I felt bad", "I didn't want to bug you"
-- Include casual transitions: "btw", "also", "oh and"
-- Make some sentences incomplete or run-on naturally
-- Add minor grammatical variations humans make
-
-ELIMINATE COMPLETELY:
-- ALL business jargon and corporate speak
-- Perfect sentence structure and formatting
-- Overly polite professional phrases
-- Generic formal expressions
+AVOID AT ALL COSTS:
+- Perfect grammar and punctuation
+- Formal business language
+- Structured lists or perfect formatting
+- Overly polite or professional tone
+- Generic phrases without personality
 
 Original text: "${text}"
 
-CRITICAL: Make this sound like texting a close friend, NOT business communication. Eliminate ALL corporate language patterns.
+Rewrite this to sound like a real person texting or talking casually. Make it completely natural and undetectable as AI.
 
-DESTROY THESE PATTERNS:
-- "managed to unwind and recharge" → "got to chill/relax"
-- "business plan, timeline, and expectations" → break into casual mentions
-- "we discussed before you took off" → "we talked about before your break"
-- "back to our normal routine" → "back to the usual stuff"
-- "touch base and schedule" → "catch up and figure out when"
-- "let me know what your schedule looks like" → "when are you free?"
-- "I'll send over a few options" → "I'll throw some times at you"
-
-ADD AUTHENTIC HUMAN ELEMENTS:
-- Start with casual thoughts: "So anyway", "I was just thinking"
-- Add personal reactions: "I felt weird messaging during holidays"
-- Use incomplete sentences and natural flow
-- Include filler words and casual transitions
-- Make it sound like someone actually talking
-
-Return JSON: {"humanizedText": "ultra-casual version", "changes": ["eliminated all corporate speak"], "readabilityScore": 84}`;
+Return JSON: {"humanizedText": "rewritten text", "changes": ["key changes"], "readabilityScore": 88}`;
 
       const completion = await groq.chat.completions.create({
         messages: [
           {
             role: "system",
-            content: "You bypass AI detection by writing like a real human having a casual conversation. Your goal is to eliminate all AI patterns and make text sound like someone texting a friend - never business communication. Add authentic human elements: incomplete thoughts, natural speech mistakes, personal reactions, run-on sentences, and conversational flow. Use tons of contractions, filler words, and emotional reactions that feel genuine and imperfect."
+            content: "You are an expert at making AI text completely undetectable. Your ONLY job is to rewrite text so it passes as 100% human-written. Add real human flaws, casual language, personal touches, and authentic imperfections. The text must sound like someone casually writing or texting - never formal or polished. Include contractions, slang, minor errors, and conversational elements that AI would never naturally produce."
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        model: "llama3-70b-8192",
-        temperature: 1.3,
+        model: "llama3-8b-8192",
+        temperature: 1.1,
         max_tokens: 2000,
-        top_p: 0.9,
-        frequency_penalty: 1.0,
-        presence_penalty: 0.8,
+        top_p: 0.95,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.2,
       });
 
       const response = completion.choices[0]?.message?.content;
@@ -222,43 +201,23 @@ Return JSON: {"humanizedText": "ultra-casual version", "changes": ["eliminated a
       try {
         result = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        // Clean up common JSON issues including control characters
+        // Clean up common JSON issues
         let cleanJson = jsonMatch[0]
           .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
           .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
-          .replace(/\n/g, '\\n')   // Escape newlines properly
+          .replace(/\n/g, ' ')     // Replace newlines with spaces
           .replace(/\r/g, '')      // Remove carriage returns
-          .replace(/\t/g, '\\t')   // Escape tabs properly
-          .replace(/\\/g, '\\\\')  // Escape backslashes
-          .replace(/"/g, '\\"')    // Escape quotes in strings
-          .replace(/\\\\"([^"]*)\\\\":/g, '"$1":')  // Fix over-escaped keys
-          .replace(/: *\\\\"([^"]*)\\\\"([,}])/g, ': "$1"$2')  // Fix over-escaped values
-          .replace(/[\x00-\x1F\x7F-\x9F]/g, '')  // Remove control characters
+          .replace(/\t/g, ' ')     // Replace tabs with spaces
+          .replace(/\s+/g, ' ')    // Normalize multiple spaces
           .trim();
         
         try {
           result = JSON.parse(cleanJson);
         } catch (secondError) {
-          // Last resort: extract just the text content manually
-          const textMatch = cleanJson.match(/"humanizedText"\s*:\s*"([^"]+)"/);
-          const changesMatch = cleanJson.match(/"changes"\s*:\s*\[([^\]]*)\]/);
-          const scoreMatch = cleanJson.match(/"readabilityScore"\s*:\s*(\d+)/);
-          
-          if (textMatch) {
-            result = {
-              humanizedText: textMatch[1],
-              changes: changesMatch ? [changesMatch[1]] : [],
-              readabilityScore: scoreMatch ? parseInt(scoreMatch[1]) : 85
-            };
-          } else {
-            // Apply basic humanization as fallback
-            const humanizedText = this.applyBasicHumanization(text);
-            result = {
-              humanizedText,
-              changes: ['Applied fallback humanization due to parsing errors'],
-              readabilityScore: 80
-            };
-          }
+          console.error('JSON Parse Error:', secondError);
+          console.error('Original JSON:', jsonMatch[0]);
+          console.error('Cleaned JSON:', cleanJson);
+          throw new Error('Failed to parse JSON response');
         }
       }
       
@@ -270,57 +229,8 @@ Return JSON: {"humanizedText": "ultra-casual version", "changes": ["eliminated a
 
     } catch (error) {
       console.error('Text Humanization Error:', error);
-      // Return fallback humanization instead of throwing error
-      return {
-        humanizedText: this.applyBasicHumanization(text),
-        changes: ['Applied fallback humanization due to service error'],
-        readabilityScore: 75
-      };
+      throw new Error('Failed to humanize text');
     }
-  }
-
-  private applyBasicHumanization(text: string): string {
-    let humanized = text;
-
-    // Replace formal business phrases
-    const replacements = [
-      { from: /follow.up/gi, to: 'checking in' },
-      { from: /disconnect and take a breather/gi, to: 'chill out and relax' },
-      { from: /regular routine/gi, to: 'usual stuff' },
-      { from: /touch base/gi, to: 'catch up' },
-      { from: /schedule our next meeting/gi, to: 'set up when we can chat' },
-      { from: /what your schedule looks like/gi, to: 'when you\'re free' },
-      { from: /I\'ll send over a few options/gi, to: 'I\'ll throw some times at you' },
-      { from: /managed to unwind and recharge/gi, to: 'got to chill and relax' },
-      { from: /business plan, timeline, and expectations/gi, to: 'all that stuff we talked about' },
-      { from: /we discussed before you took off/gi, to: 'we chatted about before your break' },
-      { from: /back to our normal routine/gi, to: 'back to the usual' },
-      { from: /review the documents/gi, to: 'look over those docs' },
-      { from: /whenever suits you best/gi, to: 'whatever works for you' },
-    ];
-
-    replacements.forEach(({ from, to }) => {
-      humanized = humanized.replace(from, to);
-    });
-
-    // Add casual elements
-    humanized = humanized.replace(/\. /g, '. Anyway, ');
-    humanized = humanized.replace(/^/, 'So ');
-    humanized = humanized.replace(/I /g, 'I ');
-    
-    // Add contractions
-    humanized = humanized.replace(/I am/g, 'I\'m');
-    humanized = humanized.replace(/you are/g, 'you\'re');
-    humanized = humanized.replace(/we are/g, 'we\'re');
-    humanized = humanized.replace(/did not/g, 'didn\'t');
-    humanized = humanized.replace(/do not/g, 'don\'t');
-    humanized = humanized.replace(/I would/g, 'I\'d');
-    humanized = humanized.replace(/would have/g, 'would\'ve');
-
-    // Clean up multiple "Anyway" from replacement
-    humanized = humanized.replace(/Anyway, Anyway,/g, 'Anyway,');
-
-    return humanized;
   }
 }
 
