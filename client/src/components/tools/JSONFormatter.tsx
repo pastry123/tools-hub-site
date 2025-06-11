@@ -19,8 +19,8 @@ export default function JSONFormatter() {
   const handleFormat = async () => {
     if (!input.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter JSON to format",
+        title: t("common.error"),
+        description: t("jsonFormatter.enterJSON"),
         variant: "destructive"
       });
       return;
@@ -48,13 +48,13 @@ export default function JSONFormatter() {
       setResult(data.result);
 
       toast({
-        title: "Success",
-        description: data.result.valid ? "JSON formatted successfully" : "JSON has errors but was processed"
+        title: t("common.success"),
+        description: data.result.valid ? t("jsonFormatter.formatted") : t("jsonFormatter.hasErrors")
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to format JSON",
+        title: t("common.error"),
+        description: t("jsonFormatter.failed"),
         variant: "destructive"
       });
     } finally {
@@ -65,8 +65,8 @@ export default function JSONFormatter() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Copied",
-      description: "JSON copied to clipboard"
+      title: t("common.copied"),
+      description: t("jsonFormatter.copied")
     });
   };
 
@@ -76,17 +76,17 @@ export default function JSONFormatter() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileJson className="w-5 h-5" />
-            JSON Formatter & Validator
+            {t("jsonFormatter.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="input">JSON Input</Label>
+            <Label htmlFor="input">{t("jsonFormatter.inputJSON")}</Label>
             <Textarea
               id="input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder='{"name": "example", "data": [1,2,3]}'
+              placeholder={t("jsonFormatter.placeholder")}
               rows={8}
               className="font-mono"
             />
