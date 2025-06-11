@@ -206,6 +206,24 @@ const translations = {
     "textSlug.generatedSlug": "Generated Slug",
     "textSlug.copying": "Copying...",
     
+    // PDF Converter Format Options - English
+    "pdfFormat.pdfToWord": "PDF to Word",
+    "pdfFormat.wordToPdf": "Word to PDF", 
+    "pdfFormat.pdfToExcel": "PDF to Excel",
+    "pdfFormat.excelToPdf": "Excel to PDF",
+    "pdfFormat.pdfToImages": "PDF to Images",
+    "pdfFormat.imagesToPdf": "Images to PDF",
+    "pdfFormat.pdfToText": "PDF to Text",
+    "pdfFormat.pdfToHtml": "PDF to HTML",
+    "pdfFormat.convertPdfToEditableWord": "Convert PDF to editable Word document",
+    "pdfFormat.convertWordToPdf": "Convert Word document to PDF",
+    "pdfFormat.extractTablesFromPdf": "Extract tables from PDF to Excel spreadsheet",
+    "pdfFormat.convertExcelToPdf": "Convert Excel spreadsheet to PDF",
+    "pdfFormat.convertPdfPagesToImages": "Convert PDF pages to JPG/PNG images",
+    "pdfFormat.combineImagesIntoPdf": "Combine multiple images into PDF",
+    "pdfFormat.extractPlainTextFromPdf": "Extract plain text from PDF",
+    "pdfFormat.convertPdfToHtml": "Convert PDF to HTML format",
+    
     // Tool Page
     "toolPage.notFound": "Tool Not Found",
     "toolPage.addToFavorites": "Add to Favorites",

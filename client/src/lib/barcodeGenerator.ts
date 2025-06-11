@@ -136,7 +136,7 @@ export const BARCODE_TYPES = {
   
   // Healthcare Codes
   'code32': { bcid: 'code32', name: 'Code32', description: 'Italian pharmacode' },
-  'flattermarken': { bcid: 'flattermarken', name: 'Flattermarken', description: 'German pharmaceutical barcode' },
+  'flattermarken-healthcare': { bcid: 'flattermarken', name: 'Flattermarken Healthcare', description: 'German pharmaceutical barcode' },
   'hibc-lic-128': { bcid: 'hibccode128', name: 'HIBC LIC 128', description: 'Healthcare Industry Bar Code 128' },
   'hibc-lic-39': { bcid: 'hibccode39', name: 'HIBC LIC 39', description: 'HIBC with Code 39' },
   'hibc-lic-aztec': { bcid: 'hibcazteccode', name: 'HIBC LIC Aztec', description: 'HIBC with Aztec code' },

@@ -32,72 +32,72 @@ export default function PDFConverter() {
   const conversionFormats: ConversionFormat[] = [
     {
       id: 'pdf-to-word',
-      name: 'PDF to Word',
+      name: t("pdfFormat.pdfToWord"),
       extension: '.docx',
-      description: 'Convert PDF to editable Word document',
+      description: t("pdfFormat.convertPdfToEditableWord"),
       icon: FileText,
       inputFormats: ['application/pdf'],
       outputFormat: 'docx'
     },
     {
       id: 'word-to-pdf',
-      name: 'Word to PDF',
+      name: t("pdfFormat.wordToPdf"),
       extension: '.pdf',
-      description: 'Convert Word document to PDF',
+      description: t("pdfFormat.convertWordToPdf"),
       icon: FileText,
       inputFormats: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'],
       outputFormat: 'pdf'
     },
     {
       id: 'pdf-to-excel',
-      name: 'PDF to Excel',
+      name: t("pdfFormat.pdfToExcel"),
       extension: '.xlsx',
-      description: 'Extract tables from PDF to Excel spreadsheet',
+      description: t("pdfFormat.extractTablesFromPdf"),
       icon: FileSpreadsheet,
       inputFormats: ['application/pdf'],
       outputFormat: 'xlsx'
     },
     {
       id: 'excel-to-pdf',
-      name: 'Excel to PDF',
+      name: t("pdfFormat.excelToPdf"),
       extension: '.pdf',
-      description: 'Convert Excel spreadsheet to PDF',
+      description: t("pdfFormat.convertExcelToPdf"),
       icon: FileSpreadsheet,
       inputFormats: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
       outputFormat: 'pdf'
     },
     {
       id: 'pdf-to-images',
-      name: 'PDF to Images',
+      name: t("pdfFormat.pdfToImages"),
       extension: '.zip',
-      description: 'Convert PDF pages to JPG/PNG images',
+      description: t("pdfFormat.convertPdfPagesToImages"),
       icon: Image,
       inputFormats: ['application/pdf'],
       outputFormat: 'images'
     },
     {
       id: 'images-to-pdf',
-      name: 'Images to PDF',
+      name: t("pdfFormat.imagesToPdf"),
       extension: '.pdf',
-      description: 'Combine multiple images into a PDF',
+      description: t("pdfFormat.combineImagesIntoPdf"),
       icon: Image,
       inputFormats: ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'],
       outputFormat: 'pdf'
     },
     {
       id: 'pdf-to-text',
-      name: 'PDF to Text',
+      name: t("pdfFormat.pdfToText"),
       extension: '.txt',
-      description: 'Extract plain text from PDF',
+      description: t("pdfFormat.extractPlainTextFromPdf"),
       icon: FileCode,
       inputFormats: ['application/pdf'],
       outputFormat: 'txt'
     },
     {
       id: 'pdf-to-html',
-      name: 'PDF to HTML',
+      name: t("pdfFormat.pdfToHtml"),
       extension: '.html',
-      description: 'Convert PDF to HTML format',
+      description: t("pdfFormat.convertPdfToHtml"),
       icon: FileCode,
       inputFormats: ['application/pdf'],
       outputFormat: 'html'
