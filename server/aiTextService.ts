@@ -154,9 +154,25 @@ ELIMINATE COMPLETELY:
 
 Original text: "${text}"
 
-Rewrite this to sound like a real person texting or talking casually. Make it completely natural and undetectable as AI.
+CRITICAL: Make this sound like texting a close friend, NOT business communication. Eliminate ALL corporate language patterns.
 
-Return JSON: {"humanizedText": "rewritten text", "changes": ["key changes"], "readabilityScore": 88}`;
+DESTROY THESE PATTERNS:
+- "managed to unwind and recharge" → "got to chill/relax"
+- "business plan, timeline, and expectations" → break into casual mentions
+- "we discussed before you took off" → "we talked about before your break"
+- "back to our normal routine" → "back to the usual stuff"
+- "touch base and schedule" → "catch up and figure out when"
+- "let me know what your schedule looks like" → "when are you free?"
+- "I'll send over a few options" → "I'll throw some times at you"
+
+ADD AUTHENTIC HUMAN ELEMENTS:
+- Start with casual thoughts: "So anyway", "I was just thinking"
+- Add personal reactions: "I felt weird messaging during holidays"
+- Use incomplete sentences and natural flow
+- Include filler words and casual transitions
+- Make it sound like someone actually talking
+
+Return JSON: {"humanizedText": "ultra-casual version", "changes": ["eliminated all corporate speak"], "readabilityScore": 84}`;
 
       const completion = await groq.chat.completions.create({
         messages: [
