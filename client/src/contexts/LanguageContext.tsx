@@ -1361,7 +1361,7 @@ const translations = {
     "tools.timestamp-converter.desc": "تحويل الطوابع الزمنية والتواريخ",
     "tools.base64-encoder": "مرمز Base64",
     "tools.base64-encoder.desc": "ترميز وفك ترميز نص Base64",
-    "tools.url-encoder": "مرمز URL",
+    "tools.url-encoder": "مرمز URL", 
     "tools.url-encoder.desc": "ترميز وفك ترميز عناوين URL",
     "tools.json-formatter": "منسق JSON",
     "tools.json-formatter.desc": "تنسيق والتحقق من صحة JSON",
