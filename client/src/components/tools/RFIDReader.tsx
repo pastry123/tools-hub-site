@@ -354,13 +354,13 @@ export default function RFIDReader() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Data Type</label>
+                    <label className="block text-sm font-medium mb-2">{t("rfidReader.dataType")}</label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {[
-                        { value: 'text', label: 'Text', icon: <Key className="w-4 h-4" /> },
-                        { value: 'url', label: 'URL', icon: <CreditCard className="w-4 h-4" /> },
-                        { value: 'wifi', label: 'WiFi', icon: <Wifi className="w-4 h-4" /> },
-                        { value: 'contact', label: 'Contact', icon: <IdCard className="w-4 h-4" /> }
+                        { value: 'text', label: t("rfidReader.text"), icon: <Key className="w-4 h-4" /> },
+                        { value: 'url', label: t("rfidReader.url"), icon: <CreditCard className="w-4 h-4" /> },
+                        { value: 'wifi', label: t("rfidReader.wifi"), icon: <Wifi className="w-4 h-4" /> },
+                        { value: 'contact', label: t("rfidReader.contact"), icon: <IdCard className="w-4 h-4" /> }
                       ].map(type => (
                         <button
                           key={type.value}
@@ -380,15 +380,15 @@ export default function RFIDReader() {
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Data to Write
-                      {writeType === 'wifi' && <span className="text-xs text-gray-500 ml-2">(Format: SSID;Password;Security)</span>}
-                      {writeType === 'contact' && <span className="text-xs text-gray-500 ml-2">(Format: Name;Phone;Email)</span>}
+                      {t("rfidReader.dataToWrite")}
+                      {writeType === 'wifi' && <span className="text-xs text-gray-500 ml-2">{t("rfidReader.wifiFormat")}</span>}
+                      {writeType === 'contact' && <span className="text-xs text-gray-500 ml-2">{t("rfidReader.contactFormat")}</span>}
                     </label>
                     <textarea
                       value={writeData}
                       onChange={(e) => setWriteData(e.target.value)}
                       placeholder={
-                        writeType === 'text' ? 'Enter text to write...' :
+                        writeType === 'text' ? t("rfidReader.enterText") :
                         writeType === 'url' ? 'https://example.com' :
                         writeType === 'wifi' ? 'MyNetwork;password123;WPA' :
                         'John Doe;+1234567890;john@example.com'
@@ -404,7 +404,7 @@ export default function RFIDReader() {
                     className="w-full"
                   >
                     <Shield className="w-4 h-4 mr-2" />
-                    Write to Tag
+{t("rfidReader.writeToTag")}
                   </Button>
                 </>
               )}
@@ -415,14 +415,13 @@ export default function RFIDReader() {
         <TabsContent value="history" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Tag History</CardTitle>
+              <CardTitle>{t("rfidReader.tagHistory")}</CardTitle>
             </CardHeader>
             <CardContent>
               {tags.length === 0 ? (
                 <div className="text-center py-8">
                   <Radio className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-600">No tags read yet</p>
-                  <p className="text-sm text-gray-500">Start reading NFC tags to see them here</p>
+                  <p className="text-gray-600">{t("rfidReader.noTagsRead")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
