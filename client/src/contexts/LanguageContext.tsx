@@ -2022,8 +2022,25 @@ const translations = {
     "base64Encoder.placeholderBase64": "أدخل Base64 هنا...",
     "base64Encoder.result": "النتيجة",
     
-
+    // Text to Slug Arabic translations
+    "textSlug.subtitle": "تحويل النص إلى روابط ودية",
+    "textSlug.enterText": "أدخل النص هنا",
+    "textSlug.convertLowercase": "تحويل إلى أحرف صغيرة",
+    "textSlug.generateSlug": "إنشاء الرابط",
+    "textSlug.generatedSlug": "الرابط المُولد",
+    "textSlug.copying": "جاري النسخ...",
     
+    // Lorem Generator Arabic translations  
+    "lorem.subtitle": "إنشاء نص تجريبي",
+    "lorem.textType": "نوع النص",
+    "lorem.loremIpsum": "Lorem Ipsum",
+    "lorem.randomWords": "كلمات عشوائية",
+    "lorem.count": "العدد",
+    "lorem.generate": "إنشاء",
+    "lorem.generateText": "إنشاء النص",
+    "lorem.generatedText": "النص المُولد",
+    "lorem.clear": "مسح",
+
     "imageCropper.visualEditor": "محرر القص المرئي",
     "imageCropper.cropSettings": "إعدادات القص",
     "imageCropper.position": "الموضع",
