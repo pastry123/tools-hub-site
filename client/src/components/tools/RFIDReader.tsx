@@ -256,18 +256,18 @@ export default function RFIDReader() {
                     {!isReading ? (
                       <Button onClick={startReading} disabled={!isSupported} size="lg">
                         <Play className="w-5 h-5 mr-2" />
-                        Start Reading
+                        {t("rfidReader.startReading")}
                       </Button>
                     ) : (
                       <Button onClick={stopReading} variant="destructive" size="lg">
                         <Square className="w-5 h-5 mr-2" />
-                        Stop Reading
+                        {t("rfidReader.stopReading")}
                       </Button>
                     )}
                   </div>
                   {isReading && (
                     <p className="text-sm text-gray-600 mt-2">
-                      Hold your device near an NFC tag to read it
+                      {t("rfidReader.holdDeviceNear")}
                     </p>
                   )}
                 </div>
@@ -275,7 +275,7 @@ export default function RFIDReader() {
 
               {tags.length > 0 && (
                 <div>
-                  <h3 className="font-medium mb-3">Recent Tags</h3>
+                  <h3 className="font-medium mb-3">{t("rfidReader.recentTags")}</h3>
                   <div className="space-y-2">
                     {tags.slice(0, 3).map((tag) => {
                       const content = formatTagContent(tag);
@@ -313,7 +313,7 @@ export default function RFIDReader() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wifi className="w-5 h-5" />
-                Write to NFC Tag
+{t("rfidReader.writeToNfcTag")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -321,13 +321,13 @@ export default function RFIDReader() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Please read a tag first before writing data to it.
+{t("rfidReader.readTagFirst")}
                   </AlertDescription>
                 </Alert>
               ) : (
                 <>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Select Tag</label>
+                    <label className="block text-sm font-medium mb-2">{t("rfidReader.selectTag")}</label>
                     <div className="space-y-2">
                       {tags.filter(tag => tag.writable).map((tag) => (
                         <div 

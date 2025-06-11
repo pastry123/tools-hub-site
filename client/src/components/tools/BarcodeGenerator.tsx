@@ -431,10 +431,27 @@ export default function BarcodeGenerator() {
     }
   };
 
+  // Get dynamic title based on current barcode type
+  const getDynamicTitle = () => {
+    if (!currentBarcodeDef) return t("barcodeGenerator.title");
+    
+    const bcid = currentBarcodeDef.bcid;
+    
+    // Map specific barcode types to their Arabic translations
+    const titleMap: Record<string, string> = {
+      'datamatrix': t("dataMatrix.title"),
+      'ean13': t("ean13.title"),
+      'code128': t("code128.title"),
+      'qrcode': t("qrGenerator.title")
+    };
+    
+    return titleMap[bcid] || t("barcodeGenerator.title");
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t("barcodeGenerator.title")}</h1>
+        <h1 className="text-3xl font-bold mb-2">{getDynamicTitle()}</h1>
         <p className="text-gray-600">{t("barcodeGenerator.subtitle")}</p>
       </div>
 
