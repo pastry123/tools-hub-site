@@ -1780,6 +1780,22 @@ const translations = {
     "pdfConverter.chooseConversionFormat": "اختر تنسيق التحويل",
     "pdfConverter.supportedFormats": "التنسيقات المدعومة: PDF، Word (DOC/DOCX)، Excel (XLS/XLSX)، الصور (JPG/PNG/GIF/BMP)",
 
+    // Currency Converter Arabic Translations
+    "currencyConverter.title": "محول العملات في الوقت الفعلي",
+    "currencyConverter.lastUpdated": "آخر تحديث",
+    "currencyConverter.refresh": "تحديث",
+    "currencyConverter.from": "من",
+    "currencyConverter.to": "إلى",
+    "currencyConverter.enterAmount": "أدخل المبلغ",
+    "currencyConverter.convertedAmount": "المبلغ المحول",
+    "currencyConverter.convertCurrency": "تحويل العملة",
+    "currencyConverter.converting": "جارٍ التحويل...",
+    "currencyConverter.clear": "مسح",
+    "currencyConverter.liveExchangeRates": "أسعار الصرف المباشرة",
+    "currencyConverter.autoRefresh": "التحديث التلقائي",
+    "currencyConverter.realTimeData": "بيانات العملة في الوقت الفعلي يتم تحديثها كل ساعة من الأسواق المالية",
+    "currencyConverter.intelligentCaching": "تحديث الأسعار تلقائياً مع نظام تخزين مؤقت ذكي",
+
     // Dialog and Modal Components
     "dialog.close": "إغلاق",
     "dialog.cancel": "إلغاء", 

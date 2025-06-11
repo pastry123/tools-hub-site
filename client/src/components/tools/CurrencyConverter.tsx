@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowRightLeft, RefreshCw, Clock, TrendingUp } from "lucide-react";
 
 interface ExchangeRates {
@@ -40,6 +41,7 @@ export default function CurrencyConverter() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingRates, setIsLoadingRates] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const fetchExchangeRates = async () => {
     setIsLoadingRates(true);
@@ -150,7 +152,7 @@ export default function CurrencyConverter() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
-            Real-Time Currency Converter
+            {t("currencyConverter.title") || "محول العملات في الوقت الفعلي"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -158,7 +160,7 @@ export default function CurrencyConverter() {
             <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
               <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
                 <Clock className="w-4 h-4 mr-2" />
-                Last updated: {new Date(exchangeRates.lastUpdated).toLocaleString()}
+                {t("currencyConverter.lastUpdated") || "آخر تحديث"}: {new Date(exchangeRates.lastUpdated).toLocaleString()}
               </div>
               <Button 
                 variant="outline" 
@@ -167,7 +169,7 @@ export default function CurrencyConverter() {
                 disabled={isLoadingRates}
               >
                 <RefreshCw className={`w-4 h-4 mr-1 ${isLoadingRates ? 'animate-spin' : ''}`} />
-                Refresh
+                {t("currencyConverter.refresh") || "تحديث"}
               </Button>
             </div>
           )}
@@ -175,7 +177,7 @@ export default function CurrencyConverter() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             {/* From Currency */}
             <div className="space-y-3">
-              <Label>From</Label>
+              <Label>{t("currencyConverter.from") || "من"}</Label>
               <Select value={fromCurrency} onValueChange={setFromCurrency}>
                 <SelectTrigger>
                   <SelectValue />
@@ -190,7 +192,7 @@ export default function CurrencyConverter() {
               </Select>
               <Input
                 type="number"
-                placeholder="Enter amount"
+                placeholder={t("currencyConverter.enterAmount") || "أدخل المبلغ"}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 min="0"
@@ -212,7 +214,7 @@ export default function CurrencyConverter() {
 
             {/* To Currency */}
             <div className="space-y-3">
-              <Label>To</Label>
+              <Label>{t("currencyConverter.to") || "إلى"}</Label>
               <Select value={toCurrency} onValueChange={setToCurrency}>
                 <SelectTrigger>
                   <SelectValue />
@@ -227,7 +229,7 @@ export default function CurrencyConverter() {
               </Select>
               <Input
                 type="text"
-                placeholder="Converted amount"
+                placeholder={t("currencyConverter.convertedAmount") || "المبلغ المحول"}
                 value={result}
                 readOnly
                 className="font-mono"
@@ -254,14 +256,14 @@ export default function CurrencyConverter() {
               {isLoading ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Converting...
+                  {t("currencyConverter.converting") || "جارٍ التحويل..."}
                 </>
               ) : (
-                "Convert Currency"
+                t("currencyConverter.convertCurrency") || "تحويل العملة"
               )}
             </Button>
             <Button onClick={clearAll} variant="outline" className="flex-1">
-              Clear
+              {t("currencyConverter.clear") || "مسح"}
             </Button>
           </div>
         </CardContent>
