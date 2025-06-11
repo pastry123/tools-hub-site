@@ -66,7 +66,7 @@ export const BARCODE_TYPES = {
   'rm4scc': { bcid: 'royalmail', name: 'RM4SCC', description: 'Royal Mail 4-state Customer Code' },
   'daft-barcode': { bcid: 'daft', name: 'DAFT', description: 'Descender-Ascender-Full-Tall' },
   'raw-barcode': { bcid: 'raw', name: 'Raw', description: 'Raw barcode format' },
-  'flattermarken-barcode': { bcid: 'flattermarken', name: 'Flattermarken', description: 'German machine-readable code' },
+  'flattermarken-barcode': { bcid: 'flattermarken', name: 'Flattermarken Standard', description: 'German machine-readable code' },
   
   // GS1 DataBar
   'gs1-databar': { bcid: 'gs1databar', name: 'GS1 DataBar Omnidirectional', description: 'Omnidirectional DataBar' },

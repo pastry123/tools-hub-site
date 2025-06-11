@@ -157,7 +157,7 @@ const barcodeCategories: Record<string, Record<string, { bcid: string; hint: str
   },
   "Additional Postal": {
     "Korean Postal Authority Code": { bcid: "koreapost", hint: "Korean postal barcode for domestic mail routing." },
-    "Flattermarken (Extended)": { bcid: "flattermarken-ext", actualBcid: "flattermarken", hint: "Extended Flattermarken for specialized postal applications." }
+    "Flattermarken Extended": { bcid: "flattermarken-extended", actualBcid: "flattermarken", hint: "Extended Flattermarken for specialized postal applications." }
   }
 };
 
