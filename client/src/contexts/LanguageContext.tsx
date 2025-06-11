@@ -2175,9 +2175,6 @@ const translations = {
 
     // Developer Tools
     "devTools.title": "أدوات التطوير",
-    "jsonFormatter.syntaxError": "خطأ في بناء الجملة",
-    "jsonFormatter.copyFormatted": "نسخ المنسق",
-    "jsonFormatter.downloadJson": "تحميل JSON",
     
     "htmlEncoder.title": "مرمز HTML",
     "htmlEncoder.subtitle": "ترميز وفك ترميز HTML وXML",
