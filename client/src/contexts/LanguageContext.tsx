@@ -8,7 +8,7 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const translations = {
+const translations: Record<Language, Record<string, string>> = {
   en: {
     // Header
     "header.title": "Aptexa ToolHub",
@@ -625,7 +625,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return (translations[language] as Record<string, string>)[key] || key;
+    return translations[language][key] || key;
   };
 
   // Initialize language from localStorage on mount
