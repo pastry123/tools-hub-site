@@ -506,6 +506,34 @@ const translations: Record<Language, Record<string, string>> = {
     "hibccodablockf.title": "HIBC LIC Codablock-F",
     "hibcazteccode.title": "HIBC LIC Aztec",
     
+    // Barcode Scanner
+    "barcodeScanner.title": "Barcode Scanner",
+    "barcodeScanner.subtitle": "Scan and decode barcodes using camera",
+    "barcodeScanner.uploadImage": "Upload Image",
+    "barcodeScanner.clickUpload": "Click to upload",
+    "barcodeScanner.dragDrop": "PNG, JPG, JPEG, GIF, WEBP",
+    "barcodeScanner.scanBarcode": "Scan Barcode",
+    "barcodeScanner.supportedFormats": "Supported Formats",
+    
+    // RFID Reader
+    "rfidReader.title": "RFID Reader",
+    "rfidReader.subtitle": "Read and decode RFID tag data",
+    "rfidReader.nfcNotSupported": "NFC is not supported on this device or browser",
+    "rfidReader.readTags": "Read Tags",
+    "rfidReader.writeTags": "Write Tags",
+    "rfidReader.tagHistory": "Tag History",
+    "rfidReader.nfcTagScanner": "NFC Tag Scanner",
+    "rfidReader.startReading": "Start Reading",
+    
+    // Bulk Barcode Generator
+    "bulkBarcode.title": "Bulk Barcode Generator",
+    "bulkBarcode.description": "Generate multiple barcodes in batch",
+    "bulkBarcode.bulkJobs": "Bulk Jobs",
+    "bulkBarcode.newBulkJob": "New Bulk Job",
+    "bulkBarcode.noBulkJobs": "No bulk jobs found",
+    "bulkBarcode.createFirstJob": "Create your first bulk barcode job",
+    "bulkBarcode.createNewJob": "Create New Job",
+
     // Barcode Generator
     "barcodeGenerator.title": "Barcode & QR Code Generator",
     "barcodeGenerator.subtitle": "Generate 85+ barcode types including QR codes, linear barcodes, postal codes, business cards, Wi-Fi, events, and specialty formats",
@@ -1338,6 +1366,34 @@ const translations: Record<Language, Record<string, string>> = {
     "hibcmicropdf417.title": "HIBC LIC MicroPDF417",
     "hibccodablockf.title": "HIBC LIC Codablock-F",
     "hibcazteccode.title": "HIBC LIC Azteca",
+    
+    // Barcode Scanner
+    "barcodeScanner.title": "Escáner de Códigos de Barras",
+    "barcodeScanner.subtitle": "Escanear y decodificar códigos de barras usando cámara",
+    "barcodeScanner.uploadImage": "Subir Imagen",
+    "barcodeScanner.clickUpload": "Haz clic para subir",
+    "barcodeScanner.dragDrop": "PNG, JPG, JPEG, GIF, WEBP",
+    "barcodeScanner.scanBarcode": "Escanear Código de Barras",
+    "barcodeScanner.supportedFormats": "Formatos Soportados",
+    
+    // RFID Reader
+    "rfidReader.title": "Lector RFID",
+    "rfidReader.subtitle": "Leer y decodificar datos de etiquetas RFID",
+    "rfidReader.nfcNotSupported": "NFC no es compatible con este dispositivo o navegador",
+    "rfidReader.readTags": "Leer Etiquetas",
+    "rfidReader.writeTags": "Escribir Etiquetas",
+    "rfidReader.tagHistory": "Historial de Etiquetas",
+    "rfidReader.nfcTagScanner": "Escáner de Etiquetas NFC",
+    "rfidReader.startReading": "Iniciar Lectura",
+    
+    // Bulk Barcode Generator
+    "bulkBarcode.title": "Generador de Códigos de Barras en Lote",
+    "bulkBarcode.description": "Generar múltiples códigos de barras en lote",
+    "bulkBarcode.bulkJobs": "Trabajos en Lote",
+    "bulkBarcode.newBulkJob": "Nuevo Trabajo en Lote",
+    "bulkBarcode.noBulkJobs": "No se encontraron trabajos en lote",
+    "bulkBarcode.createFirstJob": "Crea tu primer trabajo de códigos de barras en lote",
+    "bulkBarcode.createNewJob": "Crear Nuevo Trabajo",
 
     // Footer and Enterprise
     "footer.privacyPolicy": "Todo el procesamiento de datos sigue estándares estrictos de privacidad sin recopilación o almacenamiento de datos.",
@@ -1986,6 +2042,34 @@ const translations: Record<Language, Record<string, string>> = {
     "hibcmicropdf417.title": "HIBC LIC MicroPDF417",
     "hibccodablockf.title": "HIBC LIC Codablock-F",
     "hibcazteccode.title": "HIBC LIC أزتيك",
+    
+    // Barcode Scanner
+    "barcodeScanner.title": "ماسح الباركود",
+    "barcodeScanner.subtitle": "مسح وفك تشفير الباركود باستخدام الكاميرا",
+    "barcodeScanner.uploadImage": "رفع صورة",
+    "barcodeScanner.clickUpload": "انقر للرفع",
+    "barcodeScanner.dragDrop": "PNG, JPG, JPEG, GIF, WEBP",
+    "barcodeScanner.scanBarcode": "مسح الباركود",
+    "barcodeScanner.supportedFormats": "التنسيقات المدعومة",
+    
+    // RFID Reader
+    "rfidReader.title": "قارئ RFID",
+    "rfidReader.subtitle": "قراءة وفك تشفير بيانات علامات RFID",
+    "rfidReader.nfcNotSupported": "NFC غير مدعوم على هذا الجهاز أو المتصفح",
+    "rfidReader.readTags": "قراءة العلامات",
+    "rfidReader.writeTags": "كتابة العلامات",
+    "rfidReader.tagHistory": "تاريخ العلامات",
+    "rfidReader.nfcTagScanner": "ماسح علامات NFC",
+    "rfidReader.startReading": "بدء القراءة",
+    
+    // Bulk Barcode Generator
+    "bulkBarcode.title": "منشئ الباركود المتعدد",
+    "bulkBarcode.description": "إنشاء باركودات متعددة بالجملة",
+    "bulkBarcode.bulkJobs": "المهام بالجملة",
+    "bulkBarcode.newBulkJob": "مهمة جملة جديدة",
+    "bulkBarcode.noBulkJobs": "لا توجد مهام بالجملة",
+    "bulkBarcode.createFirstJob": "إنشاء أول مهمة باركود بالجملة",
+    "bulkBarcode.createNewJob": "إنشاء مهمة جديدة",
 
     // Footer and Enterprise
     "footer.privacyPolicy": "تتبع جميع معالجة البيانات معايير خصوصية صارمة مع عدم جمع أو تخزين البيانات.",
