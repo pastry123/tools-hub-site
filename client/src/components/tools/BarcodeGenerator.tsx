@@ -403,8 +403,8 @@ export default function BarcodeGenerator() {
     }
 
     toast({
-      title: "SVG Feature",
-      description: "SVG download will be implemented in the next update. PNG download is fully functional.",
+      title: t("barcodeGenerator.svgFeature"),
+      description: t("barcodeGenerator.svgFeatureDesc"),
     });
   };
 
@@ -419,13 +419,13 @@ export default function BarcodeGenerator() {
       ]);
       
       toast({
-        title: "Copied to Clipboard",
-        description: "Barcode image copied to clipboard",
+        title: t("barcodeGenerator.copiedToClipboard"),
+        description: t("barcodeGenerator.barcodeImageCopied"),
       });
     } catch (error) {
       toast({
-        title: "Copy Failed",
-        description: "Unable to copy to clipboard",
+        title: t("barcodeGenerator.copyFailed"),
+        description: t("barcodeGenerator.unableToCopy"),
         variant: "destructive",
       });
     }
@@ -451,19 +451,19 @@ export default function BarcodeGenerator() {
   // Get translated category name
   const getCategoryTranslation = (category: string): string => {
     const categoryMap: Record<string, string> = {
-      "Linear Codes": t("barcode.linearCodes") || "Linear Codes",
-      "Postal Codes": t("barcode.postalCodes") || "Postal Codes",
-      "GS1 DataBar": t("barcode.gs1DataBar") || "GS1 DataBar",
-      "EAN / UPC": t("barcode.eanUpc") || "EAN / UPC",
-      "2D Codes": t("barcode.twoDCodes") || "2D Codes",
-      "GS1 2D Barcodes": t("barcode.gs1TwoDCodes") || "GS1 2D Barcodes",
-      "Banking and Payments": t("barcode.bankingPayment") || "Banking and Payments",
-      "Mobile Tagging": t("barcode.mobileTags") || "Mobile Tagging",
-      "Healthcare Codes": t("barcode.healthcare") || "Healthcare Codes",
-      "Business Cards": t("barcode.businessCards") || "Business Cards",
-      "Event Barcodes": t("barcode.events") || "Event Barcodes",
-      "Wi-Fi Barcodes": t("barcode.wifi") || "Wi-Fi Barcodes",
-      "ISBN Codes": t("barcode.isbn") || "ISBN Codes",
+      "Linear Codes": t("barcode.linearCodes"),
+      "Postal Codes": t("barcode.postalCodes"),
+      "GS1 DataBar": t("barcode.gs1DataBar"),
+      "EAN / UPC": t("barcode.eanUpc"),
+      "2D Codes": t("barcode.twoDCodes"),
+      "GS1 2D Barcodes": t("barcode.gs1TwoDCodes"),
+      "Banking and Payments": t("barcode.bankingPayment"),
+      "Mobile Tagging": t("barcode.mobileTags"),
+      "Healthcare Codes": t("barcode.healthcare"),
+      "Business Cards": t("barcode.businessCards"),
+      "Event Barcodes": t("barcode.events"),
+      "Wi-Fi Barcodes": t("barcode.wifi"),
+      "ISBN Codes": t("barcode.isbn"),
     };
     
     return categoryMap[category] || category;
