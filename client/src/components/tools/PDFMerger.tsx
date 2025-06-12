@@ -195,13 +195,13 @@ export default function PDFMerger() {
             onDragOver={(e) => e.preventDefault()}
           >
             <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Upload PDF Files</h3>
+            <h3 className="text-lg font-medium mb-2">{t("pdfMerger.uploadPdfFiles")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Drag and drop PDF files here, or click to browse
+              {t("pdfMerger.dragDropOrClick")}
             </p>
             <Button variant="outline">
               <FileUp className="w-4 h-4 mr-2" />
-              Choose Files
+              {t("pdfMerger.chooseFiles")}
             </Button>
             <input
               ref={fileInputRef}
@@ -216,7 +216,7 @@ export default function PDFMerger() {
           {/* Output Filename */}
           {files.length > 0 && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Output Filename</label>
+              <label className="text-sm font-medium">{t("pdfMerger.outputFilename")}</label>
               <Input
                 value={outputFileName}
                 onChange={(e) => setOutputFileName(e.target.value)}
@@ -289,7 +289,7 @@ export default function PDFMerger() {
               {files.length < 2 && (
                 <div className="flex items-center gap-2 text-amber-600">
                   <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">Add at least 2 PDF files to merge</span>
+                  <span className="text-sm">{t("pdfMerger.addAtLeast2Files")}</span>
                 </div>
               )}
             </div>
@@ -299,7 +299,7 @@ export default function PDFMerger() {
           {isProcessing && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Merging PDFs...</span>
+                <span>{t("pdfMerger.merging")}</span>
                 <span>{progress}%</span>
               </div>
               <Progress value={progress} className="w-full" />
@@ -313,7 +313,7 @@ export default function PDFMerger() {
               disabled={files.length < 2 || isProcessing}
               className="flex-1"
             >
-              {isProcessing ? "Merging..." : "Merge PDFs"}
+              {isProcessing ? t("pdfMerger.merging") || "Merging..." : t("pdfMerger.mergePdfs")}
             </Button>
             
             {files.length > 0 && (

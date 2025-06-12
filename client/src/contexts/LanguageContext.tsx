@@ -256,6 +256,12 @@ const translations = {
     "pdfMerger.successMerged": "Successfully merged {count} PDF files",
     "pdfMerger.error": "Error",
     "pdfMerger.failedToMerge": "Failed to merge PDF files",
+    "pdfMerger.merging": "Merging...",
+    "pdfMerger.addAtLeast2Files": "Add at least 2 PDF files to merge",
+    "pdfMerger.outputFilename": "Output Filename",
+    "pdfMerger.selectedFiles": "Selected Files",
+    "pdfMerger.reset": "Reset",
+    "pdfMerger.download": "Download",
     
     // PDF Compressor Tool - English
     "pdfCompressor.title": "PDF Compressor",
@@ -1123,6 +1129,12 @@ const translations = {
     "pdfMerger.successMerged": "Se fusionaron exitosamente {count} archivos PDF",
     "pdfMerger.error": "Error",
     "pdfMerger.failedToMerge": "Fallo al fusionar archivos PDF",
+    "pdfMerger.merging": "Fusionando...",
+    "pdfMerger.addAtLeast2Files": "Agrega al menos 2 archivos PDF para fusionar",
+    "pdfMerger.outputFilename": "Nombre del Archivo de Salida",
+    "pdfMerger.selectedFiles": "Archivos Seleccionados",
+    "pdfMerger.reset": "Restablecer",
+    "pdfMerger.download": "Descargar",
     
     // PDF Compressor Tool - Spanish
     "pdfCompressor.title": "Compresor PDF",
@@ -1574,6 +1586,12 @@ const translations = {
     "pdfMerger.successMerged": "تم دمج {count} ملفات PDF بنجاح",
     "pdfMerger.error": "خطأ",
     "pdfMerger.failedToMerge": "فشل في دمج ملفات PDF",
+    "pdfMerger.merging": "جاري الدمج...",
+    "pdfMerger.addAtLeast2Files": "أضف ملفين PDF على الأقل للدمج",
+    "pdfMerger.outputFilename": "اسم الملف الناتج",
+    "pdfMerger.selectedFiles": "الملفات المحددة",
+    "pdfMerger.reset": "إعادة تعيين",
+    "pdfMerger.download": "تحميل",
     
     // PDF Compressor Tool - Arabic
     "pdfCompressor.title": "ضاغط PDF",
