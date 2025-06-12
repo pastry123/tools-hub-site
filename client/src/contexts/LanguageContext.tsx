@@ -422,6 +422,90 @@ const translations: Record<Language, Record<string, string>> = {
     "wifi-qr.title": "WiFi QR Code",
     "wifi-dm.title": "WiFi Data Matrix",
     
+    // Additional Missing Barcode Types
+    "mobile-qr.title": "QR Code (Mobile/Smartphone)",
+    "koreapost.title": "Korean Postal Authority Code",
+    "flattermarken-extended.title": "Flattermarken Extended",
+    
+    // Postal Barcodes
+    "auspost.title": "Australia Post Standard",
+    "daft.title": "DAFT",
+    "dpd.title": "DPD Barcode",
+    "japanpost.title": "Japanese Postal Code",
+    "kix.title": "KIX (TNT Post Netherlands)",
+    "planet.title": "Planet Code 12",
+    "royalmail.title": "Royal Mail 4-State",
+    "mailmark.title": "Royal Mail Mailmark 4-State",
+    "postnet-5.title": "USPS PostNet 5",
+    "postnet-9.title": "USPS PostNet 9",
+    "postnet-11.title": "USPS PostNet 11",
+    "impb.title": "USPS IM Package",
+    "upu-s10.title": "UPU S10",
+    
+    // GS1 DataBar
+    "gs1databaromni.title": "GS1-DataBar Omnidirectional",
+    "gs1databarstacked.title": "GS1-DataBar Stacked",
+    "gs1databarstackedomni.title": "GS1-DataBar Stacked Omni",
+    "gs1databarlimited.title": "GS1-DataBar Limited",
+    "gs1databarexpanded.title": "GS1-DataBar Expanded",
+    "gs1databarexpandedstacked.title": "GS1-DataBar Expanded Stacked",
+    "gs1-128-composite.title": "GS1-128 Composite",
+    "gs1databaromni-composite.title": "GS1-DataBar Composite",
+    "gs1databarstacked-composite.title": "GS1-DataBar Stacked Composite",
+    "gs1databarstackedomni-composite.title": "GS1-DataBar Stacked Omni Composite",
+    "gs1databarlimited-composite.title": "GS1-DataBar Limited Composite",
+    "gs1databarexpanded-composite.title": "GS1-DataBar Expanded Composite",
+    "gs1databarexpandedstacked-composite.title": "GS1-DataBar Expanded Stacked Composite",
+    
+    // EAN/UPC
+    "ean8.title": "EAN-8",
+    "ean13.title": "EAN-13",
+    "ean14.title": "EAN-14",
+    "ean8-composite.title": "EAN-8 Composite",
+    "ean13-composite.title": "EAN-13 Composite",
+    "upca.title": "UPC-A",
+    "upce.title": "UPC-E",
+    "upca-composite.title": "UPC-A Composite",
+    "upce-composite.title": "UPC-E Composite",
+    
+    // 2D Codes
+    "qrcode.title": "QR Code",
+    "datamatrix.title": "Data Matrix",
+    "datamatrixrectangular.title": "Data Matrix Rectangular",
+    "azteccode.title": "Aztec",
+    "codablockf.title": "Codablock-F",
+    "maxicode.title": "MaxiCode",
+    "micropdf417.title": "MicroPDF417",
+    "pdf417.title": "PDF417",
+    "microqrcode.title": "Micro QR Code",
+    "hanxin.title": "Han Xin",
+    "dotcode.title": "DotCode",
+    "mailmark-2d.title": "Royal Mail Mailmark 2D",
+    "ntin-datamatrix.title": "NTIN Code",
+    "ppn-datamatrix.title": "PPN Code",
+    
+    // GS1 2D
+    "gs1qrcode.title": "GS1 QR Code",
+    "gs1datamatrix.title": "GS1 DataMatrix",
+    "gs1-digital-qr.title": "GS1 Digital Link QR",
+    "gs1-digital-dm.title": "GS1 Digital Link Data Matrix",
+    
+    // Banking & Payments
+    "epc-qr.title": "EPC QR Code V2",
+    "swissqrcode.title": "Swiss QR Code",
+    "zatca-qr.title": "ZATCA QR Code",
+    
+    // Healthcare
+    "code32.title": "Code32 (Italian Pharmacode)",
+    "flattermarken.title": "Flattermarken",
+    "hibccode128.title": "HIBC LIC 128",
+    "hibccode39.title": "HIBC LIC 39",
+    "hibcdatamatrix.title": "HIBC LIC Data Matrix",
+    "hibcpdf417.title": "HIBC LIC PDF417",
+    "hibcmicropdf417.title": "HIBC LIC MicroPDF417",
+    "hibccodablockf.title": "HIBC LIC Codablock-F",
+    "hibcazteccode.title": "HIBC LIC Aztec",
+    
     // Barcode Generator
     "barcodeGenerator.title": "Barcode & QR Code Generator",
     "barcodeGenerator.subtitle": "Generate 85+ barcode types including QR codes, linear barcodes, postal codes, business cards, Wi-Fi, events, and specialty formats",
@@ -1170,6 +1254,90 @@ const translations: Record<Language, Record<string, string>> = {
     // WiFi Codes
     "wifi-qr.title": "Código QR WiFi",
     "wifi-dm.title": "Data Matrix WiFi",
+    
+    // Additional Missing Barcode Types
+    "mobile-qr.title": "Código QR (Móvil/Smartphone)",
+    "koreapost.title": "Código Autoridad Postal Coreana",
+    "flattermarken-extended.title": "Flattermarken Extendido",
+    
+    // Postal Barcodes
+    "auspost.title": "Australia Post Estándar",
+    "daft.title": "DAFT",
+    "dpd.title": "Código de Barras DPD",
+    "japanpost.title": "Código Postal Japonés",
+    "kix.title": "KIX (TNT Post Países Bajos)",
+    "planet.title": "Código Planet 12",
+    "royalmail.title": "Royal Mail 4-Estado",
+    "mailmark.title": "Royal Mail Mailmark 4-Estado",
+    "postnet-5.title": "USPS PostNet 5",
+    "postnet-9.title": "USPS PostNet 9",
+    "postnet-11.title": "USPS PostNet 11",
+    "impb.title": "Paquete USPS IM",
+    "upu-s10.title": "UPU S10",
+    
+    // GS1 DataBar
+    "gs1databaromni.title": "GS1-DataBar Omnidireccional",
+    "gs1databarstacked.title": "GS1-DataBar Apilado",
+    "gs1databarstackedomni.title": "GS1-DataBar Apilado Omni",
+    "gs1databarlimited.title": "GS1-DataBar Limitado",
+    "gs1databarexpanded.title": "GS1-DataBar Expandido",
+    "gs1databarexpandedstacked.title": "GS1-DataBar Expandido Apilado",
+    "gs1-128-composite.title": "GS1-128 Compuesto",
+    "gs1databaromni-composite.title": "GS1-DataBar Compuesto",
+    "gs1databarstacked-composite.title": "GS1-DataBar Apilado Compuesto",
+    "gs1databarstackedomni-composite.title": "GS1-DataBar Apilado Omni Compuesto",
+    "gs1databarlimited-composite.title": "GS1-DataBar Limitado Compuesto",
+    "gs1databarexpanded-composite.title": "GS1-DataBar Expandido Compuesto",
+    "gs1databarexpandedstacked-composite.title": "GS1-DataBar Expandido Apilado Compuesto",
+    
+    // EAN/UPC
+    "ean8.title": "EAN-8",
+    "ean13.title": "EAN-13",
+    "ean14.title": "EAN-14",
+    "ean8-composite.title": "EAN-8 Compuesto",
+    "ean13-composite.title": "EAN-13 Compuesto",
+    "upca.title": "UPC-A",
+    "upce.title": "UPC-E",
+    "upca-composite.title": "UPC-A Compuesto",
+    "upce-composite.title": "UPC-E Compuesto",
+    
+    // 2D Codes
+    "qrcode.title": "Código QR",
+    "datamatrix.title": "Matriz de Datos",
+    "datamatrixrectangular.title": "Matriz de Datos Rectangular",
+    "azteccode.title": "Azteca",
+    "codablockf.title": "Codablock-F",
+    "maxicode.title": "MaxiCode",
+    "micropdf417.title": "MicroPDF417",
+    "pdf417.title": "PDF417",
+    "microqrcode.title": "Micro Código QR",
+    "hanxin.title": "Han Xin",
+    "dotcode.title": "DotCode",
+    "mailmark-2d.title": "Royal Mail Mailmark 2D",
+    "ntin-datamatrix.title": "Código NTIN",
+    "ppn-datamatrix.title": "Código PPN",
+    
+    // GS1 2D
+    "gs1qrcode.title": "Código QR GS1",
+    "gs1datamatrix.title": "Matriz de Datos GS1",
+    "gs1-digital-qr.title": "QR Enlace Digital GS1",
+    "gs1-digital-dm.title": "Matriz de Datos Enlace Digital GS1",
+    
+    // Banking & Payments
+    "epc-qr.title": "Código QR EPC V2",
+    "swissqrcode.title": "Código QR Suizo",
+    "zatca-qr.title": "Código QR ZATCA",
+    
+    // Healthcare
+    "code32.title": "Code32 (Pharmacode Italiano)",
+    "flattermarken.title": "Flattermarken",
+    "hibccode128.title": "HIBC LIC 128",
+    "hibccode39.title": "HIBC LIC 39",
+    "hibcdatamatrix.title": "HIBC LIC Matriz de Datos",
+    "hibcpdf417.title": "HIBC LIC PDF417",
+    "hibcmicropdf417.title": "HIBC LIC MicroPDF417",
+    "hibccodablockf.title": "HIBC LIC Codablock-F",
+    "hibcazteccode.title": "HIBC LIC Azteca",
 
     // Footer and Enterprise
     "footer.privacyPolicy": "Todo el procesamiento de datos sigue estándares estrictos de privacidad sin recopilación o almacenamiento de datos.",
@@ -1734,6 +1902,90 @@ const translations: Record<Language, Record<string, string>> = {
     // WiFi Codes
     "wifi-qr.title": "رمز الاستجابة السريعة WiFi",
     "wifi-dm.title": "مصفوفة البيانات WiFi",
+    
+    // Additional Missing Barcode Types
+    "mobile-qr.title": "رمز الاستجابة السريعة (محمول/هاتف ذكي)",
+    "koreapost.title": "كود السلطة البريدية الكورية",
+    "flattermarken-extended.title": "فلاترماركن موسع",
+    
+    // Postal Barcodes
+    "auspost.title": "بريد أستراليا القياسي",
+    "daft.title": "DAFT",
+    "dpd.title": "باركود DPD",
+    "japanpost.title": "الكود البريدي الياباني",
+    "kix.title": "KIX (بريد TNT هولندا)",
+    "planet.title": "كود الكوكب 12",
+    "royalmail.title": "البريد الملكي 4-حالات",
+    "mailmark.title": "البريد الملكي مايلمارك 4-حالات",
+    "postnet-5.title": "USPS PostNet 5",
+    "postnet-9.title": "USPS PostNet 9",
+    "postnet-11.title": "USPS PostNet 11",
+    "impb.title": "حزمة USPS IM",
+    "upu-s10.title": "UPU S10",
+    
+    // GS1 DataBar
+    "gs1databaromni.title": "GS1-DataBar متعدد الاتجاهات",
+    "gs1databarstacked.title": "GS1-DataBar مكدس",
+    "gs1databarstackedomni.title": "GS1-DataBar مكدس متعدد الاتجاهات",
+    "gs1databarlimited.title": "GS1-DataBar محدود",
+    "gs1databarexpanded.title": "GS1-DataBar موسع",
+    "gs1databarexpandedstacked.title": "GS1-DataBar موسع مكدس",
+    "gs1-128-composite.title": "GS1-128 مركب",
+    "gs1databaromni-composite.title": "GS1-DataBar مركب",
+    "gs1databarstacked-composite.title": "GS1-DataBar مكدس مركب",
+    "gs1databarstackedomni-composite.title": "GS1-DataBar مكدس متعدد الاتجاهات مركب",
+    "gs1databarlimited-composite.title": "GS1-DataBar محدود مركب",
+    "gs1databarexpanded-composite.title": "GS1-DataBar موسع مركب",
+    "gs1databarexpandedstacked-composite.title": "GS1-DataBar موسع مكدس مركب",
+    
+    // EAN/UPC
+    "ean8.title": "EAN-8",
+    "ean13.title": "EAN-13",
+    "ean14.title": "EAN-14",
+    "ean8-composite.title": "EAN-8 مركب",
+    "ean13-composite.title": "EAN-13 مركب",
+    "upca.title": "UPC-A",
+    "upce.title": "UPC-E",
+    "upca-composite.title": "UPC-A مركب",
+    "upce-composite.title": "UPC-E مركب",
+    
+    // 2D Codes
+    "qrcode.title": "رمز الاستجابة السريعة",
+    "datamatrix.title": "مصفوفة البيانات",
+    "datamatrixrectangular.title": "مصفوفة البيانات المستطيلة",
+    "azteccode.title": "أزتيك",
+    "codablockf.title": "Codablock-F",
+    "maxicode.title": "MaxiCode",
+    "micropdf417.title": "MicroPDF417",
+    "pdf417.title": "PDF417",
+    "microqrcode.title": "رمز الاستجابة السريعة المصغر",
+    "hanxin.title": "هان شين",
+    "dotcode.title": "DotCode",
+    "mailmark-2d.title": "البريد الملكي مايلمارك 2D",
+    "ntin-datamatrix.title": "كود NTIN",
+    "ppn-datamatrix.title": "كود PPN",
+    
+    // GS1 2D
+    "gs1qrcode.title": "رمز الاستجابة السريعة GS1",
+    "gs1datamatrix.title": "مصفوفة البيانات GS1",
+    "gs1-digital-qr.title": "رابط رقمي GS1 QR",
+    "gs1-digital-dm.title": "مصفوفة البيانات الرابط الرقمي GS1",
+    
+    // Banking & Payments
+    "epc-qr.title": "رمز الاستجابة السريعة EPC V2",
+    "swissqrcode.title": "رمز الاستجابة السريعة السويسري",
+    "zatca-qr.title": "رمز الاستجابة السريعة ZATCA",
+    
+    // Healthcare
+    "code32.title": "Code32 (Pharmacode الإيطالي)",
+    "flattermarken.title": "فلاترماركن",
+    "hibccode128.title": "HIBC LIC 128",
+    "hibccode39.title": "HIBC LIC 39",
+    "hibcdatamatrix.title": "HIBC LIC مصفوفة البيانات",
+    "hibcpdf417.title": "HIBC LIC PDF417",
+    "hibcmicropdf417.title": "HIBC LIC MicroPDF417",
+    "hibccodablockf.title": "HIBC LIC Codablock-F",
+    "hibcazteccode.title": "HIBC LIC أزتيك",
 
     // Footer and Enterprise
     "footer.privacyPolicy": "تتبع جميع معالجة البيانات معايير خصوصية صارمة مع عدم جمع أو تخزين البيانات.",
