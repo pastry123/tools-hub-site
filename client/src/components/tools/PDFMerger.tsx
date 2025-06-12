@@ -138,14 +138,14 @@ export default function PDFMerger() {
       setMergedPdfUrl(url);
 
       toast({
-        title: "Success!",
-        description: `Successfully merged ${files.length} PDF files`,
+        title: t("pdfMerger.success"),
+        description: t("pdfMerger.successMerged").replace("{count}", files.length.toString()),
       });
     } catch (error) {
       console.error("Error merging PDFs:", error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to merge PDF files",
+        title: t("pdfMerger.error"),
+        description: error instanceof Error ? error.message : t("pdfMerger.failedToMerge"),
         variant: "destructive",
       });
     } finally {
@@ -177,10 +177,10 @@ export default function PDFMerger() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            PDF Merger
+            {t("pdfMerger.title")}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Combine multiple PDF files into a single document. Drag and drop to reorder files.
+            {t("pdfMerger.description")}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
