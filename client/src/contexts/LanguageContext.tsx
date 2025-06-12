@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 export type Language = "en" | "es" | "ar";
 
@@ -8,38 +8,58 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
-const translations = {
+const translations: Record<Language, Record<string, string>> = {
   en: {
+    // Header
+    "header.title": "Aptexa ToolHub",
+    "header.subtitle": "Professional Online Tools",
+    "header.search": "Search tools...",
+    "header.dashboard": "Dashboard",
+    "header.favorites": "Favorites",
+    "header.recent": "Recent",
+    
+    // Dashboard
+    "dashboard.title": "Professional Online Tools",
+    "dashboard.description": "Access powerful tools to enhance your productivity and streamline your workflow",
+    "dashboard.hero.title": "Professional Online Tools",
+    "dashboard.hero.description": "Access powerful tools to enhance your productivity and streamline your workflow - from {barcodes} and {pdfs} to {signatures} and {development} utilities.",
+    "dashboard.hero.barcodes": "barcode generation",
+    "dashboard.hero.pdfs": "PDF processing",
+    "dashboard.hero.signatures": "digital signatures",
+    "dashboard.hero.development": "development tools",
+    "dashboard.stats.tools": "Total Tools",
+    "dashboard.stats.categories": "Categories",
+    "dashboard.stats.popular": "Most Popular",
+    "dashboard.stats.popularTool": "PDF Tools",
+    "dashboard.stats.free": "Free to Use",
+    "dashboard.quickAccess": "Quick Access",
+    "dashboard.allCategories": "All Tool Categories",
+    "dashboard.popularTools": "Popular Tools",
+    "dashboard.quickActions": "Quick Actions", 
+    "dashboard.recentlyUsed": "Recently Used",
+    "dashboard.quickAccess.title": "Quick Access",
+    "dashboard.categories.title": "All Tool Categories",
+    "dashboard.categories.description": "Explore our comprehensive collection of professional tools including {barcodeGeneration}, {imageProcessing}, and more advanced utilities.",
+    "dashboard.categories.barcodeGeneration": "barcode generation",
+    "dashboard.categories.imageProcessing": "image processing",
+    "dashboard.categories.toolsCount": "{count} tools",
+
     // Navigation
     "nav.dashboard": "Dashboard",
-    "nav.favorites": "Favorites",
+    "nav.favorites": "Favorites", 
     "nav.recent": "Recent",
 
-    // Header
-    "header.language": "Language",
-    "header.toggleTheme": "Toggle theme",
-
-    // Dashboard
-    "dashboard.title": "50+ Free Online Utilities",
-    "dashboard.subtitle": "Professional tools for developers, businesses, and content creators",
-    "dashboard.searchPlaceholder": "Search tools...",
-    "dashboard.allCategories": "All Categories",
-    "dashboard.category.barcodes": "Barcodes & QR",
-    "dashboard.category.imageProcessing": "Image Processing",
-    "dashboard.category.textUtils": "Text Utilities",
-    "dashboard.category.webDeveloper": "Developer Tools",
-    "dashboard.category.converters": "Converters",
-    "dashboard.category.utilities": "Utilities",
-    "dashboard.category.generators": "Generators",
-    "dashboard.category.encoders": "Encoders",
-    "dashboard.category.security": "Security",
-    "dashboard.category.pdf": "PDF Tools",
-
-    // Category Detail Page
-    "categoryDetail.backToDashboard": "← Back to Dashboard",
-    "categoryDetail.toolsInCategory": "Tools in {category}",
+    // Categories
+    "category.barcodes": "Barcodes & QR",
+    "category.imageProcessing": "Image Processing",
+    "category.textUtils": "Text Utilities",
+    "category.webDeveloper": "Developer Tools",
+    "category.converters": "Converters",
+    "category.utilities": "Utilities",
+    "category.generators": "Generators",
+    "category.encoders": "Encoders",
+    "category.security": "Security",
+    "category.pdf": "PDF Tools",
 
     // Tool Features
     "toolPage.addToFavorites": "Add to Favorites",
@@ -122,14 +142,17 @@ const translations = {
     "barcodeGenerator.barcodeType": "Barcode Type",
     "barcodeGenerator.available": "available",
     "barcodeGenerator.searchTypes": "Search barcode types...",
-    "barcodeGenerator.data": "Data/Text",
-    "barcodeGenerator.placeholder": "Enter your text or data",
-    "barcodeGenerator.size": "Size",
-    "barcodeGenerator.width": "Width",
-    "barcodeGenerator.height": "Height",
-    "barcodeGenerator.generateBarcode": "Generate Barcode",
+    "barcodeGenerator.allCategories": "All Categories",
+    "barcodeGenerator.selectType": "Select a barcode type...",
+    "barcodeGenerator.noTypesFound": "No barcode types found matching your search",
+    "barcodeGenerator.professional": "Professional",
+    "barcodeGenerator.dataToEncode": "Data to Encode",
+    "barcodeGenerator.useSampleData": "Use Sample Data",
+    "barcodeGenerator.scaleLabel": "Scale",
+    "barcodeGenerator.heightLabel": "Height",
     "barcodeGenerator.downloadPNG": "Download PNG",
     "barcodeGenerator.downloadSVG": "Download SVG",
+    "barcodeGenerator.generateBarcode": "Generate Barcode",
 
     // Barcode Scanner
     "barcodeScanner.title": "Barcode & QR Code Scanner",
@@ -177,34 +200,56 @@ const translations = {
   },
 
   es: {
+    // Header
+    "header.title": "Aptexa ToolHub",
+    "header.subtitle": "Herramientas Profesionales en Línea",
+    "header.search": "Buscar herramientas...",
+    "header.dashboard": "Panel",
+    "header.favorites": "Favoritos",
+    "header.recent": "Recientes",
+    
+    // Dashboard
+    "dashboard.title": "Herramientas Profesionales en Línea",
+    "dashboard.description": "Accede a herramientas poderosas para mejorar tu productividad y optimizar tu flujo de trabajo",
+    "dashboard.hero.title": "Herramientas Profesionales en Línea",
+    "dashboard.hero.description": "Accede a herramientas poderosas para mejorar tu productividad y optimizar tu flujo de trabajo - desde {barcodes} y {pdfs} hasta {signatures} y utilidades de {development}.",
+    "dashboard.hero.barcodes": "generación de códigos de barras",
+    "dashboard.hero.pdfs": "procesamiento de PDF",
+    "dashboard.hero.signatures": "firmas digitales",
+    "dashboard.hero.development": "herramientas de desarrollo",
+    "dashboard.stats.tools": "Total de Herramientas",
+    "dashboard.stats.categories": "Categorías",
+    "dashboard.stats.popular": "Más Popular",
+    "dashboard.stats.popularTool": "Herramientas PDF",
+    "dashboard.stats.free": "Gratis de Usar",
+    "dashboard.quickAccess": "Acceso Rápido",
+    "dashboard.allCategories": "Todas las Categorías de Herramientas",
+    "dashboard.popularTools": "Herramientas Populares",
+    "dashboard.quickActions": "Acciones Rápidas",
+    "dashboard.recentlyUsed": "Usadas Recientemente",
+    "dashboard.quickAccess.title": "Acceso Rápido",
+    "dashboard.categories.title": "Todas las Categorías de Herramientas",
+    "dashboard.categories.description": "Explora nuestra colección completa de herramientas profesionales incluyendo {barcodeGeneration}, {imageProcessing}, y más utilidades avanzadas.",
+    "dashboard.categories.barcodeGeneration": "generación de códigos de barras",
+    "dashboard.categories.imageProcessing": "procesamiento de imágenes",
+    "dashboard.categories.toolsCount": "{count} herramientas",
+
     // Navigation
     "nav.dashboard": "Panel",
     "nav.favorites": "Favoritos",
     "nav.recent": "Recientes",
 
-    // Header
-    "header.language": "Idioma",
-    "header.toggleTheme": "Cambiar tema",
-
-    // Dashboard
-    "dashboard.title": "50+ Utilidades Gratuitas en Línea",
-    "dashboard.subtitle": "Herramientas profesionales para desarrolladores, empresas y creadores de contenido",
-    "dashboard.searchPlaceholder": "Buscar herramientas...",
-    "dashboard.allCategories": "Todas las Categorías",
-    "dashboard.category.barcodes": "Códigos de Barras y QR",
-    "dashboard.category.imageProcessing": "Procesamiento de Imágenes",
-    "dashboard.category.textUtils": "Utilidades de Texto",
-    "dashboard.category.webDeveloper": "Herramientas para Desarrolladores",
-    "dashboard.category.converters": "Convertidores",
-    "dashboard.category.utilities": "Utilidades",
-    "dashboard.category.generators": "Generadores",
-    "dashboard.category.encoders": "Codificadores",
-    "dashboard.category.security": "Seguridad",
-    "dashboard.category.pdf": "Herramientas PDF",
-
-    // Category Detail Page
-    "categoryDetail.backToDashboard": "← Volver al Panel",
-    "categoryDetail.toolsInCategory": "Herramientas en {category}",
+    // Categories
+    "category.barcodes": "Códigos de Barras y QR",
+    "category.imageProcessing": "Procesamiento de Imágenes",
+    "category.textUtils": "Utilidades de Texto",
+    "category.webDeveloper": "Herramientas para Desarrolladores",
+    "category.converters": "Convertidores",
+    "category.utilities": "Utilidades",
+    "category.generators": "Generadores",
+    "category.encoders": "Codificadores",
+    "category.security": "Seguridad",
+    "category.pdf": "Herramientas PDF",
 
     // Tool Features
     "toolPage.addToFavorites": "Añadir a Favoritos",
@@ -287,14 +332,17 @@ const translations = {
     "barcodeGenerator.barcodeType": "Tipo de Código de Barras",
     "barcodeGenerator.available": "disponibles",
     "barcodeGenerator.searchTypes": "Buscar tipos de códigos...",
-    "barcodeGenerator.data": "Datos/Texto",
-    "barcodeGenerator.placeholder": "Ingresa tu texto o datos",
-    "barcodeGenerator.size": "Tamaño",
-    "barcodeGenerator.width": "Ancho",
-    "barcodeGenerator.height": "Alto",
-    "barcodeGenerator.generateBarcode": "Generar Código",
+    "barcodeGenerator.allCategories": "Todas las Categorías",
+    "barcodeGenerator.selectType": "Seleccionar un tipo de código de barras...",
+    "barcodeGenerator.noTypesFound": "No se encontraron tipos de códigos que coincidan con tu búsqueda",
+    "barcodeGenerator.professional": "Profesional",
+    "barcodeGenerator.dataToEncode": "Datos a Codificar",
+    "barcodeGenerator.useSampleData": "Usar Datos de Ejemplo",
+    "barcodeGenerator.scaleLabel": "Escala",
+    "barcodeGenerator.heightLabel": "Altura",
     "barcodeGenerator.downloadPNG": "Descargar PNG",
     "barcodeGenerator.downloadSVG": "Descargar SVG",
+    "barcodeGenerator.generateBarcode": "Generar Código",
 
     // Barcode Scanner
     "barcodeScanner.title": "Escáner de Códigos de Barras y QR",
@@ -342,34 +390,56 @@ const translations = {
   },
 
   ar: {
+    // Header
+    "header.title": "أبتكسا تول هب",
+    "header.subtitle": "أدوات احترافية عبر الإنترنت",
+    "header.search": "البحث عن الأدوات...",
+    "header.dashboard": "لوحة التحكم",
+    "header.favorites": "المفضلة",
+    "header.recent": "الحديثة",
+    
+    // Dashboard
+    "dashboard.title": "أدوات احترافية عبر الإنترنت",
+    "dashboard.description": "استخدم أدوات قوية لتحسين إنتاجيتك وتبسيط سير عملك",
+    "dashboard.hero.title": "أدوات احترافية عبر الإنترنت",
+    "dashboard.hero.description": "استخدم أدوات قوية لتحسين إنتاجيتك وتبسيط سير عملك - من {barcodes} و {pdfs} إلى {signatures} وأدوات {development}.",
+    "dashboard.hero.barcodes": "توليد الباركود",
+    "dashboard.hero.pdfs": "معالجة PDF",
+    "dashboard.hero.signatures": "التوقيعات الرقمية",
+    "dashboard.hero.development": "أدوات التطوير",
+    "dashboard.stats.tools": "إجمالي الأدوات",
+    "dashboard.stats.categories": "الفئات",
+    "dashboard.stats.popular": "الأكثر شعبية",
+    "dashboard.stats.popularTool": "أدوات PDF",
+    "dashboard.stats.free": "مجاني الاستخدام",
+    "dashboard.quickAccess": "الوصول السريع",
+    "dashboard.allCategories": "جميع فئات الأدوات",
+    "dashboard.popularTools": "الأدوات الشائعة",
+    "dashboard.quickActions": "الإجراءات السريعة",
+    "dashboard.recentlyUsed": "المستخدمة مؤخراً",
+    "dashboard.quickAccess.title": "الوصول السريع",
+    "dashboard.categories.title": "جميع فئات الأدوات",
+    "dashboard.categories.description": "استكشف مجموعتنا الشاملة من الأدوات الاحترافية بما في ذلك {barcodeGeneration} و {imageProcessing} والمزيد من الأدوات المتقدمة.",
+    "dashboard.categories.barcodeGeneration": "توليد الباركود",
+    "dashboard.categories.imageProcessing": "معالجة الصور",
+    "dashboard.categories.toolsCount": "{count} أداة",
+
     // Navigation
     "nav.dashboard": "لوحة التحكم",
     "nav.favorites": "المفضلة",
     "nav.recent": "الحديثة",
 
-    // Header
-    "header.language": "اللغة",
-    "header.toggleTheme": "تغيير المظهر",
-
-    // Dashboard
-    "dashboard.title": "50+ أداة مجانية عبر الإنترنت",
-    "dashboard.subtitle": "أدوات احترافية للمطورين والشركات ومنشئي المحتوى",
-    "dashboard.searchPlaceholder": "البحث عن الأدوات...",
-    "dashboard.allCategories": "جميع الفئات",
-    "dashboard.category.barcodes": "الباركود و QR",
-    "dashboard.category.imageProcessing": "معالجة الصور",
-    "dashboard.category.textUtils": "أدوات النصوص",
-    "dashboard.category.webDeveloper": "أدوات المطورين",
-    "dashboard.category.converters": "المحولات",
-    "dashboard.category.utilities": "الأدوات المساعدة",
-    "dashboard.category.generators": "المولدات",
-    "dashboard.category.encoders": "المشفرات",
-    "dashboard.category.security": "الأمان",
-    "dashboard.category.pdf": "أدوات PDF",
-
-    // Category Detail Page
-    "categoryDetail.backToDashboard": "← العودة للوحة التحكم",
-    "categoryDetail.toolsInCategory": "الأدوات في {category}",
+    // Categories
+    "category.barcodes": "الباركود و QR",
+    "category.imageProcessing": "معالجة الصور",
+    "category.textUtils": "أدوات النصوص",
+    "category.webDeveloper": "أدوات المطورين",
+    "category.converters": "المحولات",
+    "category.utilities": "الأدوات المساعدة",
+    "category.generators": "المولدات",
+    "category.encoders": "المشفرات",
+    "category.security": "الأمان",
+    "category.pdf": "أدوات PDF",
 
     // Tool Features
     "toolPage.addToFavorites": "إضافة للمفضلة",
@@ -452,14 +522,17 @@ const translations = {
     "barcodeGenerator.barcodeType": "نوع الباركود",
     "barcodeGenerator.available": "متاح",
     "barcodeGenerator.searchTypes": "البحث عن أنواع الباركود...",
-    "barcodeGenerator.data": "البيانات/النص",
-    "barcodeGenerator.placeholder": "أدخل النص أو البيانات",
-    "barcodeGenerator.size": "الحجم",
-    "barcodeGenerator.width": "العرض",
-    "barcodeGenerator.height": "الارتفاع",
-    "barcodeGenerator.generateBarcode": "إنشاء الباركود",
+    "barcodeGenerator.allCategories": "جميع الفئات",
+    "barcodeGenerator.selectType": "اختر نوع الباركود...",
+    "barcodeGenerator.noTypesFound": "لم يتم العثور على أنواع باركود تطابق بحثك",
+    "barcodeGenerator.professional": "احترافي",
+    "barcodeGenerator.dataToEncode": "البيانات المراد ترميزها",
+    "barcodeGenerator.useSampleData": "استخدم بيانات تجريبية",
+    "barcodeGenerator.scaleLabel": "المقياس",
+    "barcodeGenerator.heightLabel": "الارتفاع",
     "barcodeGenerator.downloadPNG": "تحميل PNG",
     "barcodeGenerator.downloadSVG": "تحميل SVG",
+    "barcodeGenerator.generateBarcode": "إنشاء الباركود",
 
     // Barcode Scanner
     "barcodeScanner.title": "ماسح الباركود و QR",
@@ -507,7 +580,9 @@ const translations = {
   }
 };
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("language");
