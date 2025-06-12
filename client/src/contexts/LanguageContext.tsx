@@ -102,6 +102,15 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.features.mobile": "Mobile Friendly",
     "dashboard.features.mobileDesc": "Works perfectly on all devices, from desktop to mobile.",
     
+    // Footer and Enterprise
+    "footer.privacyPolicy": "All data processing follows strict privacy standards with zero data collection or storage.",
+    "footer.enterpriseStandards": "Enterprise-Grade Security",
+    "footer.securityCompliance": "Our tools like {barcodeScanner} and {signatureGenerator} meet enterprise security requirements.",
+    "footer.barcodeScanner": "barcode scanner",
+    "footer.signatureGenerator": "signature generator",
+    "footer.professionalCompliance": "Built for professional environments with compliance standards.",
+    "footer.regularAudits": "Regular security audits ensure continuous protection of your sensitive data.",
+    
     // Categories
     "category.barcodes.title": "Barcode & QR Tools",
     "category.barcodes.description": "Generate and scan various barcode formats",
@@ -556,6 +565,15 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.features.mobile": "Compatible con Móviles",
     "dashboard.features.mobileDesc": "Funciona perfectamente en todos los dispositivos, desde escritorio hasta móvil.",
     
+    // Footer and Enterprise
+    "footer.privacyPolicy": "Todo el procesamiento de datos sigue estándares estrictos de privacidad sin recopilación o almacenamiento de datos.",
+    "footer.enterpriseStandards": "Seguridad de Nivel Empresarial",
+    "footer.securityCompliance": "Nuestras herramientas como {barcodeScanner} y {signatureGenerator} cumplen con los requisitos de seguridad empresarial.",
+    "footer.barcodeScanner": "escáner de códigos de barras",
+    "footer.signatureGenerator": "generador de firmas",
+    "footer.professionalCompliance": "Construido para entornos profesionales con estándares de cumplimiento.",
+    "footer.regularAudits": "Las auditorías regulares de seguridad aseguran la protección continua de tus datos sensibles.",
+    
     // Categories
     "category.barcodes.title": "Herramientas de Códigos de Barras y QR",
     "category.barcodes.description": "Generar y escanear varios formatos de códigos de barras",
@@ -769,6 +787,28 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.tools.regexDesc": "اختبار التعبيرات النمطية",
     "dashboard.tools.jwt": "فك تشفير JWT",
     "dashboard.tools.jwtDesc": "فك تشفير رموز الويب JSON",
+    "dashboard.tools.api": "مختبر API",
+    "dashboard.tools.apiDesc": "اختبار واجهات REST APIs بسهولة",
+    "dashboard.tools.cssmin": "مضغط CSS",
+    "dashboard.tools.cssminDesc": "ضغط ملفات CSS",
+    "dashboard.tools.jsmin": "مضغط JS", 
+    "dashboard.tools.jsminDesc": "ضغط ملفات JavaScript",
+    "dashboard.tools.content.title": "المحتوى والوسائط",
+    "dashboard.tools.imagecomp": "مضغط الصور",
+    "dashboard.tools.imagecompDesc": "تقليل أحجام ملفات الصور",
+    "dashboard.tools.pdfmerge": "دمج PDF",
+    "dashboard.tools.pdfmergeDesc": "دمج ملفات PDF متعددة",
+    "dashboard.tools.textconv": "محول النصوص",
+    "dashboard.tools.textconvDesc": "تحويل تنسيقات النص",
+    "dashboard.tools.colorconv": "محول الألوان",
+    "dashboard.tools.colorconvDesc": "تحويل تنسيقات الألوان",
+    "dashboard.tools.password": "منشئ كلمات المرور",
+    "dashboard.tools.passwordDesc": "إنشاء كلمات مرور آمنة",
+    
+    // Dashboard Security Section
+    "dashboard.security.title": "الأمان والخصوصية أولاً",
+    "dashboard.security.protection.title": "حماية البيانات",
+    "dashboard.security.protection.description": "تبقى ملفاتك آمنة مع المعالجة من جانب العميل في أدوات مثل {pdfMerger} و{imageCompressor}. لا تغادر أي بيانات جهازك أبداً.",
     
     "dashboard.features.title": "لماذا تختار Aptexa's ToolHub؟",
     "dashboard.features.secure": "آمن وخاص",
@@ -777,6 +817,15 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.features.fastDesc": "أدوات محسنة تعمل فوراً بدون تأخير من الخادم.",
     "dashboard.features.mobile": "متوافق مع الجوال",
     "dashboard.features.mobileDesc": "يعمل بشكل مثالي على جميع الأجهزة، من سطح المكتب إلى الجوال.",
+    
+    // Footer and Enterprise
+    "footer.privacyPolicy": "تتبع جميع معالجة البيانات معايير خصوصية صارمة مع عدم جمع أو تخزين البيانات.",
+    "footer.enterpriseStandards": "أمان على مستوى المؤسسات",
+    "footer.securityCompliance": "أدواتنا مثل {barcodeScanner} و{signatureGenerator} تلبي متطلبات الأمان للمؤسسات.",
+    "footer.barcodeScanner": "ماسح الباركود",
+    "footer.signatureGenerator": "منشئ التوقيعات",
+    "footer.professionalCompliance": "مبني للبيئات الاحترافية مع معايير الامتثال.",
+    "footer.regularAudits": "عمليات التدقيق الأمني المنتظمة تضمن الحماية المستمرة لبياناتك الحساسة.",
     
     // Categories
     "category.barcodes.title": "أدوات الباركود و QR",
