@@ -1,0 +1,106 @@
+
+dashboard.hero.title
+dashboard.hero.description
+
+dashboard.stats.tools
+
+180+
+
+dashboard.stats.categories
+
+8
+
+dashboard.stats.popular
+
+dashboard.stats.popularTool
+
+dashboard.stats.free
+
+100%
+
+dashboard.quickAccess.title
+tools.qr-generator
+tools.currency-converter
+tools.background-remover
+tools.pdf-merge
+dashboard.categories.title
+dashboard.categories.description
+
+category.barcodes.title
+category.barcodes.description
+
+dashboard.categories.toolsCount
+category.pdf-tools.title
+category.pdf-tools.description
+
+dashboard.categories.toolsCount
+category.image-tools.title
+category.image-tools.description
+
+dashboard.categories.toolsCount
+category.text-tools.title
+category.text-tools.description
+
+dashboard.categories.toolsCount
+category.converters.title
+category.converters.description
+
+dashboard.categories.toolsCount
+category.generators.title
+category.generators.description
+
+dashboard.categories.toolsCount
+category.developer-tools.title
+category.developer-tools.description
+
+dashboard.categories.toolsCount
+dashboard.benefits.title
+dashboard.benefits.document.title
+dashboard.benefits.document.description1
+
+dashboard.benefits.document.description2
+
+dashboard.benefits.developer.title
+dashboard.benefits.developer.description1
+
+dashboard.benefits.developer.description2
+
+dashboard.features.title
+dashboard.features.secure
+dashboard.features.secureDesc
+
+dashboard.features.fast
+dashboard.features.fastDesc
+
+dashboard.features.mobile
+dashboard.features.mobileDesc
+
+dashboard.tools.overview.title
+dashboard.tools.business.title
+dashboard.tools.invoice - dashboard.tools.invoiceDesc
+dashboard.tools.barcode - dashboard.tools.barcodeDesc
+dashboard.tools.qrcode - dashboard.tools.qrcodeDesc
+dashboard.tools.signature - dashboard.tools.signatureDesc
+dashboard.tools.pdfsign - dashboard.tools.pdfsignDesc
+dashboard.tools.developer.title
+dashboard.tools.regex - dashboard.tools.regexDesc
+dashboard.tools.jwt - dashboard.tools.jwtDesc
+dashboard.tools.api - dashboard.tools.apiDesc
+dashboard.tools.cssmin - dashboard.tools.cssminDesc
+dashboard.tools.jsmin - dashboard.tools.jsminDesc
+dashboard.tools.content.title
+dashboard.tools.imagecomp - dashboard.tools.imagecompDesc
+dashboard.tools.pdfmerge - dashboard.tools.pdfmergeDesc
+dashboard.tools.textconv - dashboard.tools.textconvDesc
+dashboard.tools.colorconv - dashboard.tools.colorconvDesc
+dashboard.tools.password - dashboard.tools.passwordDesc
+dashboard.security.title
+dashboard.security.protection.title
+dashboard.security.protection.description
+
+footer.privacyPolicy
+
+footer.enterpriseStandards
+footer.securityCompliance footer.professionalCompliance
+
+footer.regularAudits
