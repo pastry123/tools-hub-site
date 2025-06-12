@@ -126,9 +126,9 @@ export default function ImageCompressor() {
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600 mb-4">{t("imageCompressor.dragAndDrop")}</p>
+            <p className="text-slate-600 mb-4">Drag and drop an image here or click to browse</p>
             <Button variant="outline">
-              {t("imageCompressor.chooseImageFile")}
+              Choose Image File
             </Button>
           </div>
           <input
@@ -147,7 +147,7 @@ export default function ImageCompressor() {
           <CardContent className="p-6">
             <div className="space-y-4">
               <div>
-                <Label>{t("imageCompressor.quality")}: {quality[0]}%</Label>
+                <Label>Quality: {quality[0]}%</Label>
                 <Slider
                   value={quality}
                   onValueChange={setQuality}
@@ -157,7 +157,7 @@ export default function ImageCompressor() {
                   className="mt-2"
                 />
                 <p className="text-sm text-slate-500 mt-1">
-                  {t("imageCompressor.qualityNote")}
+                  Higher quality = larger file size
                 </p>
               </div>
 
@@ -169,12 +169,12 @@ export default function ImageCompressor() {
                 {isProcessing ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {t("imageCompressor.compressing")}
+                    Compressing...
                   </>
                 ) : (
                   <>
                     <ImageIcon className="w-4 h-4 mr-2" />
-                    {t("imageCompressor.compressImage")}
+                    Compress Image
                   </>
                 )}
               </Button>
@@ -187,22 +187,22 @@ export default function ImageCompressor() {
       {compressedImage && (
         <Card>
           <CardContent className="p-6">
-            <h3 className="font-semibold text-slate-800 mb-4">{t("imageCompressor.compressionResults")}</h3>
+            <h3 className="font-semibold text-slate-800 mb-4">Compression Results</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <h4 className="font-medium text-slate-700 mb-2">{t("imageCompressor.original")}</h4>
+                <h4 className="font-medium text-slate-700 mb-2">Original</h4>
                 <div className="bg-slate-50 p-4 rounded-lg">
-                  <p className="text-sm text-slate-600">{t("imageCompressor.size")}: {formatFileSize(originalSize)}</p>
-                  <p className="text-sm text-slate-600">{t("imageCompressor.file")}: {originalFile?.name}</p>
+                  <p className="text-sm text-slate-600">Size: {formatFileSize(originalSize)}</p>
+                  <p className="text-sm text-slate-600">File: {originalFile?.name}</p>
                 </div>
               </div>
               
               <div>
-                <h4 className="font-medium text-slate-700 mb-2">{t("imageCompressor.compressed")}</h4>
+                <h4 className="font-medium text-slate-700 mb-2">Compressed</h4>
                 <div className="bg-slate-50 p-4 rounded-lg">
-                  <p className="text-sm text-slate-600">{t("imageCompressor.size")}: {formatFileSize(compressedSize)}</p>
-                  <p className="text-sm text-slate-600">{t("imageCompressor.reduction")}: {getCompressionRatio()}%</p>
+                  <p className="text-sm text-slate-600">Size: {formatFileSize(compressedSize)}</p>
+                  <p className="text-sm text-slate-600">Reduction: {getCompressionRatio()}%</p>
                 </div>
               </div>
             </div>
@@ -210,14 +210,14 @@ export default function ImageCompressor() {
             <div className="text-center mb-4">
               <img 
                 src={compressedImage} 
-                alt={t("imageCompressor.compressed")} 
+                alt="Compressed" 
                 className="max-w-full h-auto max-h-64 mx-auto rounded-lg shadow-sm"
               />
             </div>
 
             <Button onClick={downloadImage} className="w-full bg-accent hover:bg-emerald-600">
               <Download className="w-4 h-4 mr-2" />
-              {t("imageCompressor.downloadCompressed")}
+              Download Compressed Image
             </Button>
           </CardContent>
         </Card>

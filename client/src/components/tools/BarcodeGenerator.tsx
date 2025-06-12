@@ -593,7 +593,7 @@ export default function BarcodeGenerator() {
                         <SelectItem key={`${typeData.bcid}-${typeName}`} value={typeData.bcid}>
                           <div className="flex items-center justify-between w-full min-w-0">
                             <div className="flex flex-col min-w-0 flex-1">
-                              <span className="font-medium truncate">{t(`${typeData.bcid}.title`) !== `${typeData.bcid}.title` ? t(`${typeData.bcid}.title`) : typeName}</span>
+                              <span className="font-medium truncate">{t(typeName) !== typeName ? t(typeName) : typeName}</span>
                               <span className="text-xs text-gray-500 truncate">{getBarcodeDescription(typeName, typeData.bcid)}</span>
                             </div>
                             <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded ml-2 flex-shrink-0">
@@ -617,7 +617,7 @@ export default function BarcodeGenerator() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
                       <span className="font-medium text-green-700 dark:text-green-300">
-                        {t(`${currentBarcodeDef.bcid}.title`) !== `${currentBarcodeDef.bcid}.title` ? t(`${currentBarcodeDef.bcid}.title`) : currentBarcodeDef.name}
+                        {t(currentBarcodeDef.name) !== currentBarcodeDef.name ? t(currentBarcodeDef.name) : currentBarcodeDef.name}
                       </span>
                       <span className="mx-2 text-gray-500">•</span>
                       <span className="text-green-600 dark:text-green-400">

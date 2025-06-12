@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Upload, Download, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 const imageFormats = [
   { value: 'png', label: 'PNG', description: 'Lossless compression, supports transparency' },
@@ -29,7 +28,6 @@ export default function ImageConverter() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [preview, setPreview] = useState<string>('');
   const { toast } = useToast();
-  const { t } = useLanguage();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -48,8 +46,8 @@ export default function ImageConverter() {
   const handleConvert = async () => {
     if (!file) {
       toast({
-        title: t("imageConverter.error"),
-        description: t("imageConverter.selectImageFirst"),
+        title: "Error",
+        description: "Please select an image file first",
         variant: "destructive"
       });
       return;
@@ -83,13 +81,13 @@ export default function ImageConverter() {
       document.body.removeChild(a);
 
       toast({
-        title: t("imageConverter.success"),
-        description: t("imageConverter.convertedSuccessfully", { format: format.toUpperCase() })
+        title: "Success",
+        description: `Image converted to ${format.toUpperCase()} successfully`
       });
     } catch (error) {
       toast({
-        title: t("imageConverter.error"),
-        description: t("imageConverter.failedToConvert"),
+        title: "Error",
+        description: "Failed to convert image",
         variant: "destructive"
       });
     } finally {
