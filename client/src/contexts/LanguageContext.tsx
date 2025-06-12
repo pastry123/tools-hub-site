@@ -98,7 +98,32 @@ const translations: Record<Language, Record<string, string>> = {
     "backgroundRemover.reset": "Reset",
     "backgroundRemover.aiProcessing": "AI is processing your image...",
     "backgroundRemover.creditsRemaining": "Credits remaining:",
-    "backgroundRemover.unknown": "Unknown"
+    "backgroundRemover.unknown": "Unknown",
+
+    // Image Compressor
+    "imageCompressor.title": "Image Compressor",
+    "imageCompressor.subtitle": "Compress images to reduce file size",
+    "imageCompressor.dragAndDrop": "Drag and drop an image here or click to browse",
+    "imageCompressor.chooseImageFile": "Choose Image File",
+    "imageCompressor.quality": "Quality",
+    "imageCompressor.qualityNote": "Higher quality = larger file size",
+    "imageCompressor.compressing": "Compressing...",
+    "imageCompressor.compressImage": "Compress Image",
+    "imageCompressor.compressionResults": "Compression Results",
+    "imageCompressor.original": "Original",
+    "imageCompressor.compressed": "Compressed",
+    "imageCompressor.size": "Size",
+    "imageCompressor.file": "File",
+    "imageCompressor.reduction": "Reduction",
+    "imageCompressor.downloadCompressed": "Download Compressed Image",
+    "imageCompressor.invalidFileType": "Invalid File Type",
+    "imageCompressor.selectImageFile": "Please select an image file",
+    "imageCompressor.imageCompressed": "Image Compressed",
+    "imageCompressor.compressedSuccessfully": "Image compressed successfully",
+    "imageCompressor.compressionFailed": "Compression Failed",
+    "imageCompressor.failedToCompress": "Failed to compress image",
+    "imageCompressor.downloadStarted": "Download Started",
+    "imageCompressor.downloadInProgress": "Download in progress"
   },
 
   es: {
@@ -190,7 +215,32 @@ const translations: Record<Language, Record<string, string>> = {
     "backgroundRemover.reset": "Restablecer",
     "backgroundRemover.aiProcessing": "La IA está procesando tu imagen...",
     "backgroundRemover.creditsRemaining": "Créditos restantes:",
-    "backgroundRemover.unknown": "Desconocido"
+    "backgroundRemover.unknown": "Desconocido",
+
+    // Image Compressor
+    "imageCompressor.title": "Compresor de Imágenes",
+    "imageCompressor.subtitle": "Comprimir imágenes para reducir el tamaño del archivo",
+    "imageCompressor.dragAndDrop": "Arrastra y suelta una imagen aquí o haz clic para navegar",
+    "imageCompressor.chooseImageFile": "Elegir Archivo de Imagen",
+    "imageCompressor.quality": "Calidad",
+    "imageCompressor.qualityNote": "Mayor calidad = mayor tamaño de archivo",
+    "imageCompressor.compressing": "Comprimiendo...",
+    "imageCompressor.compressImage": "Comprimir Imagen",
+    "imageCompressor.compressionResults": "Resultados de Compresión",
+    "imageCompressor.original": "Original",
+    "imageCompressor.compressed": "Comprimida",
+    "imageCompressor.size": "Tamaño",
+    "imageCompressor.file": "Archivo",
+    "imageCompressor.reduction": "Reducción",
+    "imageCompressor.downloadCompressed": "Descargar Imagen Comprimida",
+    "imageCompressor.invalidFileType": "Tipo de Archivo Inválido",
+    "imageCompressor.selectImageFile": "Por favor selecciona un archivo de imagen",
+    "imageCompressor.imageCompressed": "Imagen Comprimida",
+    "imageCompressor.compressedSuccessfully": "Imagen comprimida exitosamente",
+    "imageCompressor.compressionFailed": "Compresión Fallida",
+    "imageCompressor.failedToCompress": "Falló al comprimir la imagen",
+    "imageCompressor.downloadStarted": "Descarga Iniciada",
+    "imageCompressor.downloadInProgress": "Descarga en progreso"
   },
 
   ar: {
@@ -282,7 +332,32 @@ const translations: Record<Language, Record<string, string>> = {
     "backgroundRemover.reset": "إعادة تعيين",
     "backgroundRemover.aiProcessing": "الذكاء الاصطناعي يعالج صورتك...",
     "backgroundRemover.creditsRemaining": "الأرصدة المتبقية:",
-    "backgroundRemover.unknown": "غير معروف"
+    "backgroundRemover.unknown": "غير معروف",
+
+    // Image Compressor
+    "imageCompressor.title": "ضاغط الصور",
+    "imageCompressor.subtitle": "ضغط الصور لتقليل حجم الملف",
+    "imageCompressor.dragAndDrop": "اسحب وأفلت صورة هنا أو انقر للتصفح",
+    "imageCompressor.chooseImageFile": "اختر ملف صورة",
+    "imageCompressor.quality": "الجودة",
+    "imageCompressor.qualityNote": "جودة أعلى = حجم ملف أكبر",
+    "imageCompressor.compressing": "جاري الضغط...",
+    "imageCompressor.compressImage": "ضغط الصورة",
+    "imageCompressor.compressionResults": "نتائج الضغط",
+    "imageCompressor.original": "الأصلية",
+    "imageCompressor.compressed": "المضغوطة",
+    "imageCompressor.size": "الحجم",
+    "imageCompressor.file": "الملف",
+    "imageCompressor.reduction": "التخفيض",
+    "imageCompressor.downloadCompressed": "تحميل الصورة المضغوطة",
+    "imageCompressor.invalidFileType": "نوع ملف غير صالح",
+    "imageCompressor.selectImageFile": "يرجى تحديد ملف صورة",
+    "imageCompressor.imageCompressed": "تم ضغط الصورة",
+    "imageCompressor.compressedSuccessfully": "تم ضغط الصورة بنجاح",
+    "imageCompressor.compressionFailed": "فشل الضغط",
+    "imageCompressor.failedToCompress": "فشل في ضغط الصورة",
+    "imageCompressor.downloadStarted": "بدأ التحميل",
+    "imageCompressor.downloadInProgress": "التحميل قيد التقدم"
   }
 };
 
