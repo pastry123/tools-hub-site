@@ -1199,6 +1199,8 @@ const translations = {
     "pdfSplitter.downloadAll": "Descargar Todo",
     "pdfSplitter.reset": "Restablecer",
     "pdfSplitter.download": "Descargar",
+    "pdfSplitter.pages": "Páginas",
+    "pdfSplitter.splitResults": "Resultados de División",
     
     // PDF Compressor Tool - Spanish
     "pdfCompressor.title": "Compresor PDF",
@@ -1653,37 +1655,27 @@ const translations = {
     "pdfMerger.readyForDownload": "ملف PDF المدموج جاهز للتحميل",
     "pdfMerger.success": "تم دمج PDF بنجاح!",
     
-    // PDF Splitter Tool - Arabic
+    // PDF Splitter Tool - Arabic (consolidated)
     "pdfSplitter.title": "مقسم PDF",
     "pdfSplitter.subtitle": "استخراج صفحات أو نطاقات محددة من مستندات PDF",
+    "pdfSplitter.uploadFile": "رفع ملف PDF",
+    "pdfSplitter.chooseFile": "اختر ملف",
+    "pdfSplitter.dragDrop": "اسحب وأسقط ملف PDF هنا، أو انقر للتصفح",
     "pdfSplitter.specificPages": "صفحات محددة",
     "pdfSplitter.pageRanges": "نطاقات الصفحات",
     "pdfSplitter.everyNPages": "كل N صفحة",
     "pdfSplitter.fixedSizeChunks": "أجزاء بحجم ثابت",
-    "pdfSplitter.invalidFileType": "نوع ملف غير صالح",
-    "pdfSplitter.selectPdfFile": "يرجى اختيار ملف PDF",
-    "pdfSplitter.fileTooLarge": "الملف كبير جداً",
-    "pdfSplitter.fileSize100MB": "الملف يتجاوز حد 100 ميجابايت",
-    "pdfSplitter.inputRequired": "مطلوب إدخال",
-    "pdfSplitter.specifyPages": "يرجى تحديد الصفحات أو النطاقات للاستخراج",
-    "pdfSplitter.invalidPageNumber": "رقم صفحة غير صالح",
-    "pdfSplitter.pageNotValid": "الصفحة",
-    "pdfSplitter.pagesMustBeBetween": "يجب أن تكون الصفحات بين",
-    "pdfSplitter.and": "و",
-    "pdfSplitter.invalidRange": "نطاق غير صالح",
-    "pdfSplitter.uploadPdfFile": "رفع ملف PDF",
-    "pdfSplitter.dragDropPdf": "اسحب وأفلت ملف PDF هنا، أو انقر للتصفح",
-    "pdfSplitter.chooseFile": "اختر الملف",
-    "pdfSplitter.splitMethod": "طريقة التقسيم",
     "pdfSplitter.splitPdf": "تقسيم PDF",
-    "pdfSplitter.splitting": "جارٍ تقسيم PDF...",
-    "pdfSplitter.success": "نجح!",
-    "pdfSplitter.successMessage": "تم تقسيم PDF بنجاح إلى {count} ملف",
+    "pdfSplitter.splitting": "جارٍ التقسيم...",
+    "pdfSplitter.inputRequired": "مطلوب إدخال",
+    "pdfSplitter.specifyPagesOrRanges": "يرجى تحديد الصفحات أو النطاقات المراد استخراجها",
     "pdfSplitter.error": "خطأ",
     "pdfSplitter.failedToSplit": "فشل في تقسيم PDF",
     "pdfSplitter.downloadAll": "تحميل الكل",
     "pdfSplitter.reset": "إعادة تعيين",
     "pdfSplitter.download": "تحميل",
+    "pdfSplitter.pages": "صفحات",
+    "pdfSplitter.splitResults": "نتائج التقسيم",
     
     // PDF Compressor - already defined below
     
@@ -2287,23 +2279,7 @@ const translations = {
     "Korean Postal Authority Code": "رمز البريد الكوري",
     "Flattermarken (Extended)": "فلاترماركن موسع",
 
-    // PDF Tools Core Arabic Translations
-    "pdfSplitter.title": "تقسيم PDF",
-    "pdfSplitter.subtitle": "استخراج صفحات أو نطاقات محددة من مستندات PDF",
-    "pdfSplitter.uploadFile": "رفع ملف PDF",
-    "pdfSplitter.chooseFile": "اختر ملف",
-    "pdfSplitter.dragDrop": "اسحب وأسقط ملف PDF هنا، أو انقر للتصفح",
-    "pdfSplitter.split": "تقسيم PDF",
-    "pdfSplitter.pages": "صفحات",
-    "pdfSplitter.splitting": "جارٍ التقسيم...",
-    "pdfSplitter.specificPages": "صفحات محددة",
-    "pdfSplitter.pageRanges": "نطاقات الصفحات", 
-    "pdfSplitter.everyNPages": "كل N صفحات",
-    "pdfSplitter.fixedSizeChunks": "قطع بحجم ثابت",
-    "pdfSplitter.splitResults": "نتائج التقسيم",
-    "pdfSplitter.downloadAll": "تحميل الكل",
-    "pdfSplitter.inputRequired": "مطلوب إدخال",
-    "pdfSplitter.specifyPagesOrRanges": "يرجى تحديد الصفحات أو النطاقات المراد استخراجها",
+
     
     // PDF Converter Core Arabic Translations  
     "pdfConverter.title": "محول PDF",

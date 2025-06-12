@@ -122,8 +122,8 @@ export default function PDFConverter() {
 
     if (selectedFile.size > 100 * 1024 * 1024) { // 100MB limit
       toast({
-        title: "File too large",
-        description: "File exceeds 100MB limit",
+        title: t("pdfConverter.fileTooLarge"),
+        description: t("pdfConverter.fileSize100MB"),
         variant: "destructive",
       });
       return;
@@ -156,8 +156,8 @@ export default function PDFConverter() {
   const convertFile = async () => {
     if (!file) {
       toast({
-        title: "No file selected",
-        description: "Please select a file first",
+        title: t("pdfConverter.noFileSelected"),
+        description: t("pdfConverter.selectFileFirst"),
         variant: "destructive",
       });
       return;
@@ -165,8 +165,8 @@ export default function PDFConverter() {
 
     if (!selectedFormat) {
       toast({
-        title: "No format selected",
-        description: "Please select a conversion format",
+        title: t("pdfConverter.noFormatSelected"),
+        description: t("pdfConverter.selectConversionFormat"),
         variant: "destructive",
       });
       return;
