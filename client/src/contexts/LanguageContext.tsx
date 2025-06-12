@@ -296,6 +296,8 @@ const translations = {
     "pdfSplitter.downloadAll": "Download All",
     "pdfSplitter.reset": "Reset",
     "pdfSplitter.download": "Download",
+    "pdfSplitter.pages": "Pages",
+    "pdfSplitter.splitResults": "Split Results",
     
     // PDF Compressor Tool - English
     "pdfCompressor.title": "PDF Compressor",

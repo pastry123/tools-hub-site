@@ -313,13 +313,13 @@ export default function PDFSplitter() {
             onDragOver={(e) => e.preventDefault()}
           >
             <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">{t("pdfSplitter.uploadFile") || "رفع ملف PDF"}</h3>
+            <h3 className="text-lg font-medium mb-2">{t("pdfSplitter.uploadPdfFile")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {t("pdfSplitter.dragDrop") || "اسحب وأسقط ملف PDF هنا، أو انقر للتصفح"}
+              {t("pdfSplitter.dragDropPdf")}
             </p>
             <Button variant="outline">
               <FileUp className="w-4 h-4 mr-2" />
-              {t("pdfSplitter.chooseFile") || "اختر ملف"}
+              {t("pdfSplitter.chooseFile")}
             </Button>
             <input
               ref={fileInputRef}
@@ -356,7 +356,7 @@ export default function PDFSplitter() {
           {/* Split Options */}
           {file && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Split Options</h3>
+              <h3 className="text-lg font-medium">{t("pdfSplitter.splitMethod")}</h3>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {splitOptions.map((option) => (
@@ -392,7 +392,7 @@ export default function PDFSplitter() {
           {isProcessing && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Splitting PDF...</span>
+                <span>{t("pdfSplitter.splitting")}</span>
                 <span>{progress}%</span>
               </div>
               <Progress value={progress} className="w-full" />
@@ -406,12 +406,12 @@ export default function PDFSplitter() {
               disabled={!file || !pageInput.trim() || isProcessing}
               className="flex-1"
             >
-              {isProcessing ? (t("pdfSplitter.splitting") || "جارٍ التقسيم...") : (t("pdfSplitter.split") || "تقسيم PDF")}
+              {isProcessing ? t("pdfSplitter.splitting") : t("pdfSplitter.splitPdf")}
             </Button>
             
             {file && (
               <Button variant="outline" onClick={resetTool}>
-                Reset
+                {t("pdfSplitter.reset")}
               </Button>
             )}
           </div>
@@ -420,10 +420,10 @@ export default function PDFSplitter() {
           {splitResults.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Split Results ({splitResults.length} files)</h3>
+                <h3 className="text-lg font-medium">{t("pdfSplitter.splitResults")} ({splitResults.length} files)</h3>
                 <Button onClick={downloadAll} variant="outline">
                   <Download className="w-4 h-4 mr-2" />
-                  Download All
+                  {t("pdfSplitter.downloadAll")}
                 </Button>
               </div>
 
@@ -438,7 +438,7 @@ export default function PDFSplitter() {
                         {result.name}
                       </p>
                       <p className="text-sm text-green-600 dark:text-green-300">
-                        Pages: {result.pages}
+                        {t("pdfSplitter.pages") || "Pages"}: {result.pages}
                       </p>
                     </div>
                     <Button
@@ -446,7 +446,7 @@ export default function PDFSplitter() {
                       size="sm"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Download
+                      {t("pdfSplitter.download")}
                     </Button>
                   </div>
                 ))}
