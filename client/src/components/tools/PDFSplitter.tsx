@@ -41,8 +41,8 @@ export default function PDFSplitter() {
   const handleFileSelection = async (selectedFile: File) => {
     if (selectedFile.type !== "application/pdf") {
       toast({
-        title: "Invalid file type",
-        description: "Please select a PDF file",
+        title: t("pdfSplitter.invalidFileType") || "Invalid file type",
+        description: t("pdfSplitter.selectPdfFile") || "Please select a PDF file",
         variant: "destructive",
       });
       return;
@@ -50,8 +50,8 @@ export default function PDFSplitter() {
 
     if (selectedFile.size > 100 * 1024 * 1024) { // 100MB limit
       toast({
-        title: "File too large",
-        description: "File exceeds 100MB limit",
+        title: t("pdfSplitter.fileTooLarge") || "File too large",
+        description: t("pdfSplitter.fileSize100MB") || "File exceeds 100MB limit",
         variant: "destructive",
       });
       return;
@@ -89,8 +89,8 @@ export default function PDFSplitter() {
   const validateInput = () => {
     if (!pageInput.trim()) {
       toast({
-        title: "Input required",
-        description: "Please specify pages or ranges to extract",
+        title: t("pdfSplitter.inputRequired") || "Input required",
+        description: t("pdfSplitter.specifyPages") || "Please specify pages or ranges to extract",
         variant: "destructive",
       });
       return false;
@@ -102,8 +102,8 @@ export default function PDFSplitter() {
         const pageNum = parseInt(page);
         if (isNaN(pageNum) || pageNum < 1 || (totalPages && pageNum > totalPages)) {
           toast({
-            title: "Invalid page number",
-            description: `Page ${page} is not valid. Pages must be between 1 and ${totalPages || 'N/A'}`,
+            title: t("pdfSplitter.invalidPageNumber") || "Invalid page number",
+            description: t("pdfSplitter.pageNotValid") ? `${t("pdfSplitter.pageNotValid")} ${page}. ${t("pdfSplitter.pagesMustBeBetween")} 1 ${t("pdfSplitter.and")} ${totalPages || 'N/A'}` : `Page ${page} is not valid. Pages must be between 1 and ${totalPages || 'N/A'}`,
             variant: "destructive",
           });
           return false;
