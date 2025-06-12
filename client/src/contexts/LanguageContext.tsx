@@ -262,6 +262,7 @@ const translations = {
     "pdfMerger.selectedFiles": "Selected Files",
     "pdfMerger.reset": "Reset",
     "pdfMerger.download": "Download",
+    "pdfMerger.readyForDownload": "Your merged PDF is ready for download",
     
     // PDF Compressor Tool - English
     "pdfCompressor.title": "PDF Compressor",
@@ -648,13 +649,7 @@ const translations = {
     "colorAnalyzer.noFileChosen": "No file chosen",
     "colorAnalyzer.chooseFile": "Choose File",
     
-    // PDF Merger
-    "pdfMerger.title": "PDF Merger",
-    "pdfMerger.subtitle": "Combine multiple PDF files into one document",
-    "pdfMerger.invalidFileType": "Invalid file type",
-    "pdfMerger.notPdfFile": "is not a PDF file",
-    "pdfMerger.fileTooLarge": "File too large",
-    "pdfMerger.exceedsLimit": "exceeds 50MB limit",
+    // PDF Merger - already defined above
     
     // AI Text Tool
 
@@ -1135,6 +1130,7 @@ const translations = {
     "pdfMerger.selectedFiles": "Archivos Seleccionados",
     "pdfMerger.reset": "Restablecer",
     "pdfMerger.download": "Descargar",
+    "pdfMerger.readyForDownload": "Tu PDF fusionado está listo para descargar",
     
     // PDF Compressor Tool - Spanish
     "pdfCompressor.title": "Compresor PDF",
@@ -1592,6 +1588,7 @@ const translations = {
     "pdfMerger.selectedFiles": "الملفات المحددة",
     "pdfMerger.reset": "إعادة تعيين",
     "pdfMerger.download": "تحميل",
+    "pdfMerger.readyForDownload": "ملف PDF المدموج جاهز للتحميل",
     
     // PDF Compressor Tool - Arabic
     "pdfCompressor.title": "ضاغط PDF",
@@ -2550,26 +2547,6 @@ const translations = {
 
     // PDF Tools
     "pdfTools.title": "أدوات PDF",
-    "pdfMerger.title": "دمج PDF",
-    "pdfMerger.subtitle": "دمج ملفات PDF متعددة في وثيقة واحدة",
-    "pdfMerger.uploadFiles": "رفع ملفات PDF",
-    "pdfMerger.dragDrop": "اسحب وأفلت ملفات PDF هنا، أو انقر للتصفح",
-    "pdfMerger.chooseFiles": "اختر ملفات",
-    "pdfMerger.outputFilename": "اسم الملف الناتج",
-    "pdfMerger.selectedFiles": "الملفات المحددة",
-    "pdfMerger.total": "المجموع",
-    "pdfMerger.addAtLeast": "أضف ملفين PDF على الأقل للدمج",
-    "pdfMerger.merging": "جارٍ الدمج...",
-    "pdfMerger.mergeFiles": "دمج ملفات PDF",
-    "pdfMerger.reset": "إعادة تعيين",
-    "pdfMerger.successfullyMerged": "تم دمج ملفات PDF بنجاح!",
-    "pdfMerger.readyForDownload": "ملف PDF المدموج جاهز للتحميل",
-    "pdfMerger.download": "تحميل",
-    "pdfMerger.exceeds50MB": "يتجاوز حد 50 ميجابايت",
-    "pdfMerger.insufficientFiles": "ملفات غير كافية",
-    "pdfMerger.selectAtLeast2": "يرجى اختيار ملفين PDF على الأقل للدمج",
-
-
     
     "pdfCompressor.title": "ضاغط PDF",
     "pdfCompressor.subtitle": "تقليل حجم ملف PDF مع الحفاظ على الجودة",

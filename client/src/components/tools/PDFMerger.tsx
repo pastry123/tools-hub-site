@@ -318,7 +318,7 @@ export default function PDFMerger() {
             
             {files.length > 0 && (
               <Button variant="outline" onClick={resetTool}>
-                Reset
+                {t("pdfMerger.reset")}
               </Button>
             )}
           </div>
@@ -329,15 +329,15 @@ export default function PDFMerger() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-green-800 dark:text-green-200">
-                    PDF Successfully Merged!
+                    {t("pdfMerger.success")}
                   </h3>
                   <p className="text-sm text-green-600 dark:text-green-300">
-                    Your merged PDF is ready for download
+                    {t("pdfMerger.readyForDownload") || "Your merged PDF is ready for download"}
                   </p>
                 </div>
                 <Button onClick={downloadMergedPDF}>
                   <Download className="w-4 h-4 mr-2" />
-                  Download
+                  {t("pdfMerger.download")}
                 </Button>
               </div>
             </div>
