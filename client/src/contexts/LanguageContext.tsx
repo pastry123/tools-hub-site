@@ -534,6 +534,15 @@ const translations: Record<Language, Record<string, string>> = {
     "bulkBarcode.createFirstJob": "Create your first bulk barcode job",
     "bulkBarcode.createNewJob": "Create New Job",
 
+    // Tool Page Common
+    "toolPage.addToFavorites": "Add to Favorites",
+    "tool.multipleFormats": "Multiple Formats",
+    "tool.multipleFormats.desc": "Supports various input and output formats",
+    "tool.mobileOptimized": "Mobile Optimized",
+    "tool.mobileOptimized.desc": "Works perfectly on all devices and screen sizes",
+    "tool.securePrivate": "Secure & Private",
+    "tool.securePrivate.desc": "All processing happens locally with no data collection",
+
     // Barcode Generator
     "barcodeGenerator.title": "Barcode & QR Code Generator",
     "barcodeGenerator.subtitle": "Generate 85+ barcode types including QR codes, linear barcodes, postal codes, business cards, Wi-Fi, events, and specialty formats",
@@ -1395,6 +1404,15 @@ const translations: Record<Language, Record<string, string>> = {
     "bulkBarcode.createFirstJob": "Crea tu primer trabajo de códigos de barras en lote",
     "bulkBarcode.createNewJob": "Crear Nuevo Trabajo",
 
+    // Tool Page Common
+    "toolPage.addToFavorites": "Agregar a Favoritos",
+    "tool.multipleFormats": "Múltiples Formatos",
+    "tool.multipleFormats.desc": "Soporta varios formatos de entrada y salida",
+    "tool.mobileOptimized": "Optimizado para Móviles",
+    "tool.mobileOptimized.desc": "Funciona perfectamente en todos los dispositivos y tamaños de pantalla",
+    "tool.securePrivate": "Seguro y Privado",
+    "tool.securePrivate.desc": "Todo el procesamiento ocurre localmente sin recopilación de datos",
+
     // Footer and Enterprise
     "footer.privacyPolicy": "Todo el procesamiento de datos sigue estándares estrictos de privacidad sin recopilación o almacenamiento de datos.",
     "footer.enterpriseStandards": "Seguridad de Nivel Empresarial",
@@ -2070,6 +2088,15 @@ const translations: Record<Language, Record<string, string>> = {
     "bulkBarcode.noBulkJobs": "لا توجد مهام بالجملة",
     "bulkBarcode.createFirstJob": "إنشاء أول مهمة باركود بالجملة",
     "bulkBarcode.createNewJob": "إنشاء مهمة جديدة",
+
+    // Tool Page Common
+    "toolPage.addToFavorites": "إضافة إلى المفضلة",
+    "tool.multipleFormats": "تنسيقات متعددة",
+    "tool.multipleFormats.desc": "يدعم تنسيقات الإدخال والإخراج المختلفة",
+    "tool.mobileOptimized": "محسن للجوال",
+    "tool.mobileOptimized.desc": "يعمل بشكل مثالي على جميع الأجهزة وأحجام الشاشات",
+    "tool.securePrivate": "آمن وخاص",
+    "tool.securePrivate.desc": "تتم جميع المعالجات محلياً بدون جمع البيانات",
 
     // Footer and Enterprise
     "footer.privacyPolicy": "تتبع جميع معالجة البيانات معايير خصوصية صارمة مع عدم جمع أو تخزين البيانات.",
