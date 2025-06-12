@@ -213,14 +213,14 @@ export default function PDFConverter() {
       setConvertedFileName(`${baseName}${selectedFormat.extension}`);
 
       toast({
-        title: "Success!",
-        description: `File converted to ${selectedFormat.name.split(' to ')[1]} successfully`,
+        title: t("pdfConverter.success"),
+        description: t("pdfConverter.conversionSuccessful"),
       });
     } catch (error) {
       console.error("Error converting file:", error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to convert file",
+        title: t("pdfConverter.error"),
+        description: t("pdfConverter.conversionFailed"),
         variant: "destructive",
       });
     } finally {
@@ -258,10 +258,10 @@ export default function PDFConverter() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCw className="w-5 h-5" />
-            {t("pdfConverter.title") || "محول PDF"}
+            {t("pdfConverter.title")}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            {t("pdfConverter.description") || "تحويل بين PDF وتنسيقات المستندات المختلفة بما في ذلك Word و Excel والصور والمزيد"}
+            {t("pdfConverter.description")}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -279,13 +279,13 @@ export default function PDFConverter() {
             onDragOver={(e) => e.preventDefault()}
           >
             <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">{t("pdfConverter.uploadFile") || "رفع ملف"}</h3>
+            <h3 className="text-lg font-medium mb-2">{t("pdfConverter.uploadFile")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {t("pdfConverter.dragDrop") || "اسحب وأسقط ملف هنا، أو انقر للتصفح"}
+              {t("pdfConverter.dragDrop")}
             </p>
             <Button variant="outline">
               <FileUp className="w-4 h-4 mr-2" />
-              {t("pdfConverter.chooseFile") || "اختر ملف"}
+              {t("pdfConverter.chooseFile")}
             </Button>
             <input
               ref={fileInputRef}
@@ -322,7 +322,7 @@ export default function PDFConverter() {
           {/* Format Selection */}
           {file && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Select Output Format</h3>
+              <h3 className="text-lg font-medium">{t("pdfConverter.selectOutputFormat")}</h3>
               
               <Select
                 value={selectedFormat?.id || ""}
@@ -332,7 +332,7 @@ export default function PDFConverter() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose conversion format" />
+                  <SelectValue placeholder={t("pdfConverter.chooseConversionFormat")} />
                 </SelectTrigger>
                 <SelectContent>
                   {getCompatibleFormats().map((format) => {
@@ -369,7 +369,7 @@ export default function PDFConverter() {
           {isProcessing && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Converting file...</span>
+                <span>{t("pdfConverter.converting")}</span>
                 <span>{progress}%</span>
               </div>
               <Progress value={progress} className="w-full" />
@@ -383,12 +383,12 @@ export default function PDFConverter() {
               disabled={!file || !selectedFormat || isProcessing}
               className="flex-1"
             >
-              {isProcessing ? (t("pdfConverter.converting") || "جارٍ التحويل...") : (t("pdfConverter.convertFile") || "تحويل الملف")}
+              {isProcessing ? t("pdfConverter.converting") : t("pdfConverter.convertFile")}
             </Button>
             
             {file && (
               <Button variant="outline" onClick={resetTool}>
-                Reset
+                {t("pdfConverter.reset")}
               </Button>
             )}
           </div>
@@ -399,15 +399,15 @@ export default function PDFConverter() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-green-800 dark:text-green-200">
-                    Conversion Complete!
+                    {t("pdfConverter.conversionComplete")}
                   </h3>
                   <p className="text-sm text-green-600 dark:text-green-300">
-                    {convertedFileName} is ready for download
+                    {t("pdfConverter.readyForDownload")}
                   </p>
                 </div>
                 <Button onClick={downloadConvertedFile}>
                   <Download className="w-4 h-4 mr-2" />
-                  Download
+                  {t("pdfConverter.download")}
                 </Button>
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function PDFConverter() {
           {/* Supported Formats Info */}
           <div className="text-center text-sm text-muted-foreground">
             <p>
-              {t("pdfConverter.supportedFormats") || "التنسيقات المدعومة: PDF، Word (DOC/DOCX)، Excel (XLS/XLSX)، الصور (JPG/PNG/GIF/BMP)"}
+              {t("pdfConverter.supportedFormats")}
             </p>
           </div>
         </CardContent>
