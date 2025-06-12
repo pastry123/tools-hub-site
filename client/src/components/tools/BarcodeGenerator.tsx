@@ -617,7 +617,7 @@ export default function BarcodeGenerator() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
                       <span className="font-medium text-green-700 dark:text-green-300">
-                        {currentBarcodeDef.name}
+                        {t(currentBarcodeDef.name) !== currentBarcodeDef.name ? t(currentBarcodeDef.name) : currentBarcodeDef.name}
                       </span>
                       <span className="mx-2 text-gray-500">•</span>
                       <span className="text-green-600 dark:text-green-400">
