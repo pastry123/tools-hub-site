@@ -211,7 +211,7 @@ export default function BackgroundRemover() {
               <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                 <Info className="w-4 h-4 text-blue-600" />
                 <span className="text-sm text-blue-700 dark:text-blue-300">
-                  Credits remaining: {accountInfo.credits || 'Unknown'}
+                  {t("backgroundRemover.creditsRemaining")} {accountInfo.credits || t("backgroundRemover.unknown")}
                 </span>
               </div>
             )}
@@ -230,16 +230,16 @@ export default function BackgroundRemover() {
             >
               <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <p className="text-lg font-medium mb-2">
-                {selectedFile ? selectedFile.name : "Drop your image here"}
+                {selectedFile ? selectedFile.name : t("backgroundRemover.dropImage")}
               </p>
               <p className="text-sm text-gray-500 mb-4">
-                or click to browse (max 10MB)
+                {t("backgroundRemover.clickToBrowse")}
               </p>
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 variant="outline"
               >
-                Choose Image
+                {t("backgroundRemover.chooseImage")}
               </Button>
               <input
                 ref={fileInputRef}
@@ -253,13 +253,13 @@ export default function BackgroundRemover() {
             {/* Options */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="size">Output Size</Label>
+                <Label htmlFor="size">{t("backgroundRemover.outputSize")}</Label>
                 <Select value={options.size} onValueChange={(value) => setOptions({...options, size: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">Auto</SelectItem>
+                    <SelectItem value="auto">{t("backgroundRemover.auto")}</SelectItem>
                     <SelectItem value="preview">Preview (0.25MP)</SelectItem>
                     <SelectItem value="regular">Regular (4MP)</SelectItem>
                     <SelectItem value="medium">Medium (10MP)</SelectItem>
@@ -269,13 +269,13 @@ export default function BackgroundRemover() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Subject Type</Label>
+                <Label htmlFor="type">{t("backgroundRemover.subjectType")}</Label>
                 <Select value={options.type} onValueChange={(value) => setOptions({...options, type: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">Auto Detect</SelectItem>
+                    <SelectItem value="auto">{t("backgroundRemover.autoDetect")}</SelectItem>
                     <SelectItem value="person">Person</SelectItem>
                     <SelectItem value="product">Product</SelectItem>
                     <SelectItem value="car">Car</SelectItem>
@@ -284,24 +284,24 @@ export default function BackgroundRemover() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="format">Output Format</Label>
+                <Label htmlFor="format">{t("backgroundRemover.outputFormat")}</Label>
                 <Select value={options.format} onValueChange={(value) => setOptions({...options, format: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="png">PNG (Transparent)</SelectItem>
-                    <SelectItem value="jpg">JPG (White background)</SelectItem>
+                    <SelectItem value="png">PNG ({t("backgroundRemover.transparent")})</SelectItem>
+                    <SelectItem value="jpg">JPG ({t("backgroundRemover.whiteBackground")})</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bg_color">Background Color (optional)</Label>
+                <Label htmlFor="bg_color">{t("backgroundRemover.backgroundColor")}</Label>
                 <Input
                   id="bg_color"
                   type="text"
-                  placeholder="e.g., #ffffff or red"
+                  placeholder={t("backgroundRemover.colorPlaceholder")}
                   value={options.bg_color}
                   onChange={(e) => setOptions({...options, bg_color: e.target.value})}
                 />
@@ -315,7 +315,7 @@ export default function BackgroundRemover() {
                   checked={options.crop}
                   onCheckedChange={(checked) => setOptions({...options, crop: checked})}
                 />
-                <Label htmlFor="crop">Auto Crop</Label>
+                <Label htmlFor="crop">{t("backgroundRemover.autoCrop")}</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -324,7 +324,7 @@ export default function BackgroundRemover() {
                   checked={options.add_shadow}
                   onCheckedChange={(checked) => setOptions({...options, add_shadow: checked})}
                 />
-                <Label htmlFor="add_shadow">Add Shadow</Label>
+                <Label htmlFor="add_shadow">{t("backgroundRemover.addShadow")}</Label>
               </div>
             </div>
 
@@ -336,10 +336,10 @@ export default function BackgroundRemover() {
                 className="flex-1"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                {removeBackgroundMutation.isPending ? "Processing..." : "Remove Background"}
+                {removeBackgroundMutation.isPending ? t("backgroundRemover.processing") : t("backgroundRemover.removeBackground")}
               </Button>
               <Button onClick={resetTool} variant="outline">
-                Reset
+                {t("backgroundRemover.reset")}
               </Button>
             </div>
 
@@ -347,7 +347,7 @@ export default function BackgroundRemover() {
               <div className="space-y-2">
                 <Progress value={undefined} className="w-full" />
                 <p className="text-sm text-center text-gray-600">
-                  AI is processing your image...
+                  {t("backgroundRemover.aiProcessing")}
                 </p>
               </div>
             )}
