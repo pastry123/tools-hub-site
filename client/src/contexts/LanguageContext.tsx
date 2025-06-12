@@ -263,6 +263,7 @@ const translations = {
     "pdfMerger.reset": "Reset",
     "pdfMerger.download": "Download",
     "pdfMerger.readyForDownload": "Your merged PDF is ready for download",
+    "pdfMerger.success": "PDF Successfully Merged!",
     
     // PDF Compressor Tool - English
     "pdfCompressor.title": "PDF Compressor",
@@ -1131,6 +1132,7 @@ const translations = {
     "pdfMerger.reset": "Restablecer",
     "pdfMerger.download": "Descargar",
     "pdfMerger.readyForDownload": "Tu PDF fusionado está listo para descargar",
+    "pdfMerger.success": "¡PDF Fusionado Exitosamente!",
     
     // PDF Compressor Tool - Spanish
     "pdfCompressor.title": "Compresor PDF",
@@ -1294,13 +1296,7 @@ const translations = {
     "colorAnalyzer.noFileChosen": "Ningún archivo seleccionado",
     "colorAnalyzer.chooseFile": "Elegir Archivo",
     
-    // PDF Merger
-    "pdfMerger.title": "Fusionador de PDF",
-    "pdfMerger.subtitle": "Combinar múltiples archivos PDF en un documento",
-    "pdfMerger.invalidFileType": "Tipo de archivo inválido",
-    "pdfMerger.notPdfFile": "no es un archivo PDF",
-    "pdfMerger.fileTooLarge": "Archivo demasiado grande",
-    "pdfMerger.exceedsLimit": "excede el límite de 50MB",
+    // PDF Merger - already defined above
     
     // AI Text Tool
 
@@ -1589,14 +1585,9 @@ const translations = {
     "pdfMerger.reset": "إعادة تعيين",
     "pdfMerger.download": "تحميل",
     "pdfMerger.readyForDownload": "ملف PDF المدموج جاهز للتحميل",
+    "pdfMerger.success": "تم دمج PDF بنجاح!",
     
-    // PDF Compressor Tool - Arabic
-    "pdfCompressor.title": "ضاغط PDF",
-    "pdfCompressor.description": "تقليل حجم ملف PDF مع الحفاظ على الجودة. اختر مستوى الضغط حسب احتياجاتك.",
-    "pdfCompressor.uploadPdfFile": "رفع ملف PDF",
-    "pdfCompressor.dragDropPdf": "اسحب وأفلت ملف PDF هنا، أو انقر للتصفح",
-    "pdfCompressor.chooseFile": "اختر الملف",
-    "pdfCompressor.compressPdf": "ضغط PDF",
+    // PDF Compressor - already defined below
     
     // PDF Watermark Tool - Arabic
     "pdfWatermark.title": "إضافة علامة مائية لـ PDF",

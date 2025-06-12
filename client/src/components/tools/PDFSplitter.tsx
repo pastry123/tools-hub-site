@@ -32,10 +32,10 @@ export default function PDFSplitter() {
   const { t } = useLanguage();
 
   const splitOptions: SplitOption[] = [
-    { type: 'pages', value: 'pages', label: 'Specific Pages' },
-    { type: 'ranges', value: 'ranges', label: 'Page Ranges' },
-    { type: 'every', value: 'every', label: 'Every N Pages' },
-    { type: 'size', value: 'size', label: 'Fixed Size Chunks' }
+    { type: 'pages', value: 'pages', label: t("pdfSplitter.specificPages") || 'Specific Pages' },
+    { type: 'ranges', value: 'ranges', label: t("pdfSplitter.pageRanges") || 'Page Ranges' },
+    { type: 'every', value: 'every', label: t("pdfSplitter.everyNPages") || 'Every N Pages' },
+    { type: 'size', value: 'size', label: t("pdfSplitter.fixedSizeChunks") || 'Fixed Size Chunks' }
   ];
 
   const handleFileSelection = async (selectedFile: File) => {
