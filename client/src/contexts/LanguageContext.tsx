@@ -1089,7 +1089,8 @@ const translations: Record<Language, Record<string, string>> = {
   },
   ar: {
     // Header
-    "header.title": "Aptexa ToolHub",
+    "header.title": "Aptexa مركز الأدوات
+",
     "header.subtitle": "أدوات احترافية على الإنترنت",
     "header.search": "البحث في الأدوات...",
     "header.dashboard": "لوحة التحكم",
@@ -1256,12 +1257,12 @@ const translations: Record<Language, Record<string, string>> = {
     // COMPREHENSIVE TOOL TRANSLATIONS - ALL MISSING TOOLS ARABIC
     
     // Barcodes Category - Missing Tools
-    "tools.code128-generator": "منشئ Code 128",
-    "tools.code128-generator.desc": "إنشاء باركود خطي Code 128",
+    "tools.code128-generator": "منشئ كود128",
+    "tools.code128-generator.desc": "إنشاء باركود خطي منشئ كود128",
     "tools.ean13-generator": "منشئ EAN-13", 
     "tools.ean13-generator.desc": "إنشاء باركود منتجات EAN-13",
     "tools.datamatrix-generator": "منشئ Data Matrix",
-    "tools.datamatrix-generator.desc": "إنشاء أكواد ثنائية الأبعاد Data Matrix",
+    "tools.datamatrix-generator.desc": "إنشاء أكواد ثنائية الأبعاد مصفوفة البيانات",
 
     // PDF Tools Category - All Tools
     "tools.pdf-merge": "دمج PDF",
@@ -1318,8 +1319,8 @@ const translations: Record<Language, Record<string, string>> = {
     "tools.url-encoder.desc": "تشفير وفك تشفير URLs",
     "tools.csv-to-json": "CSV إلى JSON", 
     "tools.csv-to-json.desc": "تحويل بيانات CSV إلى تنسيق JSON",
-    "tools.markdown-to-html": "Markdown إلى HTML",
-    "tools.markdown-to-html.desc": "تحويل Markdown إلى HTML",
+    "tools.markdown-to-html": "تخفيض السعر إلى HTML",
+    "tools.markdown-to-html.desc": "تحويل تخفيض السعرإلى HTML",
     "tools.unit-converter": "محول الوحدات",
     "tools.unit-converter.desc": "التحويل بين وحدات القياس المختلفة",
     "tools.timezone-converter": "محول المنطقة الزمنية",
@@ -1451,7 +1452,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Barcode Categories
     "barcode.linearCodes": "الرموز الخطية",
     "barcode.postalCodes": "الرموز البريدية", 
-    "barcode.gs1DataBar": "GS1 DataBar",
+    "barcode.gs1DataBar": "GS1 شريط البيانات",
     "barcode.eanUpc": "EAN / UPC",
     "barcode.twoDCodes": "الرموز ثنائية الأبعاد",
     "barcode.gs1TwoDCodes": "رموز GS1 ثنائية الأبعاد",
@@ -1482,11 +1483,11 @@ const translations: Record<Language, Record<string, string>> = {
     "Royal Mail 4-State": "البريد الملكي 4-حالات",
     "USPS POSTNET": "USPS POSTNET",
     "USPS Intelligent Mail": "USPS البريد الذكي",
-    "GS1 DataBar Omnidirectional": "GS1 DataBar متعدد الاتجاهات",
-    "GS1 DataBar Stacked": "GS1 DataBar مكدس",
-    "GS1 DataBar Limited": "GS1 DataBar محدود",
-    "GS1 DataBar Expanded": "GS1 DataBar موسع",
-    "GS1 DataBar Expanded Stacked": "GS1 DataBar موسع مكدس",
+    "GS1 DataBar Omnidirectional": "GS1 شريط البيانات متعدد الاتجاهات",
+    "GS1 DataBar Stacked": "GS1 شريط البيانات مكدس",
+    "GS1 DataBar Limited": "GS1 شريط البيانات محدود",
+    "GS1 DataBar Expanded": "GS1 شريط البيانات موسع",
+    "GS1 DataBar Expanded Stacked": "GS1 شريط البيانات موسع مكدس",
     "EAN-8": "EAN-8",
     "EAN-13": "EAN-13",
     "UPC-A": "UPC-A",
@@ -1494,7 +1495,7 @@ const translations: Record<Language, Record<string, string>> = {
     "Data Matrix": "مصفوفة البيانات",
     "QR Code": "رمز الاستجابة السريعة",
     "PDF417": "PDF417",
-    "MicroPDF417": "MicroPDF417",
+    "MicroPDF417": "مايكروPDF417",
     "Aztec Code": "كود الأزتك",
     "MaxiCode": "ماكسي كود",
 
