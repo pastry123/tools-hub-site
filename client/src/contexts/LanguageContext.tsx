@@ -644,6 +644,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.previous": "Previous",
     "common.finish": "Finish",
     "common.skip": "Skip"
+    "tool.securePrivate": "Secure & Private"
   },
   es: {
     // Header
